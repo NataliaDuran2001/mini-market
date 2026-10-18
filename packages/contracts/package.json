@@ -3,12 +3,34 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./common": {
+      "types": "./dist/common/index.d.ts",
+      "default": "./dist/common/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@mini-market/shared-kernel": "workspace:*",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@mini-market/config": "workspace:*",
-    "eslint": "catalog:"
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
