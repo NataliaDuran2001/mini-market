@@ -1,0 +1,11 @@
+{
+  "title": "Bienvenido a Mini-Market",
+  "subtitle": "Tu negocio, ordenado desde el celular.",
+  "api": {
+    "title": "Estado del servidor",
+    "checking": "Verificando conexión...",
+    "ok": "Servidor conectado",
+    "error": "No se pudo conectar con el servidor.",
+    "version": "Versión del servidor: {{version}}"
+  }
+}
