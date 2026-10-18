@@ -2,9 +2,11 @@
 // Lanes add their module here; on a merge conflict keep both sides in alphabetical order.
 import { AccessModule } from './modules/access/access.module';
 import { HealthModule } from './modules/health/health.module';
+import { TenancyModule } from './modules/tenancy/tenancy.module';
 
 // prettier-ignore
 export const APP_MODULES = [
   AccessModule,
   HealthModule,
+  TenancyModule,
 ];
