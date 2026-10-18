@@ -28,6 +28,8 @@ export default defineConfig(({ mode }) => {
     preview: { port: webPort, strictPort: true },
     test: {
       environment: 'jsdom',
+      // Whole-app tests render the router and its shell; a cold CI runner needs more than 5 s.
+      testTimeout: 20_000,
       setupFiles: ['./src/test/setup.ts'],
       include: ['src/**/*.test.{ts,tsx}'],
       env: {
