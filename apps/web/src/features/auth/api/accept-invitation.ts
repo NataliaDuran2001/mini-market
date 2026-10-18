@@ -19,9 +19,11 @@ export function useAcceptInvitation() {
         schema: acceptInvitationResponseSchema,
         withTenant: false,
       }),
-    onSuccess: async ({ tenantId }) => {
+    onSuccess: ({ tenantId }) => {
       tenantStore.set(tenantId);
-      await queryClient.invalidateQueries({ queryKey: MY_TENANTS_KEY });
+      // Drop (not just invalidate) the cached list: route guards read it with ensureQueryData, which
+      // would otherwise return the list from before the invitation was accepted.
+      queryClient.removeQueries({ queryKey: MY_TENANTS_KEY });
     },
   });
 }

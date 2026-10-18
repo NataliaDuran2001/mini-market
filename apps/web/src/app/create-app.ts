@@ -29,6 +29,71 @@ export interface AppServices {
   readonly tenantStore: TenantStore;
 }
 
+/** `Authorization` and `X-Tenant-Id` for every API call (never cookies). */
+function createHeaderProvider(gateway: AuthGateway, tenantStore: TenantStore) {
+  return async ({ withTenant }: { readonly withTenant: boolean }) => {
+    const token = await gateway.getAccessToken();
+    const tenantId = tenantStore.get();
+    return {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(withTenant && tenantId ? { 'X-Tenant-Id': tenantId } : {}),
+    };
+  };
+}
+
+/**
+ * Whatever ends the session (logout, a 401, another tab, a failed token refresh), and whenever a
+ * different person signs in, nothing of the previous person may stay: cached queries and the
+ * selected business are dropped.
+ */
+function forgetPreviousUser(deps: {
+  gateway: AuthGateway;
+  queryClient: QueryClient;
+  tenantStore: TenantStore;
+  getRouter: () => AppRouter | undefined;
+}): void {
+  let knownUserId: string | null = null;
+  void deps.gateway
+    .getSession()
+    .then((session) => {
+      knownUserId ??= session?.userId ?? null;
+    })
+    .catch(() => undefined);
+  deps.gateway.onSessionChange((session) => {
+    const userId = session?.userId ?? null;
+    const changed = userId === null || (knownUserId !== null && knownUserId !== userId);
+    knownUserId = userId;
+    if (!changed) return;
+    deps.queryClient.clear();
+    deps.tenantStore.clear();
+    // Re-run the route guards: a protected screen sends the person to /login, public ones stay.
+    if (userId === null) void deps.getRouter()?.invalidate();
+  });
+}
+
+/** A 401 ends the session and sends the person to /login, bringing them back afterwards. */
+function createUnauthorizedHandler(deps: {
+  gateway: AuthGateway;
+  getRouter: () => AppRouter | undefined;
+}) {
+  let handling = false;
+  return () => {
+    const router = deps.getRouter();
+    if (handling || !router) return;
+    handling = true;
+    void (async () => {
+      try {
+        await deps.gateway.signOut();
+        if (router.state.location.pathname !== '/login') {
+          await router.navigate({ to: '/login', search: { redirect: router.state.location.href } });
+        }
+      } finally {
+        handling = false;
+      }
+    })();
+  };
+}
+
 /**
  * Wires the app: the API client sends the token and the tenant, a 401 ends the session and sends
  * the person to /login (they return to where they were after signing in), a 403 shows a toast.
@@ -39,40 +104,14 @@ export function createAppServices(options: AppServicesOptions): AppServices {
   const instance = options.i18n ?? createI18n();
   // The API client needs the router (to redirect on 401) and the router needs the client.
   const wiring: { router?: AppRouter } = {};
-  let signingOut = false;
 
-  const handleUnauthorized = () => {
-    if (signingOut || !wiring.router) return;
-    signingOut = true;
-    const current = wiring.router;
-    void (async () => {
-      try {
-        await gateway.signOut();
-        queryClient.clear();
-        if (current.state.location.pathname !== '/login') {
-          await current.navigate({
-            to: '/login',
-            search: { redirect: current.state.location.href },
-          });
-        }
-      } finally {
-        signingOut = false;
-      }
-    })();
-  };
+  forgetPreviousUser({ gateway, queryClient, tenantStore, getRouter: () => wiring.router });
 
   const apiClient = createApiClient({
     baseUrl: options.apiBaseUrl,
     ...(options.fetch ? { fetch: options.fetch } : {}),
-    getHeaders: async ({ withTenant }) => {
-      const token = await gateway.getAccessToken();
-      const tenantId = tenantStore.get();
-      return {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(withTenant && tenantId ? { 'X-Tenant-Id': tenantId } : {}),
-      };
-    },
-    onUnauthorized: handleUnauthorized,
+    getHeaders: createHeaderProvider(gateway, tenantStore),
+    onUnauthorized: createUnauthorizedHandler({ gateway, getRouter: () => wiring.router }),
     onForbidden: () => {
       toast.error(instance.t('errors.forbiddenToast', { ns: 'common' }));
     },
@@ -82,7 +121,6 @@ export function createAppServices(options: AppServicesOptions): AppServices {
     context: { gateway, tenantStore, queryClient, apiClient },
     ...(options.history ? { history: options.history } : {}),
   });
-
   wiring.router = router;
 
   return { router, queryClient, apiClient, i18n: instance, gateway, tenantStore };

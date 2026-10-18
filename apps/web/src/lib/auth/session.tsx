@@ -56,7 +56,12 @@ export function useSession(): SessionState {
         session ? { status: 'authenticated', session } : { status: 'anonymous', session: null },
       );
     };
-    void gateway.getSession().then(apply);
+    gateway
+      .getSession()
+      .then(apply)
+      .catch(() => {
+        apply(null);
+      });
     const unsubscribe = gateway.onSessionChange(apply);
     return () => {
       active = false;

@@ -12,6 +12,8 @@ export function useCurrentRole(): Role | null {
 /**
  * Role-aware rendering (docs/04-coding-standards.md section 7). It hides UI; it never authorizes.
  */
+// TODO(#15): pass tenant.settings.employeeCanVoid once the shell loads GET /tenant; until then an
+// employee never sees sales.void in the UI (fails closed; the API decides).
 export function useCan(permission: string): boolean {
   return can(useCurrentRole(), permission);
 }

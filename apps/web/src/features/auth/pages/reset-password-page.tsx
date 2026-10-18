@@ -14,7 +14,7 @@ export function ResetPasswordPage() {
   const changePassword = async (password: string): Promise<string | null> => {
     const result = await gateway.updatePassword(password);
     if (!result.ok) return t(`errors.${result.code}`);
-    router.history.push('/');
+    router.history.replace('/');
     return null;
   };
 

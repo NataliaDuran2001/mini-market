@@ -21,11 +21,12 @@ export function ForgotPasswordForm() {
   const submit = form.handleSubmit(async ({ email }) => {
     const redirectTo = `${window.location.origin}/reset-password`;
     const result = await gateway.requestPasswordReset({ email, redirectTo });
-    const retryable =
-      !result.ok && (result.code === 'RATE_LIMITED' || result.code === 'NETWORK_ERROR');
+    // Only a failure to reach the server is reported: any other answer (including a rate limit,
+    // which Supabase applies per existing account) looks the same as success.
+    const unreachable = !result.ok && result.code === 'NETWORK_ERROR';
     setOutcome(
-      retryable
-        ? { sent: false, message: t(`errors.${result.code}`) }
+      unreachable
+        ? { sent: false, message: t('errors.NETWORK_ERROR') }
         : { sent: true, message: t('forgot.sent') },
     );
   });

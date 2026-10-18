@@ -9,9 +9,12 @@ export function useLogout() {
   const queryClient = useQueryClient();
   const router = useRouter();
   return async () => {
-    await gateway.signOut();
-    tenantStore.clear();
-    queryClient.clear();
+    try {
+      await gateway.signOut();
+    } finally {
+      tenantStore.clear();
+      queryClient.clear();
+    }
     await router.navigate({ to: '/login', search: {} });
   };
 }

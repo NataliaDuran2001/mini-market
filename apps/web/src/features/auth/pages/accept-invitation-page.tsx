@@ -28,7 +28,7 @@ export function AcceptInvitationPage({ token }: { token: string | undefined }) {
     } catch (error) {
       return apiErrorMessage(i18n, error);
     }
-    router.history.push('/');
+    router.history.replace('/');
     return null;
   };
 

@@ -164,7 +164,7 @@ describe('tenant selection', () => {
 
 describe('logout', () => {
   it('ends the session, forgets the business and shows the login page', async () => {
-    // AC-3
+    // Scope (#14): logout
     const app = renderApp({ path: '/', session: TEST_USER });
     const user = userEvent.setup();
     expect(await screen.findByRole('heading', { name: home.title })).toBeInTheDocument();
