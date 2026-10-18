@@ -41,7 +41,7 @@ Each lane uses its own ports when it runs servers: P1 and C use API 3101 and web
 5. Gates: `pnpm typecheck && pnpm lint && pnpm test`, and the issue's e2e tag when it is an `[e2e]` issue.
 6. Self-review with the `spec-reviewer` and `architecture-reviewer` agents. Fix every blocking finding.
 7. `git fetch origin && git rebase origin/main`. Re-run the gates if the rebase changed anything.
-8. Push the branch and open the PR with `Closes #<n>`, the DoD checklist and the acceptance criteria to tests table.
+8. Push the branch and open the PR with `Closes #<n>`, the DoD checklist and the acceptance criteria to tests table. When the PR must NOT close the issue, write only `Refs #<n>` and never use the words close, closes, fix, fixes, resolve or resolves next to an issue number anywhere in the body, not even negated: GitHub treats "does not close #7" as a closing keyword.
 9. Wait for CI: `gh pr checks <pr> --watch`. If CI fails, fix it. If the failure comes from the CI skeleton itself and not from your change, fix the workflow in the same PR.
 10. Merge only when CI is green and the review has no blocking findings: `gh pr merge <pr> --squash --delete-branch`. Never merge red or pending checks. Never force-push `main`.
 11. Confirm the issue is `CLOSED`. If the merge did not close it, close it yourself with `gh issue close <n> --reason completed --comment "Delivered in PR #<pr>"`. Other lanes wait on this state. Then start the next issue.
