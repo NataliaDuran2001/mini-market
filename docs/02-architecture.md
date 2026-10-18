@@ -204,6 +204,8 @@ Variables, by name only (values live in the host, never in the repo):
 | `RAILWAY_SERVICE` | GitHub Actions variable | deploy workflow | Service name or id |
 | `API_URL` | GitHub Actions variable | deploy workflow | Public API origin, for the health wait |
 
+`MIGRATION_DATABASE_URL` is the owner role. Railway gives the pre-deploy command the variables of the service, so setting it on the API service also puts that role, which bypasses RLS, in the API container. Decide before the first deploy: a separate Railway service for migrations, or accept the risk for the dev environment only.
+
 The web CSP (`apps/web/vercel.json`) allows `connect-src` to `https://*.supabase.co` and `https://*.up.railway.app`; a custom API domain needs a line there.
 
 ## 11. Request flow

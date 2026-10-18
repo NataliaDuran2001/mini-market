@@ -76,12 +76,18 @@ describe('deploy-api.yml', () => {
     );
     expect(workflow).toContain("github.event.workflow_run.conclusion == 'success'");
     expect(workflow).toContain("github.event.workflow_run.event == 'push'");
+    expect(workflow).toContain("github.event.workflow_run.head_branch == 'main'");
   });
 
   it('skips with a notice, not a failure, while Railway is not configured', () => {
     expect(workflow).toContain('configured=false');
     expect(workflow).toContain('::notice title=Deploy skipped::');
     expect(workflow).toContain('secrets.RAILWAY_TOKEN');
+  });
+
+  it('gives the Railway token to the steps that need it, not to the whole job', () => {
+    expect(workflow.match(/RAILWAY_TOKEN: \$\{\{ secrets\.RAILWAY_TOKEN \}\}/g)).toHaveLength(2);
+    expect(workflow).not.toMatch(/timeout-minutes: 25\n\s+env:\n\s+RAILWAY_TOKEN/);
   });
 
   it('pins the Railway CLI to an exact version and keeps no credentials in the checkout', () => {

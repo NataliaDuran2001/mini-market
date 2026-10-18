@@ -106,17 +106,19 @@ jobs:
     if: >-
       github.event_name == 'workflow_run' &&
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push'
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE }}
       API_URL: ${{ vars.API_URL }}
       HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
     steps:
       - name: Check the Railway configuration
         id: config
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_SERVICE" ] || [ -z "$API_URL" ]; then
             echo "configured=false" >> "$GITHUB_OUTPUT"
@@ -138,6 +140,9 @@ jobs:
         run: npm install --global @railway/cli@5.57.8
       - name: Deploy
         if: steps.config.outputs.configured == 'true'
+        env:
+          # Only this step holds the token, not the installs or the health wait.
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           # The Dockerfile turns GIT_SHA into the version the health check reports.
           railway variables --service "$RAILWAY_SERVICE" --set "GIT_SHA=$HEAD_SHA" --skip-deploys

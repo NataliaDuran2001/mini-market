@@ -59,5 +59,7 @@ export async function runMigrationJob(
 }
 
 if (require.main === module) {
-  void runMigrationJob().then((code) => process.exit(code));
+  runMigrationJob()
+    .then((code) => process.exit(code))
+    .catch(() => process.exit(1));
 }
