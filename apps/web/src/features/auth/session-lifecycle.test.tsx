@@ -1,7 +1,7 @@
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import auth from '@/locales/es/auth.json';
 import common from '@/locales/es/common.json';
 import home from '@/locales/es/home.json';
@@ -80,6 +80,9 @@ describe('session lifecycle', () => {
   });
 
   it('shows a Spanish error page with a retry when the tenants cannot be loaded', async () => {
+    // The failure is the point of the test: keep React and the router from logging it as noise.
+    const quiet = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const warned = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     server.use(
       http.get(apiUrl('/me/tenants'), () =>
         HttpResponse.json({ code: 'IDENTITY_PROVIDER_UNAVAILABLE', message: 'x' }, { status: 503 }),
@@ -92,6 +95,8 @@ describe('session lifecycle', () => {
       common.errors.codes.IDENTITY_PROVIDER_UNAVAILABLE,
     );
     expect(screen.getByRole('button', { name: common.routeError.retry })).toBeInTheDocument();
+    quiet.mockRestore();
+    warned.mockRestore();
   });
 
   it('shows a Spanish toast when the API answers 403', async () => {

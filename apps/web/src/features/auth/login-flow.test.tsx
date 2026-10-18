@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import auth from '@/locales/es/auth.json';
 import home from '@/locales/es/home.json';
+import shell from '@/locales/es/shell.json';
 import { TEST_ACCESS_TOKEN, TEST_USER } from '@/test/fake-auth-gateway';
 import { apiUrl } from '@/test/msw/api-url';
 import { OWNER_TENANT, SECOND_TENANT } from '@/test/msw/handlers/access';
@@ -169,7 +170,8 @@ describe('logout', () => {
     const user = userEvent.setup();
     expect(await screen.findByRole('heading', { name: home.title })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: auth.logout }));
+    await user.click(screen.getByRole('button', { name: shell.header.account }));
+    await user.click(await screen.findByRole('button', { name: auth.logout }));
 
     expect(await screen.findByLabelText(auth.login.email)).toBeInTheDocument();
     expect(app.tenantStore.get()).toBeNull();

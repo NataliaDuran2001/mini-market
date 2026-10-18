@@ -3,7 +3,7 @@ export { can } from './domain/role-permissions';
 export type { Role } from './domain/role-permissions';
 export { requireAuth, requirePermission, requireSession } from './guards';
 export type { AuthenticatedRoute, GuardContext } from './guards';
-export { useCan, useCurrentRole } from './hooks/use-can';
+export { useCan, useCurrentRole, usePermissionCheck } from './hooks/use-can';
 export { useLogout } from './hooks/use-logout';
 export { useMyTenants } from './api/my-tenants';
 export { AcceptInvitationPage } from './pages/accept-invitation-page';

@@ -130,6 +130,8 @@ const FILES = [
   file('module-public', 'apps/api/src/modules/*/index.ts'),
   file('module-root', 'apps/api/src/modules/*/*.ts'),
   file('feature-public', 'apps/web/src/features/*/index.ts'),
+  // Plain-data registration of a feature's navigation entries, read by the app shell.
+  file('feature-navigation', 'apps/web/src/features/*/navigation.ts'),
 ];
 
 const type = (name, captured, category) => ({
@@ -294,6 +296,7 @@ const DEPENDENCIES_RULE = [
       ]),
       policy(type('app'), [
         type('feature', undefined, 'feature-public'),
+        type('feature', undefined, 'feature-navigation'),
         type('contracts'),
         type('shared-kernel'),
         type('web-lib'),

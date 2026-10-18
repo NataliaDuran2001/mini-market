@@ -61,6 +61,14 @@ describe('module boundaries', () => {
     expect(ruleIds).toEqual([]);
   });
 
+  it('lets the app shell read the navigation.ts of a feature but nothing else inside it', async () => {
+    // issue #15: features register menu entries in navigation.ts (plain data)
+    expect(await ruleIdsFor('apps/web/src/app/reads-navigation.ts')).toEqual([]);
+    expect(await ruleIdsFor('apps/web/src/app/reaches-into-feature.ts')).toContain(
+      'boundaries/dependencies',
+    );
+  });
+
   it('lets a module wire its own layers and the app re-export module schemas', async () => {
     // AC-3 (negative controls for the parallel-lane conventions of #3: <domain>.module.ts,
     // infrastructure/schema.ts re-exported by src/infrastructure/db/schema.ts, app.modules.ts)

@@ -1,6 +1,7 @@
 import { createRouter, type RouterHistory } from '@tanstack/react-router';
 import { routeTree } from '@/routeTree.gen';
 import { NotFound } from './not-found';
+import { PageLoading } from './page-loading';
 import { RouteError } from './route-error';
 import type { RouterContext } from './router-context';
 
@@ -11,6 +12,7 @@ export function createAppRouter(options: { context: RouterContext; history?: Rou
     context: options.context,
     defaultNotFoundComponent: NotFound,
     defaultErrorComponent: RouteError,
+    defaultPendingComponent: PageLoading,
     defaultPreload: 'intent',
     ...(options.history ? { history: options.history } : {}),
   });

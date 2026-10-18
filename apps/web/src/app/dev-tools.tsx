@@ -13,7 +13,7 @@ export function DevTools() {
   if (!QueryDevtools) return null;
   return (
     <Suspense fallback={null}>
-      <QueryDevtools buttonPosition="bottom-left" />
+      <QueryDevtools buttonPosition="bottom-right" />
     </Suspense>
   );
 }

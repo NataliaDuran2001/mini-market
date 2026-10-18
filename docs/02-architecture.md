@@ -102,7 +102,7 @@ apps/web/src/features/sales/
 | `apps/api/src/modules/X/presentation` | own `application`, `@mini-market/contracts`, Nest |
 | `apps/api/src/modules/reporting/infrastructure` | schemas exported by other modules' `index.ts` (documented read-only exception) |
 | `apps/web/src/features/X` | own files, `@mini-market/contracts`, `@mini-market/shared-kernel`, `src/ui`, `src/lib`, `features/Y/index.ts` |
-| `apps/web/src/app` | `features/*/index.ts`, `src/ui`, `src/lib` |
+| `apps/web/src/app` | `features/*/index.ts`, `features/*/navigation.ts` (plain data: the feature's navigation entries, collected by glob), `src/ui`, `src/lib` |
 | `packages/shared-kernel` | nothing from apps or other packages |
 | `packages/contracts` | `@mini-market/shared-kernel`, zod |
 
