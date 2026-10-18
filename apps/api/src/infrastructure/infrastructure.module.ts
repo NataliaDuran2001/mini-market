@@ -1,6 +1,7 @@
 import { Global, Inject, Module } from '@nestjs/common';
 import type { DynamicModule, OnApplicationShutdown, Provider } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
+import { SystemClock } from '@mini-market/shared-kernel';
 import type { Env } from './config/env';
 import { createDatabase } from './db/database';
 import type { Database, DatabaseConnection } from './db/database';
@@ -9,6 +10,7 @@ import { DomainEventBus } from './events/domain-event-bus';
 import { describeError } from './logger/describe-error';
 import {
   APP_VERSION,
+  CLOCK,
   DATABASE,
   DATABASE_CONNECTION,
   DOMAIN_EVENT_BUS,
@@ -33,6 +35,7 @@ export class InfrastructureModule implements OnApplicationShutdown {
     const providers: Provider[] = [
       { provide: ENV, useValue: options.env },
       { provide: APP_VERSION, useValue: options.version },
+      { provide: CLOCK, useFactory: () => new SystemClock() },
       {
         provide: DATABASE_CONNECTION,
         useFactory: (): DatabaseConnection =>
@@ -65,7 +68,7 @@ export class InfrastructureModule implements OnApplicationShutdown {
     return {
       module: InfrastructureModule,
       providers,
-      exports: [APP_VERSION, DATABASE, DOMAIN_EVENT_BUS, ENV, WITH_TRANSACTION],
+      exports: [APP_VERSION, CLOCK, DATABASE, DOMAIN_EVENT_BUS, ENV, WITH_TRANSACTION],
     };
   }
 
