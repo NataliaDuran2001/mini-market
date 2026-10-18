@@ -1,5 +1,8 @@
 # 03 - Roadmap
 
+> GitHub Project: https://github.com/users/NataliaDuran2001/projects/4 (execute issues in the `Order` field sequence).
+
+
 Source of truth for execution is the GitHub Project "Mini Market v1" and its issues. This file is the map. Links are filled once milestones and epics exist.
 
 ## Milestones v1
@@ -8,16 +11,16 @@ Each milestone closes with a complete module testable end to end: API, web and P
 
 | Milestone | Deliverable | Testable outcome | Issues | Days | Cumulative | Links |
 |---|---|---|---|---|---|---|
-| M0 Scaffold and harness | Monorepo, API and web skeletons, shared packages, CI, initial deploy | `pnpm dev` starts API and web; CI green on main | 6 | 2 | 2 | (pending) |
-| M1 Foundation: tenants, auth, roles | Supabase auth, tenants, memberships, roles, RLS, module settings, provisioning, app shell | Two tenants with owner and employee; login; each sees only its data | 7 + e2e | 3 | 5 | (pending) |
-| M2 Products and stock | Catalogs, products, presentations, stock ledger, adjustments, CSV import | Catalog loaded from the client Excel, stock visible and adjustable | 8 | 3 | 8 | (pending) |
-| M3 Purchases | Suppliers, purchases, weighted average cost, payable on credit purchase | A credit purchase updates stock, cost and appears as a debt | 5 | 3 | 11 | (pending) |
-| M4 Sales | Sale screen, receipt, void, sales of the day | Sell from phone or PC, print receipt, void, see the day | 6 | 4 | 15 | (pending) |
-| M5 Expenses and accounts payable | Expenses, recurring templates, monthly generation, unified payables | Fixed monthly expenses and supplier debts in one list with due dates | 5 | 3 | 18 | (pending) |
-| M6 Capital | Contributions and withdrawals | Capital total and equity visible to the owner | 3 | 1 | 19 | (pending) |
-| M7 Reports | Daily report, monthly report, top products, CSV export | Gross and net profit for a month match a hand reconciliation | 5 | 3 | 22 | (pending) |
+| M0 Scaffold and harness | Monorepo, API and web skeletons, shared packages, CI, initial deploy | `pnpm dev` starts API and web; CI green on main | 6 | 2 | 2 | [milestone](https://github.com/NataliaDuran2001/mini-market/milestone/8), [epic #1](https://github.com/NataliaDuran2001/mini-market/issues/1) |
+| M1 Foundation: tenants, auth, roles | Supabase auth, tenants, memberships, roles, RLS, module settings, provisioning, app shell | Two tenants with owner and employee; login; each sees only its data | 7 + e2e | 3 | 5 | [milestone](https://github.com/NataliaDuran2001/mini-market/milestone/1), [epic #8](https://github.com/NataliaDuran2001/mini-market/issues/8) |
+| M2 Products and stock | Catalogs, products, presentations, stock ledger, adjustments, CSV import | Catalog loaded from the client Excel, stock visible and adjustable | 8 | 3 | 8 | [milestone](https://github.com/NataliaDuran2001/mini-market/milestone/9), [epic #17](https://github.com/NataliaDuran2001/mini-market/issues/17) |
+| M3 Purchases | Suppliers, purchases, weighted average cost, payable on credit purchase | A credit purchase updates stock, cost and appears as a debt | 5 | 3 | 11 | [milestone](https://github.com/NataliaDuran2001/mini-market/milestone/2), [epic #26](https://github.com/NataliaDuran2001/mini-market/issues/26) |
+| M4 Sales | Sale screen, receipt, void, sales of the day | Sell from phone or PC, print receipt, void, see the day | 6 | 4 | 15 | [milestone](https://github.com/NataliaDuran2001/mini-market/milestone/3), [epic #32](https://github.com/NataliaDuran2001/mini-market/issues/32) |
+| M5 Expenses and accounts payable | Expenses, recurring templates, monthly generation, unified payables | Fixed monthly expenses and supplier debts in one list with due dates | 5 | 3 | 18 | [milestone](https://github.com/NataliaDuran2001/mini-market/milestone/4), [epic #39](https://github.com/NataliaDuran2001/mini-market/issues/39) |
+| M6 Capital | Contributions and withdrawals | Capital total and equity visible to the owner | 3 | 1 | 19 | [milestone](https://github.com/NataliaDuran2001/mini-market/milestone/5), [epic #45](https://github.com/NataliaDuran2001/mini-market/issues/45) |
+| M7 Reports | Daily report, monthly report, top products, CSV export | Gross and net profit for a month match a hand reconciliation | 5 | 3 | 22 | [milestone](https://github.com/NataliaDuran2001/mini-market/milestone/6), [epic #49](https://github.com/NataliaDuran2001/mini-market/issues/49) |
 | Rollout | Load real Excel, train the client, first-week fixes | Minimarket operating | 0 | 3 | 25 | n/a |
-| M8 Credit sales (fiado) | Customers, credit ledger, collections, credit path in sale screen | Sell on credit, see balance, collect | 5 | 2 | 27 | (pending) |
+| M8 Credit sales (fiado) | Customers, credit ledger, collections, credit path in sale screen | Sell on credit, see balance, collect | 5 | 2 | 27 | [milestone](https://github.com/NataliaDuran2001/mini-market/milestone/10), [epic #55](https://github.com/NataliaDuran2001/mini-market/issues/55) |
 
 Phase 0 (this repository, docs, harness, Project and issues) is 1 day and precedes M0. Total to v1 complete: 28 working days.
 
