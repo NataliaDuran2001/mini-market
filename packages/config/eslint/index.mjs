@@ -71,11 +71,20 @@ export function baseConfig(options = {}) {
         '@typescript-eslint/no-explicit-any': 'error',
         '@typescript-eslint/no-non-null-assertion': 'error',
         '@typescript-eslint/consistent-type-imports': ['error'],
+        // Nest modules, DTOs and controllers are empty or static-only classes with decorators.
+        '@typescript-eslint/no-extraneous-class': ['error', { allowWithDecorator: true }],
         '@typescript-eslint/no-unused-vars': [
           'error',
           { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
         ],
       },
+    },
+    {
+      // With emitDecoratorMetadata a class imported only for a constructor parameter type must stay
+      // a value import, or Nest cannot resolve the dependency. `--fix` would break these files.
+      name: 'mini-market/nest-di-files',
+      files: ['**/*.{controller,module,guard,interceptor,filter,pipe,dto}.ts'],
+      rules: { '@typescript-eslint/consistent-type-imports': 'off' },
     },
     {
       name: 'mini-market/imports',
