@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/card';
 import { useApiHealth } from '../api/use-api-health';
 
-// Placeholder until the dashboard lands (#15). It proves the data layer end to end.
+// Welcome and server status of the dashboard (rendered by app/shell/dashboard-page.tsx). It also
+// proves the data layer end to end.
 export function HomePage() {
   const { t } = useTranslation('home');
   const health = useApiHealth();

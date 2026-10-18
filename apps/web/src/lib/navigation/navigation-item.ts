@@ -1,7 +1,8 @@
+import type { TenantResponse } from '@mini-market/contracts/tenancy';
 import type { LucideIcon } from 'lucide-react';
 
 /** Tenant module flags that switch a feature on or off (ADR 0006). */
-export type TenantModule = 'lots' | 'fractional' | 'credit_sales' | 'custom_fields';
+export type TenantModule = keyof TenantResponse['settings']['modules'];
 
 /**
  * One entry of the app navigation. A feature registers its entries by exporting

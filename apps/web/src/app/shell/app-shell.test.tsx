@@ -23,8 +23,14 @@ async function renderShell(options: Parameters<typeof renderApp>[0] = {}) {
   return app;
 }
 
-const sidebar = () => within(screen.getByRole('navigation', { name: shell.nav.secondary }));
-const tabBar = () => within(screen.getByRole('navigation', { name: shell.nav.primary }));
+// Both landmarks have the same name (CSS shows one at a time); the sidebar comes first in the DOM.
+const landmark = (index: number) => {
+  const nav = screen.getAllByRole('navigation', { name: shell.nav.primary })[index];
+  if (!nav) throw new Error('navigation landmark missing');
+  return nav;
+};
+const sidebar = () => within(landmark(0));
+const tabBar = () => within(landmark(1));
 
 describe('navigation by enabled modules', () => {
   it('shows Fiado / Clientes when credit_sales is on', async () => {
@@ -83,7 +89,7 @@ describe('navigation by role', () => {
 });
 
 describe('tenant switcher', () => {
-  it('invalidates the queries and shows the new tenant in the header', async () => {
+  it('drops the old tenant cache and shows the new tenant in the header', async () => {
     // AC-3
     server.use(
       http.get(apiUrl('/me/tenants'), () =>
@@ -104,6 +110,7 @@ describe('tenant switcher', () => {
     const app = await renderShell({ tenantId: OWNER_TENANT.tenantId });
     expect(screen.getByTestId('tenant-name')).toHaveTextContent(OWNER_TENANT.name);
 
+    const requestsBeforeSwitch = requestedTenants.length;
     await user.click(screen.getByRole('button', { name: shell.header.account }));
     await user.click(await screen.findByRole('button', { name: SECOND_TENANT.name }));
 
@@ -111,12 +118,17 @@ describe('tenant switcher', () => {
       expect(screen.getByTestId('tenant-name')).toHaveTextContent(SECOND_TENANT.name);
     });
     expect(app.tenantStore.get()).toBe(SECOND_TENANT.tenantId);
+    // the cache of the business left is removed, not just marked stale
     expect(
-      app.services.queryClient.getQueryState(tenantKey(OWNER_TENANT.tenantId, 'settings'))
-        ?.isInvalidated,
-    ).toBe(true);
+      app.services.queryClient.getQueryData(tenantKey(OWNER_TENANT.tenantId, 'settings')),
+    ).toBeUndefined();
     await waitFor(() => {
       expect(requestedTenants).toContain(SECOND_TENANT.tenantId);
+    });
+    // after the switch no request goes out for the business that was left
+    expect(requestedTenants.slice(requestsBeforeSwitch)).not.toContain(OWNER_TENANT.tenantId);
+    await waitFor(() => {
+      expect(screen.getByTestId('tenant-name')).toHaveTextContent(SECOND_TENANT.name);
     });
   });
 
@@ -143,7 +155,7 @@ describe('mobile layout', () => {
   it('has a bottom tab bar within thumb reach: Vender, Productos, Compras and Más', async () => {
     // AC-4: jsdom has no layout engine; the measured check at 400px is recorded in the PR.
     await renderShell();
-    const nav = screen.getByRole('navigation', { name: shell.nav.primary });
+    const nav = landmark(1);
     expect(nav.className).toContain('fixed inset-x-0 bottom-0');
     expect(nav.className).toContain('pb-[env(safe-area-inset-bottom)]');
     expect(nav.className).toContain('lg:hidden');
@@ -162,7 +174,7 @@ describe('mobile layout', () => {
   it('shows the sidebar only from 1024px', async () => {
     // AC-4
     await renderShell();
-    const aside = screen.getByRole('navigation', { name: shell.nav.secondary }).closest('aside');
+    const aside = landmark(0).closest('aside');
     expect(aside?.className).toContain('hidden lg:block');
   });
 

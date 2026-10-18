@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils';
 
 /** Label of a navigation entry, from its i18n key. */
 export function useNavigationLabel(item: NavigationItem): string {
-  const { i18n } = useTranslation();
-  return translateKey(i18n, item.labelKey, item.id);
+  const { t, i18n } = useTranslation('shell');
+  return translateKey(i18n, item.labelKey, t('nav.unnamed'));
 }
 
 /**

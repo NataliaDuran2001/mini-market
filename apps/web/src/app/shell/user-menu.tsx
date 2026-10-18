@@ -14,14 +14,44 @@ import {
   SheetTrigger,
 } from '@/ui/sheet';
 
-/** Account sheet: who is signed in, switch business (when there are several) and logout. */
-export function UserMenu() {
+/** Business picker, shown only when the person belongs to more than one. */
+function TenantSwitcher() {
   const { t } = useTranslation('shell');
-  const { session } = useSession();
   const { tenantId } = useCurrentTenant();
   const tenants = useMyTenants().data?.items ?? [];
   const switchTenant = useSwitchTenant();
+  if (tenants.length < 2) return null;
+  return (
+    <section aria-labelledby="switch-tenant-title" className="grid gap-2">
+      <h3 id="switch-tenant-title" className="text-sm font-medium">
+        {t('header.switchTenant')}
+      </h3>
+      <ul className="grid gap-2">
+        {tenants.map((tenant) => (
+          <li key={tenant.tenantId}>
+            <SheetClose asChild>
+              <Button
+                variant={tenant.tenantId === tenantId ? 'secondary' : 'outline'}
+                aria-current={tenant.tenantId === tenantId ? 'true' : undefined}
+                className="w-full justify-start"
+                onClick={() => {
+                  void switchTenant(tenant.tenantId);
+                }}
+              >
+                {tenant.name}
+              </Button>
+            </SheetClose>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
 
+/** Account sheet: who is signed in, switch business and logout. */
+export function UserMenu() {
+  const { t } = useTranslation('shell');
+  const { session } = useSession();
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -33,32 +63,10 @@ export function UserMenu() {
         <SheetHeader>
           <SheetTitle>{t('header.account')}</SheetTitle>
           <SheetDescription>
-            {session ? t('header.signedInAs', { email: session.email }) : null}
+            {t('header.signedInAs', { email: session?.email ?? '' })}
           </SheetDescription>
         </SheetHeader>
-        {tenants.length > 1 ? (
-          <section aria-label={t('header.switchTenant')} className="grid gap-2">
-            <h3 className="text-sm font-medium">{t('header.switchTenant')}</h3>
-            <ul className="grid gap-2">
-              {tenants.map((tenant) => (
-                <li key={tenant.tenantId}>
-                  <SheetClose asChild>
-                    <Button
-                      variant={tenant.tenantId === tenantId ? 'secondary' : 'outline'}
-                      aria-current={tenant.tenantId === tenantId ? 'true' : undefined}
-                      className="w-full justify-start"
-                      onClick={() => {
-                        void switchTenant(tenant.tenantId);
-                      }}
-                    >
-                      {tenant.name}
-                    </Button>
-                  </SheetClose>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
+        <TenantSwitcher />
         <LogoutButton />
       </SheetContent>
     </Sheet>

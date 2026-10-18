@@ -1,9 +1,11 @@
 {
   "nav": {
     "primary": "Navegación principal",
-    "secondary": "Secciones",
+    "secondary": "Navegación principal",
     "more": "Más",
     "moreDescription": "Otras secciones del negocio",
+    "unnamed": "Sección",
+    "skipToContent": "Saltar al contenido",
     "moreEmpty": "No hay más opciones disponibles.",
     "sales": "Vender",
     "products": "Productos",
@@ -18,7 +20,8 @@
     "account": "Cuenta",
     "signedInAs": "Sesión iniciada como {{email}}",
     "switchTenant": "Cambiar de negocio",
-    "tenantLoading": "Cargando negocio..."
+    "tenantLoading": "Cargando negocio...",
+    "tenantUnknown": "Negocio"
   },
   "dashboard": {
     "shortcuts": "Accesos directos",

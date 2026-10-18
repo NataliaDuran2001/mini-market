@@ -9,10 +9,11 @@ export function ShellHeader() {
   const { tenantId } = useCurrentTenant();
   const tenants = useMyTenants();
   const name = tenants.data?.items.find((tenant) => tenant.tenantId === tenantId)?.name;
+  const fallback = tenants.isSuccess ? t('header.tenantUnknown') : t('header.tenantLoading');
   return (
     <header className="flex items-center justify-between gap-2 pb-2">
       <p data-testid="tenant-name" className="min-w-0 truncate text-lg font-semibold">
-        {name ?? t('header.tenantLoading')}
+        {name ?? fallback}
       </p>
       <UserMenu />
     </header>

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { NavigationItem } from '@/lib/navigation/navigation-item';
 import { DEFAULT_NAVIGATION } from './default-items';
 import { filterNavigation } from './filter-navigation';
-import { mergeNavigation, NAVIGATION } from './registry';
+import { mergeNavigation, NAVIGATION, navigationOf } from './registry';
 
 const item = (overrides: Partial<NavigationItem> & { id: string }): NavigationItem => ({
   path: `/${overrides.id}`,
@@ -59,9 +59,25 @@ describe('navigation registry', () => {
       order: 5,
     });
     const merged = mergeNavigation(DEFAULT_NAVIGATION, [replacement]);
-    expect(merged[0]).toBe(replacement);
+    expect(merged[0]).toMatchObject({ id: 'sales', path: '/pos', order: 5 });
     expect(merged.filter((entry) => entry.id === 'sales')).toHaveLength(1);
     expect(merged).toHaveLength(DEFAULT_NAVIGATION.length);
+  });
+
+  it('keeps the gates of the default entry when a feature replaces it without gates', () => {
+    const merged = mergeNavigation(DEFAULT_NAVIGATION, [
+      item({ id: 'reports', path: '/informes', order: 60 }),
+      item({ id: 'customers', path: '/clientes', order: 40 }),
+    ]);
+    const byId = Object.fromEntries(merged.map((entry) => [entry.id, entry]));
+    expect(byId['reports']).toMatchObject({ path: '/informes', permission: 'reports.read' });
+    expect(byId['customers']).toMatchObject({ path: '/clientes', module: 'credit_sales' });
+  });
+
+  it('skips a navigation file whose export is missing or not a list', () => {
+    expect(navigationOf({})).toEqual([]);
+    expect(navigationOf({ navigation: 'oops' })).toEqual([]);
+    expect(navigationOf({ navigation: [item({ id: 'x' })] })).toHaveLength(1);
   });
 
   it('ships the sections of the product, each with a Spanish label key', () => {
