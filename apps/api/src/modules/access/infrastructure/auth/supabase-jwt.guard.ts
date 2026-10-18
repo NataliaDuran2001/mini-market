@@ -30,7 +30,7 @@ interface HttpRequest extends AuthenticatedRequest {
 
 /**
  * Global guard (registered by `AccessModule`): every route needs a valid Supabase access token
- * unless it is marked `@Public()`. Identity only; membership and permissions come with #11.
+ * unless it is marked `@Public()`. Identity only; the tenant guard resolves membership after it.
  */
 @Injectable()
 export class SupabaseJwtGuard implements CanActivate {

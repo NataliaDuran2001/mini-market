@@ -15,6 +15,20 @@
       "when": 1792349879671,
       "tag": "20261018185759_create_tenants",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792350695207,
+      "tag": "20261018191135_access_memberships_audit_log",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792350700490,
+      "tag": "20261018191140_audit_log_append_only",
+      "breakpoints": true
     }
   ]
 }

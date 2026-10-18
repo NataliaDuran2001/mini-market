@@ -11,6 +11,7 @@ export interface ApiErrorBody {
   readonly code: string;
   readonly message: string;
   readonly details?: Readonly<Record<string, unknown>>;
+  readonly permission?: string;
   readonly requestId?: string;
 }
 
@@ -103,12 +104,17 @@ export class ApiExceptionFilter implements ExceptionFilter {
 
   private map(exception: unknown): Mapped {
     if (exception instanceof DomainError) {
+      const permission = exception.details?.['permission'];
       return {
         status: exception.httpStatus,
         body: {
           code: exception.code,
           message: exception.message,
           ...(exception.details ? { details: exception.details } : {}),
+          // A missing permission is also named at the top level (issue #11 AC-2).
+          ...(exception.code === 'FORBIDDEN' && typeof permission === 'string'
+            ? { permission }
+            : {}),
         },
       };
     }

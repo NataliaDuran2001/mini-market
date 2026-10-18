@@ -1,22 +1,22 @@
 import { Writable } from 'node:stream';
-import type { INestApplication } from '@nestjs/common';
+import type { INestApplication, Provider, Type } from '@nestjs/common';
 import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
-import type { MembershipDirectory } from '../src/modules/access/application/ports/membership-directory.port';
 import type {
   SupabaseAdminPort,
   SupabaseInviteRequest,
 } from '../src/modules/access/application/ports/supabase-admin.port';
-import { MEMBERSHIP_DIRECTORY, SUPABASE_ADMIN } from '../src/modules/access/application/tokens';
-import type { Role } from '../src/modules/access/domain/identity';
+import { SUPABASE_ADMIN } from '../src/modules/access/application/tokens';
+import type { Role } from '../src/modules/access';
 import { createTestAuth } from './auth';
 import type { TestAuth, TokenOptions } from './auth';
 import { createTestApp, testEnv } from './create-test-app';
 import { createTestDb } from './harness';
 import type { TestDb } from './harness';
+import { seedMember, seedTenant } from './helpers/seed';
 
 export const OWNER_ID = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 export const EMPLOYEE_ID = '3f2504e0-4f89-41d3-9a0c-0305e82c3302';
-export const TENANT_ID = '00000000-0000-0000-0000-0000000000a1';
+export const OTHER_OWNER_ID = '3f2504e0-4f89-41d3-9a0c-0305e82c3303';
 
 export class FakeSupabaseAdmin implements SupabaseAdminPort {
   readonly invites: SupabaseInviteRequest[] = [];
@@ -36,27 +36,36 @@ export interface AccessApp {
   readonly testDb: () => TestDb;
   readonly auth: () => TestAuth;
   readonly admin: FakeSupabaseAdmin;
-  /** `${tenantId}:${userId}` to role; what the fake membership directory answers. */
-  readonly roles: Map<string, Role>;
+  /** The tenant "sol", seeded before each test. */
+  readonly tenantId: () => string;
+  /** A second tenant "luna", for isolation checks. */
+  readonly otherTenantId: () => string;
   readonly logLines: string[];
+  /** Adds a member (and the user row) to a tenant. */
+  addMember(member: {
+    readonly tenantId: string;
+    readonly userId: string;
+    readonly role: Role;
+    readonly status?: 'active' | 'disabled';
+  }): Promise<void>;
   bearer(claims?: TokenOptions): Promise<string>;
 }
 
 /**
- * Registers the hooks of an integration suite that needs the real guard: PGlite per file, a fresh
- * app per test (the guard remembers which users it mirrored and `truncateAll` removes the rows),
- * a local key pair, a fake Supabase admin and a fake membership directory.
+ * Registers the hooks of an integration suite that needs the real guards: PGlite per file, two
+ * seeded tenants, a fresh app per test (the JWT guard remembers which users it mirrored and
+ * `truncateAll` removes the rows), a local key pair and a fake Supabase admin.
  */
-export function useAccessApp(): AccessApp {
+export function useAccessApp(
+  options: { readonly providers?: Provider[]; readonly controllers?: Type[] } = {},
+): AccessApp {
   let testDb: TestDb;
   let app: INestApplication;
   let auth: TestAuth;
+  let tenantId = '';
+  let otherTenantId = '';
   const admin = new FakeSupabaseAdmin();
-  const roles = new Map<string, Role>();
   const logLines: string[] = [];
-  const memberships: MembershipDirectory = {
-    roleOf: (_tx, tenantId, userId) => Promise.resolve(roles.get(`${tenantId}:${userId}`) ?? null),
-  };
 
   beforeAll(async () => {
     testDb = await createTestDb();
@@ -69,10 +78,11 @@ export function useAccessApp(): AccessApp {
 
   beforeEach(async () => {
     await testDb.truncateAll();
-    roles.clear();
     admin.invites.length = 0;
     admin.fail = false;
     logLines.length = 0;
+    tenantId = await seedTenant(testDb, { slug: 'sol' });
+    otherTenantId = await seedTenant(testDb, { slug: 'luna' });
     app = await createTestApp({
       database: testDb.db,
       auth,
@@ -83,10 +93,9 @@ export function useAccessApp(): AccessApp {
           done();
         },
       }),
-      overrides: [
-        { token: SUPABASE_ADMIN, useValue: admin },
-        { token: MEMBERSHIP_DIRECTORY, useValue: memberships },
-      ],
+      ...(options.providers ? { providers: options.providers } : {}),
+      ...(options.controllers ? { controllers: options.controllers } : {}),
+      overrides: [{ token: SUPABASE_ADMIN, useValue: admin }],
     });
   });
 
@@ -99,8 +108,14 @@ export function useAccessApp(): AccessApp {
     testDb: () => testDb,
     auth: () => auth,
     admin,
-    roles,
+    tenantId: () => tenantId,
+    otherTenantId: () => otherTenantId,
     logLines,
+    addMember: (member) =>
+      seedMember(testDb, {
+        ...member,
+        email: `${member.role}-${member.userId.slice(-4)}@example.com`,
+      }),
     bearer: async (claims) => `Bearer ${await auth.signToken(claims)}`,
   };
 }

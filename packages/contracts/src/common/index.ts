@@ -65,6 +65,8 @@ export const apiErrorSchema = z.object({
   code: z.string().min(1),
   message: z.string(),
   details: z.record(z.string(), z.unknown()).optional(),
+  /** FORBIDDEN only: the permission the caller lacks, for example `reports.read`. */
+  permission: z.string().optional(),
   requestId: z.string().optional(),
 });
 

@@ -42,12 +42,12 @@ Baseline for v1. The `architecture-reviewer` agent uses this file as a checklist
 | `product.cost_overridden` | product | old and new average cost (CSV import or manual) |
 | `capital.recorded` | capital_movement | type, amount |
 | `expense.deleted_or_cancelled` | expense | before |
-| `membership.created`, `membership.removed`, `membership.role_changed` | membership | user, role |
+| `member.joined`, `member.disabled`, `member.role_changed` | membership | before and after: role, status (names fixed by issue #11; they replace `membership.created`, `membership.removed` and `membership.role_changed`) |
 | `tenant.settings_changed` | tenant | diff of settings |
 | `tenant.provisioned` | tenant | preset, operator |
 | `import.completed` | import | file name, rows ok, rows failed |
 
-Entries store `tenant_id`, `user_id`, `action`, `entity_type`, `entity_id`, `before`, `after`, `created_at`. The table is append-only.
+Entries store `tenant_id`, `actor_user_id` (null for the operator), `action`, `entity`, `entity_id`, `before`, `after`, `at`. The table is append-only.
 
 ## 4. CORS and Helmet intent
 
@@ -75,3 +75,8 @@ Entries store `tenant_id`, `user_id`, `action`, `entity_type`, `entity_id`, `bef
 | Invitation token | 256 random bits in the link, only its SHA-256 stored, valid 7 days, replaced when the owner resends. The `invitations` table has `tenant_id` but no RLS: the invitee has no membership yet when the token is looked up, so access stays inside the `access` repository (issue #12 lists it as an exception). | `invite-member.test.ts` |
 | No account enumeration | The invitation response and errors never say whether an email already has an account. | `invitations.test.ts`, `supabase-admin.client.test.ts` |
 | Public signup | Must be off on every Supabase project (`disable_signup`). Manual check, record the date when done. | Manual |
+| Tenant resolution | Every route is tenant scoped unless it is `@Public()` or `@WithoutTenant()`. The tenant guard reads `X-Tenant-Id` (400 when missing or not a UUID), requires an active membership (403 `NOT_A_MEMBER`, the same answer for an unknown tenant, a stranger and a disabled member) and builds the `TenantContext` with the settings snapshot of that request. Nothing is cached between requests, so disabling a member or flipping a setting applies on the next call. | `tenant-guard.test.ts`, `tenancy-http.test.ts` |
+| Permissions | Declared per module, checked by `@RequirePermission` and again in the use case with `ctx.can`. An unknown permission is denied to everybody. The 403 names the permission (`details.permission` and `permission`). A test iterates the registry and fails if an employee can hold a permission on cost, profit, capital, expenses or reports. | `tenant-guard.test.ts`, `permission-registry.test.ts` |
+| Members | Only an owner lists, re-roles or disables members. A member is never deleted, the tenant always keeps one active owner (409 `LAST_OWNER`), and an id from another tenant answers 404. Each change writes `member.role_changed` or `member.disabled` to the audit log inside the same transaction. Member changes of one tenant take an advisory lock first, so two owners editing each other queue instead of deadlocking; PGlite has one connection, so no test exercises that race. | `members.test.ts` |
+| Accepting an invitation | The token is looked up by hash with the row locked: a second use answers 409, an expired one 410, and a token presented by a different email answers 404 like an unknown one, before any check of used or expired, and the email claim of the access token is trusted because public signup is off. Accepting never demotes an existing owner. | `accept-invitation.test.ts` |
+| Audit log | Append-only: a row trigger rejects UPDATE and DELETE (issue #12 also revokes UPDATE, DELETE and TRUNCATE from `app_user`). | `members.test.ts` |

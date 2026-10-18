@@ -16,4 +16,8 @@ export class CryptoInvitationTokens implements InvitationTokenPort {
     const token = randomBytes(TOKEN_BYTES).toString('base64url');
     return { token, tokenHash: hashInvitationToken(token) };
   }
+
+  hash(token: string): string {
+    return hashInvitationToken(token);
+  }
 }

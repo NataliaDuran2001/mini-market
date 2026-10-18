@@ -172,6 +172,23 @@ function crossModulePolicies() {
         allow: { to: [publicApi({ module: oneOf(typeOnly) })], dependency: { kind: 'type' } },
       });
     }
+    // schema.ts files reference each other for foreign keys. They stay free of Nest and of any
+    // use case, so drizzle-kit can load them alone.
+    // Not `access` for the modules it depends on: two schema files importing each other would be
+    // a cycle for drizzle-kit.
+    const referenced = [...value, ...typeOnly.filter((name) => name !== SHARED_MODULE)];
+    if (referenced.length > 0) {
+      policies.push(policy([schema(own)], [schema({ module: oneOf(referenced) })]));
+    }
+    // A domain stays pure (no runtime import of another module) but may name the types of the
+    // modules below it, for example the settings snapshot inside TenantContext.
+    const named = [...value, ...typeOnly];
+    if (named.length > 0) {
+      policies.push({
+        from: [type('module-domain', own)],
+        allow: { to: [publicApi({ module: oneOf(named) })], dependency: { kind: 'type' } },
+      });
+    }
   }
   return policies;
 }

@@ -54,6 +54,24 @@ Request bodies are limited to 1 MB (JSON). CSV import (5 MB, docs/05-security.md
 
 Every route needs `Authorization: Bearer <Supabase access token>` unless its controller or handler carries `@Public()` (both come from `modules/access`). `SupabaseJwtGuard` verifies signature (RS256 or ES256 from `${SUPABASE_URL}/auth/v1/.well-known/jwks.json`, cached and refetched on key rotation), issuer, audience `authenticated` and expiry, then `@CurrentUser()` gives `{ userId, email }`. A rejected token answers `401 { code: "UNAUTHENTICATED" }` and logs a warning with a reason code, never the token.
 
+## Tenant and permissions
+
+After the JWT guard, `TenantGuard` runs on every route that is not `@Public()` or `@WithoutTenant()`: it reads `X-Tenant-Id`, checks an active membership and builds a `TenantContext` (`tenantId`, `userId`, `role`, `settings` snapshot, `permissions`, `events`, `can(permission)`). A controller receives it with `@Ctx()` and passes it to exactly one use case; use cases and repositories take it as an explicit parameter.
+
+```ts
+// sales.permissions.ts
+export const SALES_PERMISSIONS = {
+  'sales.create': { owner: true, employee: true },
+  'sales.void': { owner: true, employee: (settings) => settings.employeeCanVoid },
+} as const satisfies PermissionDefinitions;
+
+// sales.module.ts: providers: [permissionsProvider('sales', SALES_PERMISSIONS), ...]
+// controller: @RequirePermission('sales.void') voidSale(@Ctx() ctx: TenantContext, ...)
+// use case:   const allowed = requirePermission(ctx, 'sales.void'); if (!allowed.ok) return allowed;
+```
+
+Never put an employee grant on a permission about cost, profit, capital, expenses or reports: `test/integration/permission-registry.test.ts` fails the build. `AUDIT_PORT` (from `modules/access`) appends to the audit log inside the caller's transaction.
+
 Errors reach the client only through `ApiExceptionFilter` (`src/infrastructure/http`): controllers `throw result.error` for an `Err`, and the filter keeps the `code` and status of a `DomainError`, adds `requestId`, and answers 500 without internals for anything else. Log a failure with `describeError(error)`, not the raw error: drizzle puts the bound query parameters in the message.
 
 ## Tests
