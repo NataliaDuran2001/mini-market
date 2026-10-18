@@ -12,11 +12,23 @@ const baseline = JSON.parse(readFileSync(join(root, 'docs', 'baseline.json'), 'u
 
 const raw = execFileSync(
   'gh',
-  ['issue', 'list', '--repo', REPO, '--state', 'all', '--limit', '300', '--json', 'number,state,closedAt'],
+  [
+    'issue',
+    'list',
+    '--repo',
+    REPO,
+    '--state',
+    'all',
+    '--limit',
+    '300',
+    '--json',
+    'number,state,closedAt',
+  ],
   { encoding: 'utf8' },
 );
 const closedAt = new Map();
-for (const i of JSON.parse(raw)) if (i.state === 'CLOSED') closedAt.set(i.number, new Date(i.closedAt));
+for (const i of JSON.parse(raw))
+  if (i.state === 'CLOSED') closedAt.set(i.number, new Date(i.closedAt));
 
 const t0 = new Date(baseline.laneT0);
 const now = new Date();
@@ -33,20 +45,38 @@ const elapsed = days(now - t0);
 console.log(`Baseline frozen ${baseline.frozenOn}, lane T0 ${baseline.laneT0}`);
 console.log(`Now ${now.toISOString()}  elapsed ${fmt(elapsed)} calendar days\n`);
 
-console.log(pad('Milestone', 40), pad('Closed', 9), pad('Plan days', 11), pad('Plan finish', 12), 'Last closed');
+console.log(
+  pad('Milestone', 40),
+  pad('Closed', 9),
+  pad('Plan days', 11),
+  pad('Plan finish', 12),
+  'Last closed',
+);
 for (const m of baseline.milestones) {
   const its = issues.filter((i) => i.milestone === m.key);
   const c = its.filter((i) => closedAt.has(i.number));
-  const last = c.length ? new Date(Math.max(...c.map((i) => closedAt.get(i.number)))).toISOString().slice(0, 16) : '-';
+  const last = c.length
+    ? new Date(Math.max(...c.map((i) => closedAt.get(i.number)))).toISOString().slice(0, 16)
+    : '-';
   const pd = c.reduce((a, i) => a + i.estimate, 0);
-  console.log(pad(m.title, 40), pad(`${c.length}/${its.length}`, 9), pad(`${fmt(pd)}/${fmt(m.planDays)}`, 11), pad(`day ${fmt(m.laneFinish)}`, 12), last);
+  console.log(
+    pad(m.title, 40),
+    pad(`${c.length}/${its.length}`, 9),
+    pad(`${fmt(pd)}/${fmt(m.planDays)}`, 11),
+    pad(`day ${fmt(m.laneFinish)}`, 12),
+    last,
+  );
 }
 
 console.log('\n' + pad('Lane', 6), pad('Closed', 9), 'Next open issue');
 for (const lane of ['P1', 'P2', 'P3', 'C', 'S', 'B', 'R']) {
   const its = issues.filter((i) => i.lane === lane);
   const next = its.find((i) => !closedAt.has(i.number));
-  console.log(pad(lane, 6), pad(`${its.filter((i) => closedAt.has(i.number)).length}/${its.length}`, 9), next ? `#${next.number} ${next.title}` : 'lane complete');
+  console.log(
+    pad(lane, 6),
+    pad(`${its.filter((i) => closedAt.has(i.number)).length}/${its.length}`, 9),
+    next ? `#${next.number} ${next.title}` : 'lane complete',
+  );
 }
 
 console.log(`\nPlan days closed ${fmt(planDone)} of ${fmt(planTotal)}`);
@@ -54,9 +84,15 @@ if (planDone > 0 && elapsed > 0) {
   const throughput = planDone / elapsed;
   const remaining = planTotal - planDone;
   const eta = new Date(now.getTime() + (remaining / throughput) * 86_400_000);
-  console.log(`Observed throughput ${fmt(throughput)} plan days per calendar day (includes parallelism)`);
-  console.log(`Naive forecast of the remaining ${fmt(remaining)} plan days: ${eta.toISOString().slice(0, 10)}`);
-  console.log('Forecast is informational. The baseline stays as frozen; recalibrate when M1 closes.');
+  console.log(
+    `Observed throughput ${fmt(throughput)} plan days per calendar day (includes parallelism)`,
+  );
+  console.log(
+    `Naive forecast of the remaining ${fmt(remaining)} plan days: ${eta.toISOString().slice(0, 10)}`,
+  );
+  console.log(
+    'Forecast is informational. The baseline stays as frozen; recalibrate when M1 closes.',
+  );
 } else {
   console.log('No closed issues yet: no throughput to forecast with.');
 }
