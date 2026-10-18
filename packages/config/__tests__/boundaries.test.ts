@@ -83,6 +83,72 @@ describe('module boundaries', () => {
     expect(ruleIds).toContain('boundaries/dependencies');
   });
 
+  it('lets shared API infrastructure use the TenantContext type but not the runtime of access', async () => {
+    // AC-3 (issue #3: withTransaction(ctx: TenantContext); keeps the module graph acyclic)
+    const lint = async (code: string) => {
+      const [result] = await createEslint().lintText(code, {
+        filePath: path.join(boundariesRoot, 'apps/api/src/infrastructure/db/with-transaction.ts'),
+      });
+      return (result?.messages ?? []).map((m) => m.ruleId);
+    };
+    expect(
+      await lint(
+        "import type { TenantContext } from '../../modules/access/index';\nexport type T = TenantContext;\n",
+      ),
+    ).toEqual([]);
+    expect(
+      await lint(
+        "import { accessApi } from '../../modules/access/index';\nexport const a = accessApi;\n",
+      ),
+    ).toContain('boundaries/dependencies');
+  });
+
+  it('lets controllers use the http infrastructure of the API but not db', async () => {
+    // AC-3
+    const [result] = await createEslint().lintText(
+      "import { domainErrorFilter } from '../../../infrastructure/http/domain-error.filter';\nexport const f = domainErrorFilter;\n",
+      {
+        filePath: path.join(
+          boundariesRoot,
+          'apps/api/src/modules/sales/presentation/sales.controller.ts',
+        ),
+      },
+    );
+    expect(result?.messages.map((m) => m.ruleId)).toEqual([]);
+    const [db] = await createEslint().lintText(
+      "import { tenantTable } from '../../../infrastructure/db/tenant-table';\nexport const t = tenantTable;\n",
+      {
+        filePath: path.join(
+          boundariesRoot,
+          'apps/api/src/modules/sales/presentation/sales.controller.ts',
+        ),
+      },
+    );
+    expect(db?.messages.map((m) => m.ruleId)).toContain('boundaries/dependencies');
+  });
+
+  it('keeps IO and frameworks out of domain and Nest out of application', async () => {
+    // docs/02-architecture.md section 5
+    const lint = async (layer: string, code: string) => {
+      const [result] = await createEslint().lintText(code, {
+        filePath: path.join(boundariesRoot, `apps/api/src/modules/sales/${layer}/probe.ts`),
+      });
+      return (result?.messages ?? []).map((m) => m.ruleId);
+    };
+    expect(
+      await lint(
+        'domain',
+        "import { readFileSync } from 'node:fs';\nexport const r = readFileSync;\n",
+      ),
+    ).toContain('no-restricted-imports');
+    expect(
+      await lint(
+        'application',
+        "import { Injectable } from '@nestjs/common';\nexport const i = Injectable;\n",
+      ),
+    ).toContain('no-restricted-imports');
+  });
+
   it('forbids framework and ORM imports in domain', async () => {
     // docs/02-architecture.md section 5: domain has no IO, no Nest, no Drizzle
     const [result] = await createEslint().lintText(

@@ -46,11 +46,40 @@ export const MODULE_GRAPH = {
 };
 
 /**
- * Every module receives a TenantContext and checks permissions, so every module may use the public
- * API of `access` (issue #11: "exposed to other modules through access/index.ts"). The graph in
- * docs/02-architecture.md does not list this edge explicitly; flagged for the owner.
+ * `access` owns TenantContext, the permission registry and AuditPort, and issue #11 exposes them to
+ * every module through access/index.ts. The graph in docs/02-architecture.md section 4 does not
+ * list that edge. Modules may therefore import the public API of `access`, except that the modules
+ * `access` itself depends on (transitively) may import it for types only, so that no runtime cycle
+ * appears (ADR 0009: the graph is acyclic). Flagged for the owner.
  */
-export const ALWAYS_ALLOWED_MODULES = ['access'];
+export const SHARED_MODULE = 'access';
+
+/** Modules reachable from `module` through MODULE_GRAPH (transitive closure, excluding itself). */
+export function reachableModules(module, graph = MODULE_GRAPH) {
+  const seen = new Set();
+  const pending = [...(graph[module] ?? [])];
+  while (pending.length > 0) {
+    const next = pending.pop();
+    if (next === undefined || seen.has(next)) continue;
+    seen.add(next);
+    pending.push(...(graph[next] ?? []));
+  }
+  return [...seen];
+}
+
+/**
+ * Modules whose public API `module` may import, as written in MODULE_GRAPH plus the shared module.
+ * `typeOnly` lists the targets that may be imported with `import type` only.
+ */
+export function allowedModuleImports(module, graph = MODULE_GRAPH) {
+  const value = new Set(graph[module] ?? []);
+  const typeOnly = new Set();
+  if (module !== SHARED_MODULE) {
+    const cyclic = reachableModules(SHARED_MODULE, graph).includes(module);
+    (cyclic ? typeOnly : value).add(SHARED_MODULE);
+  }
+  return { value: [...value], typeOnly: [...typeOnly] };
+}
 
 // Files that are not part of the architecture and may import anything.
 const IGNORED_FILES = [
@@ -81,6 +110,7 @@ const ELEMENTS = [
   // Files at the module root: index.ts, <domain>.module.ts, <domain>.permissions.ts
   element('module', 'apps/api/src/modules/*', ['module']),
   // API outside the modules
+  element('api-http', 'apps/api/src/infrastructure/http'),
   element('api-infrastructure', 'apps/api/src/infrastructure'),
   element('api-script', 'apps/api/scripts'),
   element('api-app', 'apps/api/src'),
@@ -120,23 +150,29 @@ const publicApi = (captured) => type('module', captured, 'module-public');
 const moduleRoot = (captured) => type('module', captured, 'module-root');
 const schema = (captured) => type('module-infrastructure', captured, 'module-schema');
 
+// A brace pattern needs two alternatives; a single module name is the pattern itself.
+const oneOf = (names) => (names.length === 1 ? names[0] : `{${names.join(',')}}`);
+
 function crossModulePolicies() {
   const policies = [];
-  for (const [module, uses] of Object.entries(MODULE_GRAPH)) {
-    const targets = [...new Set([...uses, ...ALWAYS_ALLOWED_MODULES])].filter((m) => m !== module);
-    if (targets.length === 0) continue;
+  for (const module of Object.keys(MODULE_GRAPH)) {
+    const { value, typeOnly } = allowedModuleImports(module);
     const own = { module };
-    policies.push(
-      policy(
-        [
-          type('module-application', own),
-          type('module-infrastructure', own),
-          type('module-presentation', own),
-          moduleRoot(own),
-        ],
-        [publicApi({ module: `{${targets.join(',')}}` })],
-      ),
-    );
+    const from = [
+      type('module-application', own),
+      type('module-infrastructure', own),
+      type('module-presentation', own),
+      moduleRoot(own),
+    ];
+    if (value.length > 0) {
+      policies.push(policy(from, [publicApi({ module: oneOf(value) })]));
+    }
+    if (typeOnly.length > 0) {
+      policies.push({
+        from,
+        allow: { to: [publicApi({ module: oneOf(typeOnly) })], dependency: { kind: 'type' } },
+      });
+    }
   }
   return policies;
 }
@@ -164,6 +200,7 @@ const DEPENDENCIES_RULE = [
       // Nest controllers
       policy(type('module-presentation'), [
         type('module-application', sameModule),
+        type('api-http'),
         type('shared-kernel'),
         type('contracts'),
       ]),
@@ -173,6 +210,7 @@ const DEPENDENCIES_RULE = [
         type('module-application', sameModule),
         type('module-infrastructure', sameModule),
         type('module-presentation', sameModule),
+        type('api-http'),
         type('api-infrastructure'),
         type('shared-kernel'),
         type('contracts'),
@@ -189,10 +227,26 @@ const DEPENDENCIES_RULE = [
       ]),
       // Cross-module edges per MODULE_GRAPH
       ...crossModulePolicies(),
-      // API shared infrastructure: db, config, logger, events, http
-      policy(type('api-infrastructure'), [type('shared-kernel'), type('contracts'), schema()]),
+      // API shared infrastructure: db, config, logger, events (http/ is its own element so that
+      // controllers may use it and nothing else in here)
+      policy(
+        [type('api-infrastructure'), type('api-http')],
+        [
+          type('api-infrastructure'),
+          type('api-http'),
+          type('shared-kernel'),
+          type('contracts'),
+          schema(),
+        ],
+      ),
+      // withTransaction(ctx: TenantContext) and friends only need the type from access
+      {
+        from: [type('api-infrastructure'), type('api-http')],
+        allow: { to: [publicApi({ module: SHARED_MODULE })], dependency: { kind: 'type' } },
+      },
       // main.ts, app.module.ts, app.modules.ts
       policy(type('api-app'), [
+        type('api-http'),
         type('api-infrastructure'),
         publicApi(),
         moduleRoot(),
@@ -201,6 +255,7 @@ const DEPENDENCIES_RULE = [
       ]),
       // CLI scripts such as provision-tenant
       policy(type('api-script'), [
+        type('api-http'),
         type('api-infrastructure'),
         publicApi(),
         type('shared-kernel'),

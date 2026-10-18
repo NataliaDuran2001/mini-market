@@ -6,22 +6,30 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import { boundariesConfig } from './boundaries.mjs';
 
-export { ALWAYS_ALLOWED_MODULES, MODULE_GRAPH, REPO_ROOT } from './boundaries.mjs';
+export {
+  MODULE_GRAPH,
+  REPO_ROOT,
+  SHARED_MODULE,
+  allowedModuleImports,
+  reachableModules,
+} from './boundaries.mjs';
 
 const TS_FILES = ['**/*.{ts,tsx,mts,cts}'];
 
-const DOMAIN_FORBIDDEN_IMPORTS = [
-  '@nestjs/*',
-  '@supabase/*',
-  'drizzle-orm',
-  'drizzle-orm/*',
-  'nestjs-*',
-  'pino',
-  'postgres',
-  'react',
-  'react-dom',
-];
 const ORM_IMPORTS = ['drizzle-orm', 'drizzle-orm/*', 'postgres', '@electric-sql/*'];
+const FRAMEWORK_IMPORTS = ['@nestjs/*', 'nestjs-*', 'express', 'react', 'react-dom', 'rxjs'];
+const IO_IMPORTS = [
+  '@supabase/*',
+  'child_process',
+  'fs',
+  'fs/*',
+  'http',
+  'https',
+  'net',
+  'node:*',
+  'pino',
+];
+const DOMAIN_FORBIDDEN_IMPORTS = [...ORM_IMPORTS, ...FRAMEWORK_IMPORTS, ...IO_IMPORTS];
 
 function restrictImports(files, patterns, message) {
   return {
@@ -94,9 +102,14 @@ export function baseConfig(options = {}) {
       'domain/ is pure TypeScript: no framework, ORM, IO (docs/02-architecture.md section 5).',
     ),
     restrictImports(
-      ['**/src/modules/*/application/**', '**/src/modules/*/presentation/**'],
+      ['**/src/modules/*/application/**'],
+      [...ORM_IMPORTS, '@nestjs/*', 'nestjs-*', 'react', 'react-dom'],
+      'Use cases are plain functions over ports: no ORM, Nest or React (docs/04-coding-standards.md).',
+    ),
+    restrictImports(
+      ['**/src/modules/*/presentation/**'],
       ORM_IMPORTS,
-      'Use cases and controllers talk to ports, never to the ORM (docs/04-coding-standards.md).',
+      'Controllers never import the ORM (docs/04-coding-standards.md section 4).',
     ),
     boundariesConfig(options),
   ];
