@@ -12,3 +12,4 @@ pnpm-lock.yaml
 .github
 supabase
 docs/baseline.json
+apps/api/drizzle

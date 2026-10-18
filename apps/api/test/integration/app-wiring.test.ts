@@ -4,12 +4,14 @@ import { createZodDto } from 'nestjs-zod';
 import request from 'supertest';
 import { afterEach, beforeAll, afterAll, describe, expect, it } from 'vitest';
 import { z } from 'zod';
+import { Public } from '../../src/modules/access';
 import { createTestApp, testEnv } from '../create-test-app';
 import { createTestDb } from '../harness';
 import type { TestDb } from '../harness';
 
 class ProbeDto extends createZodDto(z.object({ name: z.string().min(1) })) {}
 
+@Public()
 @Controller('probe')
 class ProbeController {
   @Post()

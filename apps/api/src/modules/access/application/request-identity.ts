@@ -1,5 +1,7 @@
 import type { AuthenticatedUser } from '../domain/identity';
 
+export type { AuthenticatedUser };
+
 /** Route metadata set by `@Public()` and read by the JWT guard. */
 export const PUBLIC_ROUTE_KEY = 'mini-market:public-route';
 

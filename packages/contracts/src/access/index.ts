@@ -10,7 +10,8 @@ export const meResponseSchema = z.object({
 
 /** `POST /api/v1/auth/invitations` (owner only). Employees are the only role that can be invited. */
 export const inviteMemberRequestSchema = z.object({
-  email: z.email().max(254),
+  // The web may send the address as typed; it is stored trimmed and lower case.
+  email: z.string().trim().toLowerCase().pipe(z.email().max(254)),
   role: z.literal('employee'),
 });
 

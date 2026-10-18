@@ -88,7 +88,6 @@ const IGNORED_FILES = [
   '**/test/**',
   '**/__tests__/**',
   '**/node_modules/**',
-  '**/dist/**',
 ];
 
 // Patterns are relative to the repository root and match the full path. Elements are folders

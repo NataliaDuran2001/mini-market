@@ -4,7 +4,7 @@ import { Body, Controller, Headers, HttpCode, Inject, Post } from '@nestjs/commo
 import { ZodSerializerDto } from 'nestjs-zod';
 import { INVITE_MEMBER } from '../application/invite-member';
 import type { InviteMember } from '../application/invite-member';
-import type { AuthenticatedUser } from '../domain/identity';
+import type { AuthenticatedUser } from '../application/request-identity';
 import { InviteMemberRequestDto, InviteMemberResponseDto } from './access.dto';
 import { CurrentUser } from './current-user.decorator';
 

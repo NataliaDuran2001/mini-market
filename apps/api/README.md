@@ -42,11 +42,19 @@ Migration files carry a timestamp prefix (`drizzle.config.ts`), but `drizzle/met
 2. Delete your generated `.sql`, snapshot and journal entry.
 3. `pnpm --filter @mini-market/api db:generate` again, so the new snapshot builds on the merged one.
 
-`test/conventions.test.ts` checks that journal timestamps increase and that every entry has its SQL file. Never edit an applied migration.
+`test/conventions.test.ts` checks that journal timestamps increase and that every entry has its SQL file and its rollback. Never edit an applied migration.
+
+Rollback: drizzle-kit has no down migrations, so every migration `drizzle/<tag>.sql` is accompanied by `drizzle/rollback/<tag>.sql` with the statements that undo it (Definition of Done: "migrations reversible"). Ledger tables are never rolled back by deleting rows.
 
 Boundaries are enforced by lint (`packages/config/eslint/boundaries.mjs`). Controllers import `src/infrastructure/http` only; use cases receive their dependencies as ports and are provided in `<domain>.module.ts`.
 
 Request bodies are limited to 1 MB (JSON). CSV import (5 MB, docs/05-security.md) must use multipart upload or a route level limit, not the JSON parser.
+
+## Authentication
+
+Every route needs `Authorization: Bearer <Supabase access token>` unless its controller or handler carries `@Public()` (both come from `modules/access`). `SupabaseJwtGuard` verifies signature (RS256 or ES256 from `${SUPABASE_URL}/auth/v1/.well-known/jwks.json`, cached and refetched on key rotation), issuer, audience `authenticated` and expiry, then `@CurrentUser()` gives `{ userId, email }`. A rejected token answers `401 { code: "UNAUTHENTICATED" }` and logs a warning with a reason code, never the token.
+
+Errors reach the client only through `ApiExceptionFilter` (`src/infrastructure/http`): controllers `throw result.error` for an `Err`, and the filter keeps the `code` and status of a `DomainError`, adds `requestId`, and answers 500 without internals for anything else. Log a failure with `describeError(error)`, not the raw error: drizzle puts the bound query parameters in the message.
 
 ## Tests
 

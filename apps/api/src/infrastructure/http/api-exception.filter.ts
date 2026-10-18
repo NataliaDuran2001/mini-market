@@ -45,7 +45,8 @@ function fromHttpException(exception: HttpException): Mapped {
   const status = exception.getStatus();
   const response = exception.getResponse();
   if (isRecord(response) && typeof response['code'] === 'string') {
-    const message = typeof response['message'] === 'string' ? response['message'] : exception.message;
+    const message =
+      typeof response['message'] === 'string' ? response['message'] : exception.message;
     return { status, body: { code: response['code'], message } };
   }
   return { status, body: { code: codeForStatus(status), message: exception.message } };

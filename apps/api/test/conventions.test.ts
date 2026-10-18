@@ -71,6 +71,11 @@ describe('drizzle migrations', () => {
     for (const { tag } of journal.entries) {
       expect(tag, tag).toMatch(/^\d{14}_/);
       expect(existsSync(path.join(apiRoot, 'drizzle', `${tag}.sql`)), tag).toBe(true);
+      // Migrations are reversible: the documented rollback sits in drizzle/rollback/<tag>.sql.
+      expect(
+        existsSync(path.join(apiRoot, 'drizzle', 'rollback', `${tag}.sql`)),
+        `${tag} rollback`,
+      ).toBe(true);
     }
   });
 });

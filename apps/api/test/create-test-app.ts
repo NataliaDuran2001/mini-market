@@ -31,10 +31,12 @@ export async function createTestApp(options: {
   readonly logStream?: DestinationStream;
   /** Throwaway controllers a test needs, for example to prove validation on a request body. */
   readonly controllers?: Type[];
+  /** Replaces providers by token, for example the JWKS source or the Supabase admin client. */
+  readonly overrides?: readonly { readonly token: symbol; readonly useValue: unknown }[];
 }): Promise<INestApplication> {
   const env = options.env ?? testEnv();
   const version = 'test';
-  const moduleRef = await Test.createTestingModule({
+  const builder = Test.createTestingModule({
     controllers: options.controllers ?? [],
     imports: [
       AppModule.register({
@@ -44,7 +46,11 @@ export async function createTestApp(options: {
         ...(options.logStream ? { logStream: options.logStream } : {}),
       }),
     ],
-  }).compile();
+  });
+  for (const override of options.overrides ?? []) {
+    builder.overrideProvider(override.token).useValue(override.useValue);
+  }
+  const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication<NestExpressApplication>(APP_FACTORY_OPTIONS);
   configureApp(app, { env, version });
   await app.init();

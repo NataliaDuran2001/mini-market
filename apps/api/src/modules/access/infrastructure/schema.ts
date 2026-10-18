@@ -23,7 +23,7 @@ export const invitations = pgTable(
     tenantId: uuid().notNull(),
     email: text().notNull(),
     role: text().notNull(),
-    tokenHash: text().notNull().unique(),
+    tokenHash: text().notNull(),
     invitedBy: uuid()
       .notNull()
       .references(() => users.id),
@@ -34,6 +34,7 @@ export const invitations = pgTable(
   (table) => [
     check('invitations_role_check', sql`${table.role} in ('owner', 'employee')`),
     index('invitations_tenant_id_idx').on(table.tenantId),
+    uniqueIndex('invitations_token_hash_idx').on(table.tokenHash),
     uniqueIndex('invitations_pending_email_idx')
       .on(table.tenantId, table.email)
       .where(sql`${table.consumedAt} is null`),
