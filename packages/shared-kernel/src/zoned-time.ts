@@ -51,7 +51,14 @@ function offsetAt(instantMs: number, timeZone: string): number {
   return wallAsUtc - wholeSeconds;
 }
 
-/** The UTC instant at which the wall clock of `timeZone` reads 00:00 on the given calendar day. */
+const DAY_MS = 86_400_000;
+
+/**
+ * The first UTC instant at which the wall clock of `timeZone` reads 00:00 on the given calendar
+ * day. When a DST change skips that midnight (America/Santiago springs forward at 24:00), the day
+ * starts at its first real instant, 01:00 local, so dayKey and the day range agree on every
+ * instant. When midnight happens twice, the first occurrence wins.
+ */
 export function zonedMidnightToUtc(
   year: number,
   month: number,
@@ -59,7 +66,12 @@ export function zonedMidnightToUtc(
   timeZone: string,
 ): Date {
   const wall = Date.UTC(year, month - 1, day);
-  const firstGuess = wall - offsetAt(wall, timeZone);
-  // The offset can differ at the corrected instant when a DST change sits between the two.
-  return new Date(wall - offsetAt(firstGuess, timeZone));
+  // The offsets a day on each side bracket any DST change near midnight. A candidate instant is
+  // valid when the zone really reads 00:00 there.
+  const candidates = [offsetAt(wall - DAY_MS, timeZone), offsetAt(wall + DAY_MS, timeZone)].map(
+    (offset) => wall - offset,
+  );
+  const real = candidates.filter((instant) => instant + offsetAt(instant, timeZone) === wall);
+  // No valid candidate means midnight falls in the skipped hour: the later one is the change itself.
+  return new Date(real.length > 0 ? Math.min(...real) : Math.max(...candidates));
 }

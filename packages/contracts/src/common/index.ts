@@ -11,6 +11,17 @@ const MAX_PAGE = 100_000;
 export const uuidSchema = z.guid();
 
 /**
+ * Money on the wire: a whole number of centavos (BOB), never a decimal or a string (ADR 0004,
+ * ADR 0017). 1050 is Bs 10.50. Safe integers only, so a value never loses a centavo in JSON.
+ * Sign is not constrained here: a field that must be positive or non-negative narrows it.
+ */
+export const moneySchema = z
+  .number()
+  .int()
+  .min(Number.MIN_SAFE_INTEGER)
+  .max(Number.MAX_SAFE_INTEGER);
+
+/**
  * Quantity on the wire: a decimal string with at most 3 decimals ("0.333"), never a float.
  * Bounded to numeric(14,3), so a value that passes here never overflows the column (ADR 0004).
  */
