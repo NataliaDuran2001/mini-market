@@ -16,9 +16,13 @@ import { renderApp } from '@/test/render-app';
 async function renderShell(options: Parameters<typeof renderApp>[0] = {}) {
   const app = renderApp({ path: '/', session: TEST_USER, ...options });
   await screen.findByRole('heading', { name: home.title });
-  // The menu waits for the tenant settings (modules) and the role.
+  // The menu depends on the role (/me/tenants) and on the modules (/tenant): wait for both.
   await waitFor(() => {
     expect(screen.getByTestId('tenant-name')).not.toHaveTextContent(shell.header.tenantLoading);
+    const settings = app.services.queryClient.getQueryData(
+      tenantKey(app.tenantStore.get(), 'settings'),
+    );
+    expect(settings).toBeDefined();
   });
   return app;
 }
@@ -101,14 +105,18 @@ describe('tenant switcher', () => {
       http.get(apiUrl('/tenant'), ({ request }) => {
         const id = request.headers.get('x-tenant-id');
         requestedTenants.push(id);
-        return HttpResponse.json(
-          aTenant(id === SECOND_TENANT.tenantId ? SECOND_TENANT : OWNER_TENANT),
-        );
+        return id === SECOND_TENANT.tenantId
+          ? HttpResponse.json(aTenant(SECOND_TENANT, { modules: { credit_sales: false } }))
+          : HttpResponse.json(aTenant(OWNER_TENANT));
       }),
     );
     const user = userEvent.setup();
     const app = await renderShell({ tenantId: OWNER_TENANT.tenantId });
     expect(screen.getByTestId('tenant-name')).toHaveTextContent(OWNER_TENANT.name);
+    expect(sidebar().getByRole('link', { name: shell.nav.customers })).toBeInTheDocument();
+    expect(
+      app.services.queryClient.getQueryData(tenantKey(OWNER_TENANT.tenantId, 'settings')),
+    ).toBeDefined();
 
     const requestsBeforeSwitch = requestedTenants.length;
     await user.click(screen.getByRole('button', { name: shell.header.account }));
@@ -124,6 +132,10 @@ describe('tenant switcher', () => {
     ).toBeUndefined();
     await waitFor(() => {
       expect(requestedTenants).toContain(SECOND_TENANT.tenantId);
+    });
+    // the menu follows the modules of the new business (credit sales are off there)
+    await waitFor(() => {
+      expect(sidebar().queryByRole('link', { name: shell.nav.customers })).not.toBeInTheDocument();
     });
     // after the switch no request goes out for the business that was left
     expect(requestedTenants.slice(requestsBeforeSwitch)).not.toContain(OWNER_TENANT.tenantId);
@@ -146,7 +158,9 @@ describe('tenant switcher', () => {
     const user = userEvent.setup();
     await renderShell();
     await user.click(screen.getByRole('button', { name: shell.header.account }));
-    expect(await screen.findByText(`Sesión iniciada como ${TEST_USER.email}`)).toBeInTheDocument();
+    expect(
+      await screen.findByText(shell.header.signedInAs.replace('{{email}}', TEST_USER.email)),
+    ).toBeInTheDocument();
     expect(screen.queryByText(shell.header.switchTenant)).not.toBeInTheDocument();
   });
 });
