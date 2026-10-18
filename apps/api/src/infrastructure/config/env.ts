@@ -8,10 +8,24 @@ const postgresUrl = z
   .regex(/^postgres(ql)?:\/\/.+/, 'must be a postgres:// or postgresql:// connection string');
 const port = z.coerce.number().int().min(1).max(65535);
 
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
+
+// HTTPS only in every environment (docs/05-security.md section 1). A plain http Supabase URL would
+// let a network attacker serve their own JWKS. Loopback is exempt for local development.
+const secureUrl = z.url().refine(
+  (value) => {
+    if (!URL.canParse(value)) return true; // z.url() already reported it
+    const url = new URL(value);
+    return (
+      url.protocol === 'https:' || (url.protocol === 'http:' && LOOPBACK_HOSTS.has(url.hostname))
+    );
+  },
+  { message: 'must use https (http is accepted only for localhost)' },
+);
+
 // The browser sends `Origin` as scheme, host and port only, so the allowed origin must have no
 // path: `http://localhost:5173/` is accepted and normalized, `http://localhost:5173/app` is not.
-const webOrigin = z
-  .url()
+const webOrigin = secureUrl
   .refine(
     (value) => {
       if (!URL.canParse(value)) return true; // z.url() already reported it
@@ -62,8 +76,8 @@ export function loadEnv(source: Record<string, string | undefined> = process.env
       // Fail safe: a host that forgets NODE_ENV gets production behaviour (no Swagger UI, JSON logs).
       NODE_ENV: z.enum(['development', 'test', 'production']).default('production'),
       DATABASE_URL: postgresUrl,
-      SUPABASE_URL: z.url(),
-      SUPABASE_JWT_ISSUER: z.url(),
+      SUPABASE_URL: secureUrl,
+      SUPABASE_JWT_ISSUER: secureUrl,
       SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
       WEB_ORIGIN: webOrigin,
       // Lanes run several APIs side by side and choose the port with API_PORT; hosts such as

@@ -127,6 +127,24 @@ describe('module boundaries', () => {
     expect(db?.messages.map((m) => m.ruleId)).toContain('boundaries/dependencies');
   });
 
+  it('lets application import contracts but not domain', async () => {
+    // AC-3 (docs/02-architecture.md section 6: domain imports only shared-kernel)
+    const lint = async (layer: string) => {
+      const [result] = await createEslint().lintText(
+        "import { schema } from '../../../../../../packages/contracts/src/schema';\nexport const s = schema;\n",
+        {
+          filePath: path.join(
+            boundariesRoot,
+            `apps/api/src/modules/sales/${layer}/uses-contracts.ts`,
+          ),
+        },
+      );
+      return (result?.messages ?? []).map((m) => m.ruleId);
+    };
+    expect(await lint('application')).toEqual([]);
+    expect(await lint('domain')).toContain('boundaries/dependencies');
+  });
+
   it('lets use cases name the transaction types but not import the infrastructure runtime', async () => {
     // AC-3 (ADR 0014 and 0016: use cases receive withTransaction and the tx handle as deps)
     const lint = async (code: string) => {

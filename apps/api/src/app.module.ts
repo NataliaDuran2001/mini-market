@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import type { DynamicModule } from '@nestjs/common';
-import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import type { DestinationStream } from 'pino';
 import { APP_MODULES } from './app.modules';
 import type { Env } from './infrastructure/config/env';
 import type { Database } from './infrastructure/db/database';
+import { ApiExceptionFilter } from './infrastructure/http/api-exception.filter';
 import { InfrastructureModule } from './infrastructure/infrastructure.module';
 import { buildLoggerParams } from './infrastructure/logger/logger.config';
 
@@ -34,6 +35,7 @@ export class AppModule {
         ...APP_MODULES,
       ],
       providers: [
+        { provide: APP_FILTER, useClass: ApiExceptionFilter },
         { provide: APP_PIPE, useClass: ZodValidationPipe },
         { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
       ],

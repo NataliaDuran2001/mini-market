@@ -94,5 +94,7 @@ if (planDone >= 3 && elapsed >= 0.5) {
     'Forecast is informational. The baseline stays as frozen; recalibrate when M1 closes.',
   );
 } else {
-  console.log('Not enough data to forecast yet (needs at least 3 plan days closed and half a calendar day elapsed).');
+  console.log(
+    'Not enough data to forecast yet (needs at least 3 plan days closed and half a calendar day elapsed).',
+  );
 }
