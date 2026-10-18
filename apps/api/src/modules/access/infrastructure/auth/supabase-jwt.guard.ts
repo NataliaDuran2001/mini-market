@@ -1,4 +1,9 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  ServiceUnavailableException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
@@ -10,7 +15,11 @@ import { PUBLIC_ROUTE_KEY } from '../../application/request-identity';
 import type { AuthenticatedRequest } from '../../application/request-identity';
 import { JWKS_PROVIDER } from './jwks';
 import type { JwksProvider } from './jwks';
-import { TokenRejectedError, verifyAccessToken } from './verify-access-token';
+import {
+  IdentityProviderUnavailableError,
+  TokenRejectedError,
+  verifyAccessToken,
+} from './verify-access-token';
 
 const MAX_KNOWN_USERS = 5_000;
 const BEARER = /^Bearer\s+(\S+)$/i;
@@ -38,7 +47,8 @@ export class SupabaseJwtGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    if (context.getType() !== 'http') return true;
+    // Only HTTP exists today; anything else is denied rather than silently skipping authentication.
+    if (context.getType() !== 'http') return false;
     const isPublic = this.reflector.getAllAndOverride<boolean | undefined>(PUBLIC_ROUTE_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -48,7 +58,7 @@ export class SupabaseJwtGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<HttpRequest>();
     const token = this.bearerToken(request);
     if (token === undefined) {
-      throw this.unauthenticated('MISSING_TOKEN');
+      throw this.unauthenticated('MISSING_TOKEN', 'log');
     }
     try {
       const user = await verifyAccessToken(token, {
@@ -61,6 +71,14 @@ export class SupabaseJwtGuard implements CanActivate {
     } catch (error) {
       if (error instanceof TokenRejectedError) {
         throw this.unauthenticated(error.reason);
+      }
+      if (error instanceof IdentityProviderUnavailableError) {
+        // An outage is not a bad token: answering 401 would make the web sign everybody out.
+        this.logger.error({ reason: error.reason }, 'identity provider unavailable');
+        throw new ServiceUnavailableException({
+          code: 'IDENTITY_PROVIDER_UNAVAILABLE',
+          message: 'Authentication is temporarily unavailable',
+        });
       }
       throw error;
     }
@@ -81,9 +99,12 @@ export class SupabaseJwtGuard implements CanActivate {
     this.knownUsers.set(user.userId, user.email);
   }
 
-  /** Warn without the token value; `reason` is a jose error code or a fixed label. */
-  private unauthenticated(reason: string): UnauthorizedException {
-    this.logger.warn({ reason }, 'authentication failed');
+  /**
+   * A rejected token is logged at warn, a request without any token at info (routine and cheap to
+   * send). Never the token value; `reason` is a jose error code or a fixed label.
+   */
+  private unauthenticated(reason: string, level: 'warn' | 'log' = 'warn'): UnauthorizedException {
+    this.logger[level]({ reason }, 'authentication failed');
     return new UnauthorizedException({
       code: 'UNAUTHENTICATED',
       message: 'A valid access token is required',

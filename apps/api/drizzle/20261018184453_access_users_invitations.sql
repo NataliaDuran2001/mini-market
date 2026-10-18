@@ -8,7 +8,8 @@ CREATE TABLE "invitations" (
 	"expires_at" timestamp with time zone NOT NULL,
 	"consumed_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "invitations_role_check" CHECK ("invitations"."role" in ('owner', 'employee'))
+	CONSTRAINT "invitations_role_check" CHECK ("invitations"."role" in ('owner', 'employee')),
+	CONSTRAINT "invitations_email_lowercase_check" CHECK ("invitations"."email" = lower("invitations"."email"))
 );
 --> statement-breakpoint
 CREATE TABLE "users" (

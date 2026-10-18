@@ -8,7 +8,7 @@ import type {
   SupabaseAdminPort,
   SupabaseInviteRequest,
 } from '../../src/modules/access/application/ports/supabase-admin.port';
-import { NotAMemberError } from '../../src/modules/access/domain/errors';
+import { InviteDeliveryFailedError, NotAMemberError } from '../../src/modules/access/domain/errors';
 import type { Role } from '../../src/modules/access/domain/identity';
 import { DrizzleInvitationRepository } from '../../src/modules/access/infrastructure/drizzle-invitation.repository';
 import { DrizzleUserRepository } from '../../src/modules/access/infrastructure/drizzle-user.repository';
@@ -33,15 +33,16 @@ describe('inviteMember', () => {
   let testDb: TestDb;
   const roles = new Map<string, Role>();
   const sent: SupabaseInviteRequest[] = [];
-  let outcome: 'invited' | 'already_registered' | 'fail' = 'invited';
+  let failSend = false;
+  const failures: unknown[] = [];
   let counter = 0;
 
   const supabaseAdmin: SupabaseAdminPort = {
     inviteUserByEmail(request) {
       sent.push(request);
-      if (outcome === 'fail')
-        return Promise.reject(new Error('Supabase invite failed with status 500'));
-      return Promise.resolve(outcome);
+      return failSend
+        ? Promise.reject(new Error('Supabase invite failed with status 500'))
+        : Promise.resolve();
     },
   };
   const tokens: InvitationTokenPort = {
@@ -71,6 +72,7 @@ describe('inviteMember', () => {
       supabaseAdmin,
       tokens,
       withTransaction: testDb.withTransaction,
+      reportFailure: (error) => void failures.push(error),
       acceptInvitationUrl: 'https://app.example/accept-invitation',
     };
   });
@@ -96,7 +98,8 @@ describe('inviteMember', () => {
     roles.set(`${TENANT_A}:${EMPLOYEE_A}`, 'employee');
     roles.set(`${TENANT_B}:${OWNER_B}`, 'owner');
     sent.length = 0;
-    outcome = 'invited';
+    failSend = false;
+    failures.length = 0;
     counter = 0;
   });
 
@@ -113,7 +116,6 @@ describe('inviteMember', () => {
     expect(receipt).toMatchObject({
       email: 'ana@example.com',
       role: 'employee',
-      delivery: 'invited',
     });
     expect(receipt.expiresAt.toISOString()).toBe('2026-10-22T14:00:00.000Z');
     expect(sent).toEqual([
@@ -202,40 +204,65 @@ describe('inviteMember', () => {
     ]);
   });
 
-  it('reports existing_user when the email already has an account', async () => {
-    outcome = 'already_registered';
-    const receipt = unwrapOrThrow(
+  it('does not touch another tenant row when a pending invitation is replaced', async () => {
+    // docs/05-security.md: tenant isolation of writes; the upsert key includes the tenant
+    const forB = unwrapOrThrow(
+      await inviteMember(
+        deps,
+        { tenantId: TENANT_B, userId: OWNER_B },
+        { email: 'shared@example.com', role: 'employee' },
+      ),
+    );
+    await inviteMember(
+      deps,
+      { tenantId: TENANT_A, userId: OWNER_A },
+      { email: 'shared@example.com', role: 'employee' },
+    );
+    await inviteMember(
+      deps,
+      { tenantId: TENANT_A, userId: OWNER_A },
+      { email: 'shared@example.com', role: 'employee' },
+    );
+
+    const all = await rows();
+    const rowForB = all.find((row) => row.tenant_id === TENANT_B);
+    expect(rowForB).toMatchObject({ id: forB.invitationId, token_hash: 'hash-1' });
+    expect(all.filter((row) => row.tenant_id === TENANT_A)).toHaveLength(1);
+  });
+
+  it('answers a failed send with INVITE_DELIVERY_FAILED, keeps the invitation and reports the cause', async () => {
+    failSend = true;
+    const failed = await inviteMember(
+      deps,
+      { tenantId: TENANT_A, userId: OWNER_A },
+      { email: 'x@example.com', role: 'employee' },
+    );
+
+    expect(failed.ok).toBe(false);
+    if (!failed.ok) expect(failed.error).toBeInstanceOf(InviteDeliveryFailedError);
+    expect(failures).toHaveLength(1);
+    expect(await rows()).toHaveLength(1); // the owner can send it again
+
+    failSend = false;
+    unwrapOrThrow(
       await inviteMember(
         deps,
         { tenantId: TENANT_A, userId: OWNER_A },
-        { email: 'known@example.com', role: 'employee' },
+        { email: 'x@example.com', role: 'employee' },
       ),
     );
-    expect(receipt.delivery).toBe('existing_user');
     expect(await rows()).toHaveLength(1);
   });
 
-  it('keeps the invitation pending when the email cannot be sent, so the owner can resend', async () => {
-    outcome = 'fail';
+  it('rejects an email that is not stored in lower case', async () => {
+    // migration: invitations_email_lowercase_check
     await expect(
-      inviteMember(
-        deps,
-        { tenantId: TENANT_A, userId: OWNER_A },
-        { email: 'x@example.com', role: 'employee' },
+      testDb.client.query(
+        `insert into invitations (tenant_id, email, role, token_hash, invited_by, expires_at)
+         values ($1, 'Mixed@Example.com', 'employee', 'h', $2, now())`,
+        [TENANT_A, OWNER_A],
       ),
-    ).rejects.toThrow('Supabase invite failed');
-    expect(await rows()).toHaveLength(1);
-
-    outcome = 'invited';
-    const retry = unwrapOrThrow(
-      await inviteMember(
-        deps,
-        { tenantId: TENANT_A, userId: OWNER_A },
-        { email: 'x@example.com', role: 'employee' },
-      ),
-    );
-    expect(retry.delivery).toBe('invited');
-    expect(await rows()).toHaveLength(1);
+    ).rejects.toThrow(/invitations_email_lowercase_check/);
   });
 
   it('rejects an invitation row with a role other than owner or employee', async () => {

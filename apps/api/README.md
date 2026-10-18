@@ -60,4 +60,5 @@ Errors reach the client only through `ApiExceptionFilter` (`src/infrastructure/h
 
 - `src/**/*.test.ts`: unit tests next to the code.
 - `test/harness.ts`: `createTestDb()` starts PGlite and applies every migration from `drizzle/`; call `truncateAll()` in `beforeEach`. One database per test file. It connects as the PGlite superuser; issue #12 adds the `app_user` role and RLS to it.
-- `test/create-test-app.ts`: boots the app exactly like `main.ts` on that database, for supertest.
+- `test/create-test-app.ts`: boots the app exactly like `main.ts` on that database, for supertest. The app trusts a local key pair, so send `await bearerFor(app, { sub, email })` as `Authorization`; routes marked `@Public()` need nothing. `overrides` replaces providers by token (for example the Supabase admin client).
+- `test/access-fixture.ts`: `useAccessApp()` registers the hooks of a suite that exercises the guard (fresh app per test, fake Supabase admin, fake membership directory).

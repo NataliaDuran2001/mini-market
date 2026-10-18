@@ -1,8 +1,10 @@
 import type { Clock } from '@mini-market/shared-kernel';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
+import { Logger } from 'nestjs-pino';
 import type { Env } from '../../infrastructure/config/env';
 import type { WithTransaction } from '../../infrastructure/db/with-transaction';
+import { describeError } from '../../infrastructure/logger/describe-error';
 import { CLOCK, ENV, WITH_TRANSACTION } from '../../infrastructure/tokens';
 import { INVITE_MEMBER, inviteMember } from './application/invite-member';
 import type {
@@ -76,6 +78,7 @@ import { MeController } from './presentation/me.controller';
         memberships: MembershipDirectory,
         supabaseAdmin: SupabaseAdminPort,
         tokens: InvitationTokenPort,
+        logger: Logger,
         withTransaction: WithTransaction,
       ) => {
         const deps: InviteMemberDeps = {
@@ -85,6 +88,8 @@ import { MeController } from './presentation/me.controller';
           supabaseAdmin,
           tokens,
           withTransaction,
+          reportFailure: (error) =>
+            logger.error({ error: describeError(error) }, 'invitation email failed'),
           acceptInvitationUrl: new URL('/accept-invitation', env.webOrigin).toString(),
         };
         return (actor: InviteMemberActor, input: InviteMemberInput) =>
@@ -97,6 +102,7 @@ import { MeController } from './presentation/me.controller';
         MEMBERSHIP_DIRECTORY,
         SUPABASE_ADMIN,
         INVITATION_TOKENS,
+        Logger,
         WITH_TRANSACTION,
       ],
     },

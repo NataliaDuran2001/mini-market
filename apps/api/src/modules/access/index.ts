@@ -12,4 +12,3 @@ export type { AuthenticatedUser, Role } from './domain/identity';
 export { AccessModule } from './access.module';
 export { CurrentUser } from './presentation/current-user.decorator';
 export { Public } from './presentation/public.decorator';
-export { invitations, users } from './infrastructure/schema';

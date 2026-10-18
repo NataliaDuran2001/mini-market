@@ -20,8 +20,6 @@ export const inviteMemberResponseSchema = z.object({
   email: z.string(),
   role: z.enum(['owner', 'employee']),
   expiresAt: z.iso.datetime(),
-  /** `existing_user`: the email already has an account and accepts the invitation with it. */
-  delivery: z.enum(['invited', 'existing_user']),
 });
 
 export type MeResponse = z.infer<typeof meResponseSchema>;

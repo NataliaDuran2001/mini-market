@@ -4,11 +4,12 @@ export interface SupabaseInviteRequest {
   readonly redirectTo: string;
 }
 
-/** `already_registered`: the email has a Supabase account, so no invite email is sent. */
-export type SupabaseInviteOutcome = 'invited' | 'already_registered';
-
 /** Supabase Admin API, service role. Server side only (docs/05-security.md section 5). */
 export interface SupabaseAdminPort {
-  /** @throws on infrastructure failure (network, rate limit, misconfiguration). */
-  inviteUserByEmail(request: SupabaseInviteRequest): Promise<SupabaseInviteOutcome>;
+  /**
+   * Sends the invitation email. An address that already has an account is not an error and is not
+   * reported: the answer must not tell an owner whether a person is registered anywhere.
+   * @throws on infrastructure failure (network, rate limit, misconfiguration).
+   */
+  inviteUserByEmail(request: SupabaseInviteRequest): Promise<void>;
 }

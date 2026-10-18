@@ -1,5 +1,5 @@
 {
-  "id": "758601dd-f590-4d83-ac0b-7a2329591b3e",
+  "id": "bf59a1ce-69b8-49ad-b075-5985a8919a4b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -141,6 +141,10 @@
         "invitations_role_check": {
           "name": "invitations_role_check",
           "value": "\"invitations\".\"role\" in ('owner', 'employee')"
+        },
+        "invitations_email_lowercase_check": {
+          "name": "invitations_email_lowercase_check",
+          "value": "\"invitations\".\"email\" = lower(\"invitations\".\"email\")"
         }
       },
       "isRLSEnabled": false

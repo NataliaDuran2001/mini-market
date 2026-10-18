@@ -64,3 +64,14 @@ Entries store `tenant_id`, `user_id`, `action`, `entity_type`, `entity_id`, `bef
 | Database connection string (pooler, role `app_user`) | API env | web, repo |
 | Supabase JWT issuer and JWKS URL | API env | n/a (public) |
 | Railway, Vercel tokens | GitHub Actions secrets | repo |
+
+## 6. Identity and invitations (issue #9)
+
+| Topic | Rule | Proof |
+|---|---|---|
+| Access tokens | `SupabaseJwtGuard` accepts only RS256 or ES256 tokens whose signature, issuer (`SUPABASE_JWT_ISSUER`), audience `authenticated` and expiry check out against the cached JWKS. A failure answers `401 UNAUTHENTICATED` with one fixed body and logs a reason code, never the token. A missing token is logged at info, a rejected one at warn. | `auth-guard.test.ts`, `jwks.test.ts` (rotation, RS256, HMAC key confusion) |
+| Outage is not a bad token | When the JWKS cannot be fetched the answer is `503 IDENTITY_PROVIDER_UNAVAILABLE`, so the web does not sign everybody out. | `access-defaults.test.ts` |
+| URLs | `SUPABASE_URL`, `SUPABASE_JWT_ISSUER` and `WEB_ORIGIN` must be https, except for localhost. | `env.test.ts` |
+| Invitation token | 256 random bits in the link, only its SHA-256 stored, valid 7 days, replaced when the owner resends. The `invitations` table has `tenant_id` but no RLS: the invitee has no membership yet when the token is looked up, so access stays inside the `access` repository (issue #12 lists it as an exception). | `invite-member.test.ts` |
+| No account enumeration | The invitation response and errors never say whether an email already has an account. | `invitations.test.ts`, `supabase-admin.client.test.ts` |
+| Public signup | Must be off on every Supabase project (`disable_signup`). Manual check, record the date when done. | Manual |

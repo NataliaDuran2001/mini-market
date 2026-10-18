@@ -60,7 +60,15 @@ Repeat at most 6 times. After that, stop and report which issue blocks you.
 
 - Additive lines in shared registries (module lists, schema exports, `exports` entries) resolve by keeping both sides, sorted alphabetically.
 - Never discard another lane's change to resolve a conflict. If the resolution is not obvious, stop and report.
-- Migrations use the timestamp prefix. If two branches add migrations, keep both.
+- Migrations use the timestamp prefix, but `drizzle/meta/_journal.json` and the snapshots are shared state that cannot be merged by hand. If another branch merged a migration first: rebase, delete your generated `.sql`, snapshot, journal entry and `rollback/` file, and run `db:generate` again (details in `apps/api/README.md`).
+- `apps/api/src/app.modules.ts` and `apps/api/src/infrastructure/db/schema.ts` merge with git's `union` driver (both sides kept); `apps/api/test/conventions.test.ts` fails when a line is missing, duplicated or unsorted.
+
+## What every API lane needs to know (from P1)
+
+- Every API route needs a Supabase access token unless it carries `@Public()` (from `modules/access`). In integration tests build the app with `createTestApp` (it trusts a local key pair) and send `await bearerFor(app, claims)` as `Authorization`. Permissions arrive with issue #11.
+- Errors reach the client only through `ApiExceptionFilter`: a controller does `if (!result.ok) throw result.error`. Log failures with `describeError(error)`.
+- The boundary preset now classifies imports that resolve into `packages/*/dist` (it used to skip them), so `domain` importing `@mini-market/contracts` is a lint error. Use cases may import types, never runtime values, from `apps/api/src/infrastructure/*`.
+- Every migration needs `drizzle/rollback/<tag>.sql`; a test runs all rollbacks.
 - `@mini-market/shared-kernel` changes are additive while lanes run. A breaking change needs its own issue and a note here.
 
 ## Lane report

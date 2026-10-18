@@ -33,7 +33,6 @@ describe('access contracts', () => {
       email: 'ana@example.com',
       role: 'employee',
       expiresAt: '2026-10-22T14:00:00.000Z',
-      delivery: 'invited',
     };
     expect(inviteMemberResponseSchema.safeParse(response).success).toBe(true);
     expect(

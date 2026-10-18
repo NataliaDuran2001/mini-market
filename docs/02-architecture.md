@@ -133,7 +133,7 @@ No external queue, no event sourcing, no saga framework in v1.
 
 | Service | How it is used |
 |---|---|
-| Auth | Email and password. The API validates JWTs against the project JWKS in a Nest guard, then resolves membership and role from the database to build `TenantContext`. The owner invites employees from the web; the API creates the user with the service role key (server side only). |
+| Auth | Email and password. The API validates JWTs against the project JWKS in a Nest guard, then resolves membership and role from the database to build `TenantContext`. The owner invites employees from the web; the API creates the user with the service role key (server side only). Each invitation carries a one-time token (7 days, stored as a SHA-256 hash) in the link; the invitee presents it to accept. Every route needs a token unless it is marked `@Public()`. |
 | Postgres | The only database. Drizzle owns schema and migrations under `apps/api/drizzle`, including RLS policies written in SQL. The API connects through the Supabase pooler with a dedicated role `app_user` that does not bypass RLS and runs `set_config('app.tenant_id', <id>, true)` at the start of every transaction. `TenantContext` is the first defense; RLS is the second. |
 | Storage | Imported CSV files (v1), tenant logos (v2). |
 | Dashboard | Operator admin panel in v1: inspect data, run the provisioning script, manage auth users. Avoids building a platform admin UI before v2. |

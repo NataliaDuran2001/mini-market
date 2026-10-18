@@ -33,6 +33,7 @@ export const invitations = pgTable(
   },
   (table) => [
     check('invitations_role_check', sql`${table.role} in ('owner', 'employee')`),
+    check('invitations_email_lowercase_check', sql`${table.email} = lower(${table.email})`),
     index('invitations_tenant_id_idx').on(table.tenantId),
     uniqueIndex('invitations_token_hash_idx').on(table.tokenHash),
     uniqueIndex('invitations_pending_email_idx')

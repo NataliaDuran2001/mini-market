@@ -76,6 +76,31 @@ describe('loadEnv', () => {
     );
   });
 
+  it('requires https for every URL except localhost', () => {
+    // docs/05-security.md: HTTPS only in all environments (a plain http JWKS URL can be spoofed)
+    const insecure = failureOf({
+      ...validEnv,
+      SUPABASE_URL: 'http://project.supabase.co',
+      SUPABASE_JWT_ISSUER: 'http://project.supabase.co/auth/v1',
+      WEB_ORIGIN: 'http://app.example.com',
+    });
+    expect([...insecure.invalidKeys].sort()).toEqual([
+      'SUPABASE_JWT_ISSUER',
+      'SUPABASE_URL',
+      'WEB_ORIGIN',
+    ]);
+    const secure = loadEnv({
+      ...validEnv,
+      SUPABASE_URL: 'https://project.supabase.co',
+      SUPABASE_JWT_ISSUER: 'https://project.supabase.co/auth/v1',
+      WEB_ORIGIN: 'https://app.example.com',
+    });
+    expect(secure.supabaseUrl).toBe('https://project.supabase.co');
+    expect(loadEnv({ ...validEnv, WEB_ORIGIN: 'http://127.0.0.1:5173' }).webOrigin).toBe(
+      'http://127.0.0.1:5173',
+    );
+  });
+
   it('keeps the database url and the service role key out of JSON and inspect output', () => {
     // docs/05-security.md section 5
     const env = loadEnv(validEnv);
