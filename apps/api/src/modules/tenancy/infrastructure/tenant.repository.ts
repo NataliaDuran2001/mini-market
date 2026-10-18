@@ -48,6 +48,13 @@ export function createTenantRepository(withTransaction: WithTransaction): Tenant
       }
     },
 
+    async findBySlug(slug: string): Promise<StoredTenant | null> {
+      const [row] = await withTransaction(null, (tx) =>
+        tx.select().from(tenants).where(eq(tenants.slug, slug)).limit(1),
+      );
+      return row ?? null;
+    },
+
     async findById(ctx: TenantScope): Promise<StoredTenant | null> {
       const [row] = await withTransaction(ctx, (tx) =>
         tx.select().from(tenants).where(eq(tenants.id, ctx.tenantId)).limit(1),
