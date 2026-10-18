@@ -9,6 +9,10 @@ export default defineConfig({
   plugins: [swc.vite()],
   test: {
     environment: 'node',
+    // PGlite starts in about a second and Nest apps compile with SWC; Turborepo runs the other
+    // workspaces' suites at the same time, so the 5 s default is too tight on a busy machine.
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
     include: ['src/**/*.test.ts', 'test/**/*.test.ts', 'scripts/**/*.test.ts'],
     coverage: {
       provider: 'v8',
