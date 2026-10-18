@@ -2,6 +2,8 @@
 
 Lanes are ordered sequences of issues executed by one agent each, in parallel, in separate git worktrees. A lane delivers one module end to end. Lanes depend on each other only through the dependencies written in the issues.
 
+Frozen baseline and progress report: `docs/baseline.md`, `node scripts/baseline-status.mjs`.
+
 Plan days below are the issue estimates (one person with Claude Code). The minimum wall-clock with 4 lanes is the critical path of 8.25 plan days. It adds no buffer for merge waits or human testing.
 
 ## Lane table

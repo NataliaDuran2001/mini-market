@@ -1,0 +1,888 @@
+{
+  "frozenOn": "2026-10-18",
+  "laneT0": "2026-10-18T17:23:00Z",
+  "scope": {
+    "milestones": 9,
+    "issues": 51,
+    "epics": 9,
+    "v2Epics": 6
+  },
+  "sequentialPlanDays": 24,
+  "onboardingPlanDays": 3,
+  "laneCriticalPathPlanDays": 8.25,
+  "milestones": [
+    {
+      "key": "M0",
+      "title": "M0 - Scaffold & harness",
+      "issues": 6,
+      "planDays": 2,
+      "due": "2026-10-21",
+      "laneFinish": 1.75
+    },
+    {
+      "key": "M1",
+      "title": "M1 - Foundation: tenants, auth, roles",
+      "issues": 8,
+      "planDays": 3,
+      "due": "2026-10-26",
+      "laneFinish": 2.75
+    },
+    {
+      "key": "M2",
+      "title": "M2 - Products & stock",
+      "issues": 8,
+      "planDays": 3,
+      "due": "2026-10-29",
+      "laneFinish": 5.5
+    },
+    {
+      "key": "M3",
+      "title": "M3 - Purchases",
+      "issues": 5,
+      "planDays": 3,
+      "due": "2026-11-03",
+      "laneFinish": 7
+    },
+    {
+      "key": "M4",
+      "title": "M4 - Sales",
+      "issues": 6,
+      "planDays": 4,
+      "due": "2026-11-09",
+      "laneFinish": 7.75
+    },
+    {
+      "key": "M5",
+      "title": "M5 - Expenses & accounts payable",
+      "issues": 5,
+      "planDays": 3,
+      "due": "2026-11-12",
+      "laneFinish": 6.75
+    },
+    {
+      "key": "M6",
+      "title": "M6 - Capital",
+      "issues": 3,
+      "planDays": 1,
+      "due": "2026-11-13",
+      "laneFinish": 3.25
+    },
+    {
+      "key": "M7",
+      "title": "M7 - Reports",
+      "issues": 5,
+      "planDays": 3,
+      "due": "2026-11-18",
+      "laneFinish": 8.25
+    },
+    {
+      "key": "M8",
+      "title": "M8 - Credit sales (fiado)",
+      "issues": 5,
+      "planDays": 2,
+      "due": "2026-11-20",
+      "laneFinish": 8
+    }
+  ],
+  "issues": [
+    {
+      "number": 2,
+      "key": "M0-1",
+      "milestone": "M0",
+      "lane": "P1",
+      "title": "[infra] Monorepo: pnpm workspaces, Turborepo, shared config, root scripts",
+      "area": "infra",
+      "estimate": 0.25,
+      "order": 1,
+      "dependsOn": [],
+      "plannedStart": 0,
+      "plannedFinish": 0.25
+    },
+    {
+      "number": 3,
+      "key": "M0-2",
+      "milestone": "M0",
+      "lane": "P1",
+      "title": "[api] NestJS skeleton: validated env, pino, Helmet, CORS, health, Drizzle + PGlite test harness",
+      "area": "api",
+      "estimate": 0.5,
+      "order": 2,
+      "dependsOn": [
+        2
+      ],
+      "plannedStart": 0.25,
+      "plannedFinish": 0.75
+    },
+    {
+      "number": 4,
+      "key": "M0-3",
+      "milestone": "M0",
+      "lane": "P2",
+      "title": "[web] Vite + React skeleton: router, query, shadcn/ui, i18n es, empty layout, Testing Library + MSW",
+      "area": "web",
+      "estimate": 0.5,
+      "order": 3,
+      "dependsOn": [
+        2
+      ],
+      "plannedStart": 0.25,
+      "plannedFinish": 0.75
+    },
+    {
+      "number": 5,
+      "key": "M0-4",
+      "milestone": "M0",
+      "lane": "P3",
+      "title": "[shared] shared-kernel (Money, Quantity, Period, Result, DomainError, Clock) with tests; contracts package scaffold",
+      "area": "shared",
+      "estimate": 0.25,
+      "order": 4,
+      "dependsOn": [
+        2
+      ],
+      "plannedStart": 0.25,
+      "plannedFinish": 0.5
+    },
+    {
+      "number": 6,
+      "key": "M0-5",
+      "milestone": "M0",
+      "lane": "P3",
+      "title": "[infra] CI: typecheck, lint (boundaries), test, build, audit; Renovate; main branch protection",
+      "area": "infra",
+      "estimate": 0.25,
+      "order": 5,
+      "dependsOn": [
+        3,
+        4,
+        5
+      ],
+      "plannedStart": 1.25,
+      "plannedFinish": 1.5
+    },
+    {
+      "number": 7,
+      "key": "M0-6",
+      "milestone": "M0",
+      "lane": "P3",
+      "title": "[infra] Initial deploy: API on Railway, web on Vercel, per-environment variables",
+      "area": "infra",
+      "estimate": 0.25,
+      "order": 6,
+      "dependsOn": [
+        6
+      ],
+      "plannedStart": 1.5,
+      "plannedFinish": 1.75
+    },
+    {
+      "number": 9,
+      "key": "M1-1",
+      "milestone": "M1",
+      "lane": "P1",
+      "title": "[api] Supabase JWT guard, CurrentUser decorator, employee invitation via service role",
+      "area": "api",
+      "estimate": 0.25,
+      "order": 7,
+      "dependsOn": [
+        3
+      ],
+      "plannedStart": 0.75,
+      "plannedFinish": 1
+    },
+    {
+      "number": 10,
+      "key": "M1-2",
+      "milestone": "M1",
+      "lane": "P3",
+      "title": "[api] tenancy: tenants table, settings JSONB (vertical, modules, flags, timezone), presets minimarket|farmacia|generic",
+      "area": "api",
+      "estimate": 0.5,
+      "order": 8,
+      "dependsOn": [
+        3,
+        5
+      ],
+      "plannedStart": 0.75,
+      "plannedFinish": 1.25
+    },
+    {
+      "number": 11,
+      "key": "M1-3",
+      "milestone": "M1",
+      "lane": "P1",
+      "title": "[api] access: memberships, roles owner|employee, TenantContext, permission matrix, @RequirePermission",
+      "area": "api",
+      "estimate": 0.5,
+      "order": 9,
+      "dependsOn": [
+        9,
+        10
+      ],
+      "plannedStart": 1.25,
+      "plannedFinish": 1.75
+    },
+    {
+      "number": 12,
+      "key": "M1-4",
+      "milestone": "M1",
+      "lane": "P1",
+      "title": "[api] RLS: app_user role, set_config(app.tenant_id) inside withTransaction, policies in migration, reusable isolation test",
+      "area": "api",
+      "estimate": 0.5,
+      "order": 10,
+      "dependsOn": [
+        11
+      ],
+      "plannedStart": 1.75,
+      "plannedFinish": 2.25
+    },
+    {
+      "number": 13,
+      "key": "M1-5",
+      "milestone": "M1",
+      "lane": "P1",
+      "title": "[api] Tenant provisioning script: tenant + owner + preset catalogs",
+      "area": "api",
+      "estimate": 0.25,
+      "order": 11,
+      "dependsOn": [
+        10,
+        11,
+        12
+      ],
+      "plannedStart": 2.25,
+      "plannedFinish": 2.5
+    },
+    {
+      "number": 14,
+      "key": "M1-6",
+      "milestone": "M1",
+      "lane": "P2",
+      "title": "[web] Auth: login, logout, password recovery, accept invitation; API client with token; role guards",
+      "area": "web",
+      "estimate": 0.5,
+      "order": 12,
+      "dependsOn": [
+        4,
+        9,
+        11
+      ],
+      "plannedStart": 1.75,
+      "plannedFinish": 2.25
+    },
+    {
+      "number": 15,
+      "key": "M1-7",
+      "milestone": "M1",
+      "lane": "P2",
+      "title": "[web] App shell: navigation by enabled modules, tenant switcher, role-aware menu",
+      "area": "web",
+      "estimate": 0.25,
+      "order": 13,
+      "dependsOn": [
+        14
+      ],
+      "plannedStart": 2.25,
+      "plannedFinish": 2.5
+    },
+    {
+      "number": 16,
+      "key": "M1-8",
+      "milestone": "M1",
+      "lane": "P2",
+      "title": "[e2e] M1: owner/employee login, tenant isolation across two tenants (@M1)",
+      "area": "e2e",
+      "estimate": 0.25,
+      "order": 14,
+      "dependsOn": [
+        13,
+        15
+      ],
+      "plannedStart": 2.5,
+      "plannedFinish": 2.75
+    },
+    {
+      "number": 18,
+      "key": "M2-1",
+      "milestone": "M2",
+      "lane": "C",
+      "title": "[api] Tenant catalogs: categories, units, payment methods, expense categories (CRUD, preset seed)",
+      "area": "api",
+      "estimate": 0.25,
+      "order": 15,
+      "dependsOn": [
+        12,
+        13
+      ],
+      "plannedStart": 2.5,
+      "plannedFinish": 2.75
+    },
+    {
+      "number": 19,
+      "key": "M2-2",
+      "milestone": "M2",
+      "lane": "C",
+      "title": "[api] Products and presentations (factor 1 default), search by name/code, activate/deactivate",
+      "area": "api",
+      "estimate": 0.5,
+      "order": 16,
+      "dependsOn": [
+        18
+      ],
+      "plannedStart": 2.75,
+      "plannedFinish": 3.25
+    },
+    {
+      "number": 20,
+      "key": "M2-3",
+      "milestone": "M2",
+      "lane": "C",
+      "title": "[api] inventory: immutable stock_movements ledger, stock levels, initial stock, adjustments with reason, StockBelowMinimum event",
+      "area": "api",
+      "estimate": 0.5,
+      "order": 17,
+      "dependsOn": [
+        19
+      ],
+      "plannedStart": 3.25,
+      "plannedFinish": 3.75
+    },
+    {
+      "number": 21,
+      "key": "M2-4",
+      "milestone": "M2",
+      "lane": "C",
+      "title": "[api] CSV import: validation, preview, confirm, per-row errors (products + initial stock)",
+      "area": "api",
+      "estimate": 0.5,
+      "order": 18,
+      "dependsOn": [
+        20
+      ],
+      "plannedStart": 4.25,
+      "plannedFinish": 4.75
+    },
+    {
+      "number": 22,
+      "key": "M2-5",
+      "milestone": "M2",
+      "lane": "C",
+      "title": "[web] Catalog settings screens (categories, units, payment methods, expense categories)",
+      "area": "web",
+      "estimate": 0.25,
+      "order": 19,
+      "dependsOn": [
+        15,
+        18
+      ],
+      "plannedStart": 4.75,
+      "plannedFinish": 5
+    },
+    {
+      "number": 23,
+      "key": "M2-6",
+      "milestone": "M2",
+      "lane": "C",
+      "title": "[web] Products: searchable list, quick create/edit, current stock, adjustment dialog",
+      "area": "web",
+      "estimate": 0.5,
+      "order": 20,
+      "dependsOn": [
+        15,
+        19,
+        20
+      ],
+      "plannedStart": 3.75,
+      "plannedFinish": 4.25
+    },
+    {
+      "number": 24,
+      "key": "M2-7",
+      "milestone": "M2",
+      "lane": "C",
+      "title": "[web] CSV import wizard: upload, map columns, review errors, confirm",
+      "area": "web",
+      "estimate": 0.25,
+      "order": 21,
+      "dependsOn": [
+        21,
+        23
+      ],
+      "plannedStart": 5,
+      "plannedFinish": 5.25
+    },
+    {
+      "number": 25,
+      "key": "M2-8",
+      "milestone": "M2",
+      "lane": "C",
+      "title": "[e2e] M2: import CSV, search, adjust stock (@M2)",
+      "area": "e2e",
+      "estimate": 0.25,
+      "order": 22,
+      "dependsOn": [
+        22,
+        23,
+        24
+      ],
+      "plannedStart": 5.25,
+      "plannedFinish": 5.5
+    },
+    {
+      "number": 27,
+      "key": "M3-1",
+      "milestone": "M3",
+      "lane": "B",
+      "title": "[api] Suppliers CRUD",
+      "area": "api",
+      "estimate": 0.25,
+      "order": 23,
+      "dependsOn": [
+        12
+      ],
+      "plannedStart": 2.25,
+      "plannedFinish": 2.5
+    },
+    {
+      "number": 28,
+      "key": "M3-2",
+      "milestone": "M3",
+      "lane": "B",
+      "title": "[api] Purchases: lines, cash/credit, purchase movements, weighted average cost recalculation (S3), payable creation (S9)",
+      "area": "api",
+      "estimate": 1,
+      "order": 24,
+      "dependsOn": [
+        27,
+        20
+      ],
+      "plannedStart": 4.25,
+      "plannedFinish": 5.25
+    },
+    {
+      "number": 29,
+      "key": "M3-3",
+      "milestone": "M3",
+      "lane": "B",
+      "title": "[web] Suppliers screen",
+      "area": "web",
+      "estimate": 0.25,
+      "order": 25,
+      "dependsOn": [
+        15,
+        27
+      ],
+      "plannedStart": 2.5,
+      "plannedFinish": 2.75
+    },
+    {
+      "number": 30,
+      "key": "M3-4",
+      "milestone": "M3",
+      "lane": "C",
+      "title": "[web] Register purchase: product search, quantity, cost, totals, cash/credit, history",
+      "area": "web",
+      "estimate": 1,
+      "order": 26,
+      "dependsOn": [
+        28,
+        29
+      ],
+      "plannedStart": 5.5,
+      "plannedFinish": 6.5
+    },
+    {
+      "number": 31,
+      "key": "M3-5",
+      "milestone": "M3",
+      "lane": "C",
+      "title": "[e2e] M3: credit purchase updates stock, average cost and creates a debt (@M3)",
+      "area": "e2e",
+      "estimate": 0.5,
+      "order": 27,
+      "dependsOn": [
+        30
+      ],
+      "plannedStart": 6.5,
+      "plannedFinish": 7
+    },
+    {
+      "number": 33,
+      "key": "M4-1",
+      "milestone": "M4",
+      "lane": "S",
+      "title": "[api] sales: confirm sale (lines, payment method, COGS snapshot, S13), void (S12), per-tenant receipt numbering",
+      "area": "api",
+      "estimate": 1,
+      "order": 28,
+      "dependsOn": [
+        20,
+        19
+      ],
+      "plannedStart": 3.75,
+      "plannedFinish": 4.75
+    },
+    {
+      "number": 34,
+      "key": "M4-2",
+      "milestone": "M4",
+      "lane": "S",
+      "title": "[api] Sales of the day: list and totals by payment method",
+      "area": "api",
+      "estimate": 0.5,
+      "order": 29,
+      "dependsOn": [
+        33
+      ],
+      "plannedStart": 4.75,
+      "plannedFinish": 5.25
+    },
+    {
+      "number": 35,
+      "key": "M4-3",
+      "milestone": "M4",
+      "lane": "S",
+      "title": "[web] Sale screen: fast search, cart, quantities, payment method, confirm (mobile-first)",
+      "area": "web",
+      "estimate": 1,
+      "order": 30,
+      "dependsOn": [
+        15,
+        33
+      ],
+      "plannedStart": 5.25,
+      "plannedFinish": 6.25
+    },
+    {
+      "number": 36,
+      "key": "M4-4",
+      "milestone": "M4",
+      "lane": "S",
+      "title": "[web] Internal receipt (print/share) and void with reason",
+      "area": "web",
+      "estimate": 0.5,
+      "order": 31,
+      "dependsOn": [
+        35
+      ],
+      "plannedStart": 6.25,
+      "plannedFinish": 6.75
+    },
+    {
+      "number": 37,
+      "key": "M4-5",
+      "milestone": "M4",
+      "lane": "S",
+      "title": "[web] Sales of the day: list, filters, totals; employee without cost or profit",
+      "area": "web",
+      "estimate": 0.5,
+      "order": 32,
+      "dependsOn": [
+        34,
+        36
+      ],
+      "plannedStart": 6.75,
+      "plannedFinish": 7.25
+    },
+    {
+      "number": 38,
+      "key": "M4-6",
+      "milestone": "M4",
+      "lane": "S",
+      "title": "[e2e] M4: sell, stock decreases, receipt, void restores (@M4)",
+      "area": "e2e",
+      "estimate": 0.5,
+      "order": 33,
+      "dependsOn": [
+        37
+      ],
+      "plannedStart": 7.25,
+      "plannedFinish": 7.75
+    },
+    {
+      "number": 40,
+      "key": "M5-1",
+      "milestone": "M5",
+      "lane": "B",
+      "title": "[api] Expenses: one-off and recurring templates, monthly generation (S5), partial/total payments",
+      "area": "api",
+      "estimate": 1,
+      "order": 34,
+      "dependsOn": [
+        18,
+        12
+      ],
+      "plannedStart": 2.75,
+      "plannedFinish": 3.75
+    },
+    {
+      "number": 41,
+      "key": "M5-2",
+      "milestone": "M5",
+      "lane": "B",
+      "title": "[api] Unified accounts payable: expenses + credit purchases, overdue/upcoming, pay",
+      "area": "api",
+      "estimate": 0.5,
+      "order": 35,
+      "dependsOn": [
+        40,
+        28
+      ],
+      "plannedStart": 5.25,
+      "plannedFinish": 5.75
+    },
+    {
+      "number": 42,
+      "key": "M5-3",
+      "milestone": "M5",
+      "lane": "B",
+      "title": "[web] Expenses: list by month, create, recurring templates",
+      "area": "web",
+      "estimate": 0.5,
+      "order": 36,
+      "dependsOn": [
+        15,
+        40
+      ],
+      "plannedStart": 3.75,
+      "plannedFinish": 4.25
+    },
+    {
+      "number": 43,
+      "key": "M5-4",
+      "milestone": "M5",
+      "lane": "B",
+      "title": "[web] Accounts payable: unified list, pay, filters, supplier balance",
+      "area": "web",
+      "estimate": 0.5,
+      "order": 37,
+      "dependsOn": [
+        41,
+        42
+      ],
+      "plannedStart": 5.75,
+      "plannedFinish": 6.25
+    },
+    {
+      "number": 44,
+      "key": "M5-5",
+      "milestone": "M5",
+      "lane": "B",
+      "title": "[e2e] M5: recurring expense appears next month; pay a purchase debt (@M5)",
+      "area": "e2e",
+      "estimate": 0.5,
+      "order": 38,
+      "dependsOn": [
+        43
+      ],
+      "plannedStart": 6.25,
+      "plannedFinish": 6.75
+    },
+    {
+      "number": 46,
+      "key": "M6-1",
+      "milestone": "M6",
+      "lane": "S",
+      "title": "[api] equity: capital contributions and withdrawals, totals (S8), owner only",
+      "area": "api",
+      "estimate": 0.5,
+      "order": 39,
+      "dependsOn": [
+        12
+      ],
+      "plannedStart": 2.25,
+      "plannedFinish": 2.75
+    },
+    {
+      "number": 47,
+      "key": "M6-2",
+      "milestone": "M6",
+      "lane": "S",
+      "title": "[web] Capital: list, record movement, totals",
+      "area": "web",
+      "estimate": 0.25,
+      "order": 40,
+      "dependsOn": [
+        15,
+        46
+      ],
+      "plannedStart": 2.75,
+      "plannedFinish": 3
+    },
+    {
+      "number": 48,
+      "key": "M6-3",
+      "milestone": "M6",
+      "lane": "S",
+      "title": "[e2e] M6: record capital movements and verify totals (@M6)",
+      "area": "e2e",
+      "estimate": 0.25,
+      "order": 41,
+      "dependsOn": [
+        47
+      ],
+      "plannedStart": 3,
+      "plannedFinish": 3.25
+    },
+    {
+      "number": 50,
+      "key": "M7-1",
+      "milestone": "M7",
+      "lane": "R",
+      "title": "[api] Daily sales report: per day and payment method, count, total, COGS, gross profit",
+      "area": "api",
+      "estimate": 0.5,
+      "order": 42,
+      "dependsOn": [
+        34
+      ],
+      "plannedStart": 5.25,
+      "plannedFinish": 5.75
+    },
+    {
+      "number": 51,
+      "key": "M7-2",
+      "milestone": "M7",
+      "lane": "R",
+      "title": "[api] Monthly report: sales, COGS, gross profit (S1), accrued expenses, net profit (S2), receivables/payables pending, capital, equity; top products",
+      "area": "api",
+      "estimate": 1,
+      "order": 43,
+      "dependsOn": [
+        50,
+        41,
+        46
+      ],
+      "plannedStart": 5.75,
+      "plannedFinish": 6.75
+    },
+    {
+      "number": 52,
+      "key": "M7-3",
+      "milestone": "M7",
+      "lane": "R",
+      "title": "[api] CSV export of daily and monthly reports",
+      "area": "api",
+      "estimate": 0.25,
+      "order": 44,
+      "dependsOn": [
+        51
+      ],
+      "plannedStart": 6.75,
+      "plannedFinish": 7
+    },
+    {
+      "number": 53,
+      "key": "M7-4",
+      "milestone": "M7",
+      "lane": "R",
+      "title": "[web] Reports screens: day/month selectors, cards and tables, owner only",
+      "area": "web",
+      "estimate": 1,
+      "order": 45,
+      "dependsOn": [
+        15,
+        52
+      ],
+      "plannedStart": 7,
+      "plannedFinish": 8
+    },
+    {
+      "number": 54,
+      "key": "M7-5",
+      "milestone": "M7",
+      "lane": "R",
+      "title": "[e2e] M7: full scenario (purchase, sales, expense, capital) yields exact report numbers (@M7)",
+      "area": "e2e",
+      "estimate": 0.25,
+      "order": 46,
+      "dependsOn": [
+        53
+      ],
+      "plannedStart": 8,
+      "plannedFinish": 8.25
+    },
+    {
+      "number": 56,
+      "key": "M8-1",
+      "milestone": "M8",
+      "lane": "R",
+      "title": "[api] receivables: customers, credit ledger, collections, optional credit limit",
+      "area": "api",
+      "estimate": 0.5,
+      "order": 47,
+      "dependsOn": [
+        12,
+        18
+      ],
+      "plannedStart": 2.75,
+      "plannedFinish": 3.25
+    },
+    {
+      "number": 57,
+      "key": "M8-2",
+      "milestone": "M8",
+      "lane": "C",
+      "title": "[api] Credit sales integration: payment method credit requires customer (S6); void reverses charge; report receivables",
+      "area": "api",
+      "estimate": 0.5,
+      "order": 48,
+      "dependsOn": [
+        56,
+        33,
+        51
+      ],
+      "plannedStart": 7,
+      "plannedFinish": 7.5
+    },
+    {
+      "number": 58,
+      "key": "M8-3",
+      "milestone": "M8",
+      "lane": "R",
+      "title": "[web] Customers and statement, register collection, balances list",
+      "area": "web",
+      "estimate": 0.5,
+      "order": 49,
+      "dependsOn": [
+        15,
+        56
+      ],
+      "plannedStart": 3.25,
+      "plannedFinish": 3.75
+    },
+    {
+      "number": 59,
+      "key": "M8-4",
+      "milestone": "M8",
+      "lane": "C",
+      "title": "[web] Sale screen: credit path (customer picker, limit warning)",
+      "area": "web",
+      "estimate": 0.25,
+      "order": 50,
+      "dependsOn": [
+        57,
+        58,
+        35
+      ],
+      "plannedStart": 7.5,
+      "plannedFinish": 7.75
+    },
+    {
+      "number": 60,
+      "key": "M8-5",
+      "milestone": "M8",
+      "lane": "C",
+      "title": "[e2e] M8: credit sale, balance, collection, void reversal (@M8)",
+      "area": "e2e",
+      "estimate": 0.25,
+      "order": 51,
+      "dependsOn": [
+        59
+      ],
+      "plannedStart": 7.75,
+      "plannedFinish": 8
+    }
+  ]
+}
