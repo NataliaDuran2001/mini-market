@@ -1,0 +1,66 @@
+# Lanes
+
+Lanes are ordered sequences of issues executed by one agent each, in parallel, in separate git worktrees. A lane delivers one module end to end. Lanes depend on each other only through the dependencies written in the issues.
+
+Plan days below are the issue estimates (one person with Claude Code). The minimum wall-clock with 4 lanes is the critical path of 8.25 plan days. It adds no buffer for merge waits or human testing.
+
+## Lane table
+
+| Lane | Scope | Issues, in order | Ends (plan day) |
+|---|---|---|---|
+| P1 | M0 and M1 API base | #2, #3, #9, #11, #12, #13 | 2.5 |
+| P2 | M0 and M1 web base | #4, #14, #15, #16 | 2.75 |
+| P3 | shared, tenancy, CI, deploy | #5, #10, #6, #7 | 1.75 |
+| C | M2 catalog and stock, purchases web, credit sales closing | #18, #19, #20, #23, #21, #22, #24, #25, #30, #31, #57, #59, #60 | 8.0 |
+| S | M6 capital, then M4 sales | #46, #47, #48, #33, #34, #35, #36, #37, #38 | 7.75 |
+| B | M3 purchases API and M5 expenses and payables | #27, #29, #40, #42, #28, #41, #43, #44 | 6.75 |
+| R | M8 customers, M7 reports | #56, #58, #50, #51, #52, #53, #54 | 8.25 |
+
+Phase 0 runs P1, P2 and P3. Lanes C, S, B and R start when #12, #13 and #15 are merged.
+
+## Environment (every Bash command, shell state does not persist)
+
+```
+export PATH="/c/Users/natalia.duran/.nvm/versions/node/v22.23.3/bin:$PATH"
+```
+
+Node 22 and pnpm 10.18 via corepack. Do not run `nvm alias` or change the user's default Node.
+
+Secrets live outside the repo in `C:\Users\natalia.duran\.mini-market\supabase-dev.env`. Copy only the variables an issue needs into the gitignored `apps/*/.env` of your worktree. Never print, log or commit values. The Supabase dev project is shared by all lanes: no destructive operations, no resets, tests use PGlite.
+
+Each lane uses its own ports when it runs servers: P1 and C use API 3101 and web 5201, P2 and S use 3102 and 5202, P3 and B use 3103 and 5203, R uses 3104 and 5204.
+
+## Protocol per issue
+
+1. `git fetch origin` and read the issue with `gh issue view <n>`. Check every dependency is `CLOSED`. If one is not, wait with a polling loop (below). If it stays blocked, do the next unblocked issue of your lane, or report blocked.
+2. `git switch -c feat/<n>-<slug> origin/main`.
+3. Read `CLAUDE.md`, the docs it lists and the ADRs the issue cites. Write the plan in the PR description, not in a prompt. Do not wait for approval.
+4. Implement with tests per acceptance criterion, marked `// AC-n`.
+5. Gates: `pnpm typecheck && pnpm lint && pnpm test`, and the issue's e2e tag when it is an `[e2e]` issue.
+6. Self-review with the `spec-reviewer` and `architecture-reviewer` agents. Fix every blocking finding.
+7. `git fetch origin && git rebase origin/main`. Re-run the gates if the rebase changed anything.
+8. Push the branch and open the PR with `Closes #<n>`, the DoD checklist and the acceptance criteria to tests table.
+9. Wait for CI: `gh pr checks <pr> --watch`. If CI fails, fix it. If the failure comes from the CI skeleton itself and not from your change, fix the workflow in the same PR.
+10. Merge only when CI is green and the review has no blocking findings: `gh pr merge <pr> --squash --delete-branch`. Never merge red or pending checks. Never force-push `main`.
+11. Confirm the issue is `CLOSED`, then start the next issue.
+
+Commits are authored by the repository owner only, with no AI trailers.
+
+## Waiting for a dependency
+
+```
+timeout 540 bash -c 'until [ "$(gh issue view <n> --repo NataliaDuran2001/mini-market --json state --jq .state)" = "CLOSED" ]; do sleep 30; done'
+```
+
+Repeat at most 6 times. After that, stop and report which issue blocks you.
+
+## Conflicts
+
+- Additive lines in shared registries (module lists, schema exports, `exports` entries) resolve by keeping both sides, sorted alphabetically.
+- Never discard another lane's change to resolve a conflict. If the resolution is not obvious, stop and report.
+- Migrations use the timestamp prefix. If two branches add migrations, keep both.
+- `@mini-market/shared-kernel` changes are additive while lanes run. A breaking change needs its own issue and a note here.
+
+## Lane report
+
+When a lane stops, report: issues merged with PR URLs, gate results, issues blocked with the blocker, deviations from the issue spec, and decisions that belong to the owner.

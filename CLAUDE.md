@@ -43,7 +43,7 @@ pnpm --filter api db:generate | db:migrate | db:studio
 6. **Errors**: expected failures return `Result<T, DomainError>`. Exceptions are for bugs and infrastructure only (ADR 0013).
 7. **Authorization in use cases**, not only in UI. Employee DTOs never include cost, profit, capital or expenses.
 8. **Validation**: Zod schemas from `packages/contracts` at every API boundary and every form.
-9. **Language**: code, identifiers, comments, commits, docs and issues in **English**. **Every string the client sees is in Spanish**, provided through i18n (`apps/web/src/lib/i18n/es.json`) and API error messages mapped to Spanish in the web layer. Never hardcode UI text in components.
+9. **Language**: code, identifiers, comments, commits, docs and issues in **English**. **Every string the client sees is in Spanish**, provided through i18n (`apps/web/src/locales/es/<feature>.json`, one namespace file per feature) and API error messages mapped to Spanish in the web layer. Never hardcode UI text in components.
 10. **Tests are part of the feature**: each acceptance criterion maps to a test marked `// AC-n`. Integration tests run against real Postgres (PGlite) with RLS on. Touching tenant data requires a tenant isolation test.
 11. **Secrets**: never commit `.env*`. Service role keys exist only in the API environment.
 
