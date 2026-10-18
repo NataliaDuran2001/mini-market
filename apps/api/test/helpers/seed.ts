@@ -14,7 +14,7 @@ export async function seedTenant(
 ): Promise<string> {
   const view = await createTenant(
     {
-      tenants: createTenantRepository(testDb.withTransaction),
+      tenants: createTenantRepository(testDb.asAdmin),
       events: { publish: () => Promise.resolve() },
       clock: new FixedClock('2026-10-15T14:00:00Z'),
     },
@@ -40,7 +40,7 @@ export async function seedMember(
 ): Promise<void> {
   const users = new DrizzleUserRepository();
   const memberships = new DrizzleMembershipRepository();
-  await testDb.withTransaction(null, async (tx) => {
+  await testDb.asAdmin(null, async (tx) => {
     await users.upsert(tx, { userId: member.userId, email: member.email });
     await memberships.activate(tx, member.tenantId, member.userId, member.role, null);
     if (member.status === 'disabled') {

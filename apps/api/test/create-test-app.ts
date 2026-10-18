@@ -66,6 +66,7 @@ export async function createTestApp(options: {
         env,
         version,
         database: options.database,
+        assumeRole: 'app_user', // same row level security as production
         ...(options.logStream ? { logStream: options.logStream } : {}),
       }),
     ],

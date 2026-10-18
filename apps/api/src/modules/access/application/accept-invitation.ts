@@ -45,11 +45,26 @@ export async function acceptInvitation(
   user: AuthenticatedUser,
   token: string,
 ): Promise<Result<Accepted, DomainError>> {
-  return deps.withTransaction(null, async (tx) => {
-    const invitation = await deps.invitations.findByTokenHashForUpdate(tx, deps.tokens.hash(token));
-    // Whose invitation it is comes first: a stranger holding a forwarded link learns nothing, not
-    // even whether it was used or has expired.
-    if (!invitation || invitation.email !== normalizeEmail(user.email)) {
+  const tokenHash = deps.tokens.hash(token);
+  const belongsToUser = (found: { readonly email: string } | null): boolean =>
+    found !== null && found.email === normalizeEmail(user.email);
+
+  // The tenant is only known from the invitation, which is read without a tenant (the table has
+  // no tenant policy). Everything after that runs bound to that tenant, under row level security.
+  const peeked = await deps.withTransaction(null, (tx) =>
+    deps.invitations.findByTokenHashForUpdate(tx, tokenHash),
+  );
+  // Whose invitation it is comes first: a stranger holding a forwarded link learns nothing, not
+  // even whether it was used or has expired.
+  if (!peeked || !belongsToUser(peeked)) {
+    return err(new InvitationNotFoundError('Invitation not found'));
+  }
+
+  const scope = { tenantId: peeked.tenantId, userId: user.userId, events: [] };
+  return deps.withTransaction(scope, async (tx) => {
+    // Read again under the row lock: another request may have used it since the first read.
+    const invitation = await deps.invitations.findByTokenHashForUpdate(tx, tokenHash);
+    if (!invitation || !belongsToUser(invitation)) {
       return err(new InvitationNotFoundError('Invitation not found'));
     }
     if (invitation.consumedAt) {

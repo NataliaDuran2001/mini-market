@@ -29,6 +29,20 @@
       "when": 1792350700490,
       "tag": "20261018191140_audit_log_append_only",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792357510286,
+      "tag": "20261018210510_memberships_tenant_id_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792357511013,
+      "tag": "20261018210511_rls_app_user",
+      "breakpoints": true
     }
   ]
 }

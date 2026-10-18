@@ -54,6 +54,15 @@ Request bodies are limited to 1 MB (JSON). CSV import (5 MB, docs/05-security.md
 
 Every route needs `Authorization: Bearer <Supabase access token>` unless its controller or handler carries `@Public()` (both come from `modules/access`). `SupabaseJwtGuard` verifies signature (RS256 or ES256 from `${SUPABASE_URL}/auth/v1/.well-known/jwks.json`, cached and refetched on key rotation), issuer, audience `authenticated` and expiry, then `@CurrentUser()` gives `{ userId, email }`. A rejected token answers `401 { code: "UNAUTHENTICATED" }` and logs a warning with a reason code, never the token.
 
+## Database roles and row level security
+
+The API connects as `app_user` (`DATABASE_URL`), a role without `BYPASSRLS`. Migrations and the provisioning script use the owner role (`MIGRATION_DATABASE_URL`). The `rls_app_user` migration creates `app_user` as `NOLOGIN`; in Supabase the operator runs `ALTER ROLE app_user LOGIN PASSWORD '...'` once, by hand, so no secret is in the repository.
+
+- `withTransaction(scope, fn)` binds `app.tenant_id` (and `app.user_id`) with `set_config(..., true)` as the first statement, so the binding ends with the transaction and is safe behind the Supabase pooler in transaction mode. `scope` is a `TenantContext`, or `{ tenantId, events }` / `{ userId, events }` for the few reads that happen before a context exists. With `null` a tenant table answers zero rows and rejects writes (fail closed) instead of throwing.
+- A new business table: declare it with `tenantTable('name', columns)` (adds `tenant_id` referencing `tenants` and an index that starts with it), then in its migration `SELECT app.enable_tenant_rls('public.name');` and explicit `GRANT`s to `app_user` (never `UPDATE`, `DELETE` or `TRUNCATE` on a ledger). `test/integration/rls.test.ts` fails for a table without the helper or without a policy.
+- Every repository calls `expectTenantIsolation` from `test/isolation.ts` once.
+- Tests run as `app_user` too: `testDb.withTransaction` switches role with `SET LOCAL ROLE`, `createTestApp` does the same for the whole app. Seed with `testDb.asAdmin` (the owner role, like provisioning); raw `testDb.client` queries are superuser and bypass RLS, which is what assertions about stored rows want.
+
 ## Tenant and permissions
 
 After the JWT guard, `TenantGuard` runs on every route that is not `@Public()` or `@WithoutTenant()`: it reads `X-Tenant-Id`, checks an active membership and builds a `TenantContext` (`tenantId`, `userId`, `role`, `settings` snapshot, `permissions`, `events`, `can(permission)`). A controller receives it with `@Ctx()` and passes it to exactly one use case; use cases and repositories take it as an explicit parameter.

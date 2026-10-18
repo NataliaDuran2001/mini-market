@@ -9,6 +9,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
+import { tenantTable } from '../../../infrastructure/db/tenant-table';
 import { tenants } from '../../tenancy/infrastructure/schema';
 
 /**
@@ -23,16 +24,13 @@ export const users = pgTable('users', {
 
 /**
  * Link between a user and a tenant with a role (docs/01-domain.md section 3). Rows are never
- * deleted: a member who leaves is `disabled`. Row level security (`tenant_id` policy) arrives with
- * issue #12; `tenant_id` already leads the unique index.
+ * deleted: a member who leaves is `disabled`. Under row level security: a transaction sees the
+ * rows of its tenant, and a user also sees their own rows to pick a tenant (migration `rls_app_user`).
  */
-export const memberships = pgTable(
+export const memberships = tenantTable(
   'memberships',
   {
     id: uuid().primaryKey().defaultRandom(),
-    tenantId: uuid()
-      .notNull()
-      .references(() => tenants.id),
     userId: uuid()
       .notNull()
       .references(() => users.id),

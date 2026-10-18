@@ -8,5 +8,8 @@ export default defineConfig({
   out: './drizzle',
   casing: 'snake_case',
   migrations: { prefix: 'timestamp' },
-  dbCredentials: { url: process.env['DATABASE_URL'] ?? '' },
+  // Migrations need the owner role (they create roles and policies); the API connects as app_user.
+  dbCredentials: {
+    url: process.env['MIGRATION_DATABASE_URL'] ?? process.env['DATABASE_URL'] ?? '',
+  },
 });

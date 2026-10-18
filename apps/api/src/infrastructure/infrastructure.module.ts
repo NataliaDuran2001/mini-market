@@ -23,6 +23,8 @@ export interface InfrastructureOptions {
   readonly version: string;
   /** Replaces the postgres.js connection; tests pass PGlite here and close it themselves. */
   readonly database?: Database;
+  /** Tests: run every transaction as this role, as production does by connecting as it. */
+  readonly assumeRole?: string;
 }
 
 /** Global providers every module may inject: env, database, transaction helper, event bus. */
@@ -61,7 +63,12 @@ export class InfrastructureModule implements OnApplicationShutdown {
       },
       {
         provide: WITH_TRANSACTION,
-        useFactory: (db: Database, bus: DomainEventBus) => createWithTransaction(db, bus),
+        useFactory: (db: Database, bus: DomainEventBus) =>
+          createWithTransaction(
+            db,
+            bus,
+            options.assumeRole ? { assumeRole: options.assumeRole } : {},
+          ),
         inject: [DATABASE, DOMAIN_EVENT_BUS],
       },
     ];

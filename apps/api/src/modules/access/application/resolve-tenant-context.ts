@@ -34,7 +34,8 @@ export async function resolveTenantContext(
   deps: ResolveTenantContextDeps,
   caller: Caller,
 ): Promise<Result<TenantContext, DomainError>> {
-  const membership = await deps.withTransaction(null, (tx) =>
+  const scope = { tenantId: caller.tenantId, userId: caller.userId, events: [] };
+  const membership = await deps.withTransaction(scope, (tx) =>
     deps.memberships.findActive(tx, caller.tenantId, caller.userId),
   );
   if (!membership) {

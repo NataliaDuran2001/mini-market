@@ -15,7 +15,12 @@ export interface TestDb {
   readonly client: PGlite;
   readonly db: Database;
   readonly bus: DomainEventBus;
+  /** Runs as `app_user`, with row level security, exactly like the API in production. */
   readonly withTransaction: WithTransaction;
+  /** Runs as the PGlite superuser, like the provisioning script with the owner role: seeds. */
+  readonly asAdmin: WithTransaction;
+  /** The role the API runs as, when the migrations created it. */
+  readonly appRole: string | undefined;
   /** Empties every table of the `public` schema between tests; migrations stay applied. */
   truncateAll(): Promise<void>;
   close(): Promise<void>;
@@ -40,11 +45,15 @@ export async function createTestDb(
     throw new Error(`${folder} has SQL migrations but no meta/_journal.json`);
   }
   const bus = new DomainEventBus();
+  const { rows: roles } = await client.query("select 1 from pg_roles where rolname = 'app_user'");
+  const appRole = roles.length > 0 ? 'app_user' : undefined;
   return {
     client,
     db,
     bus,
-    withTransaction: createWithTransaction(db, bus),
+    withTransaction: createWithTransaction(db, bus, appRole ? { assumeRole: appRole } : {}),
+    asAdmin: createWithTransaction(db, bus),
+    appRole,
     truncateAll: () => truncateAll(client),
     close: () => client.close(),
   };
