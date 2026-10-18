@@ -65,7 +65,7 @@ describe('api client', () => {
     server.use(http.get(apiUrl('/things'), () => new HttpResponse('Bad gateway', { status: 502 })));
     await expect(client.get('/things', { schema: thing })).rejects.toMatchObject({
       status: 502,
-      code: 'unknown_error',
+      code: 'UNKNOWN_ERROR',
     });
   });
 
@@ -73,7 +73,7 @@ describe('api client', () => {
     server.use(http.get(apiUrl('/things'), () => HttpResponse.error()));
     await expect(client.get('/things', { schema: thing })).rejects.toMatchObject({
       status: 0,
-      code: 'network_error',
+      code: 'NETWORK_ERROR',
     });
   });
 });

@@ -7,6 +7,11 @@ export const API_PREFIX = '/api/v1';
 interface RequestBase {
   readonly headers?: Readonly<Record<string, string>>;
   readonly signal?: AbortSignal;
+  /**
+   * Routes of the signed-in person before a business is chosen (`/me/tenants`,
+   * `/invitations/accept`) are called with `withTenant: false`: no `X-Tenant-Id` is sent.
+   */
+  readonly withTenant?: boolean;
 }
 
 export interface ApiReadOptions<T> extends RequestBase {
@@ -32,6 +37,14 @@ export interface ApiClientConfig {
   readonly baseUrl: string;
   /** Injectable for tests; defaults to the global fetch. */
   readonly fetch?: typeof fetch;
+  /** Headers added to every request: `Authorization` and `X-Tenant-Id` (never cookies). */
+  readonly getHeaders?: (context: {
+    readonly withTenant: boolean;
+  }) => Promise<Readonly<Record<string, string>>>;
+  /** Called once per 401 response, before the error is thrown (session expired). */
+  readonly onUnauthorized?: (error: ApiError) => void;
+  /** Called once per 403 response, before the error is thrown. */
+  readonly onForbidden?: (error: ApiError) => void;
 }
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -73,6 +86,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
   ): Promise<unknown> {
     const doFetch = config.fetch ?? fetch;
     const hasBody = options.body !== undefined;
+    const auth = (await config.getHeaders?.({ withTenant: options.withTenant ?? true })) ?? {};
     let response: Response;
     try {
       response = await doFetch(`${base}${path}`, {
@@ -80,6 +94,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
         headers: {
           Accept: 'application/json',
           ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+          ...auth,
           ...options.headers,
         },
         ...(hasBody ? { body: JSON.stringify(options.body) } : {}),
@@ -89,7 +104,12 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
       if (cause instanceof DOMException && cause.name === 'AbortError') throw cause;
       throw new ApiError({ status: 0, code: NETWORK_ERROR_CODE });
     }
-    if (!response.ok) throw await toApiError(response);
+    if (!response.ok) {
+      const error = await toApiError(response);
+      if (response.status === 401) config.onUnauthorized?.(error);
+      if (response.status === 403) config.onForbidden?.(error);
+      throw error;
+    }
     return readJson(response);
   }
 

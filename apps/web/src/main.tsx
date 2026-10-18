@@ -1,27 +1,37 @@
 import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AppProviders } from '@/app/providers';
+import { createAppServices } from '@/app/create-app';
 import { DevTools } from '@/app/dev-tools';
-import { createAppRouter } from '@/app/router';
-import { createApiClient } from '@/lib/api/client';
+import { AppProviders } from '@/app/providers';
+import { createSupabaseAuthGateway, createSupabaseClient } from '@/lib/auth/supabase-auth-gateway';
+import { createTenantStore } from '@/lib/auth/tenant-store';
 import { env } from '@/lib/env';
-import { createI18n } from '@/lib/i18n/create-i18n';
-import { createQueryClient } from '@/lib/query-client';
 import './index.css';
 
-const queryClient = createQueryClient();
-const apiClient = createApiClient({ baseUrl: env.VITE_API_URL });
-const i18n = createI18n();
-const router = createAppRouter();
+const supabase = createSupabaseClient({
+  url: env.VITE_SUPABASE_URL,
+  anonKey: env.VITE_SUPABASE_ANON_KEY,
+});
+const services = createAppServices({
+  apiBaseUrl: env.VITE_API_URL,
+  gateway: createSupabaseAuthGateway(supabase),
+  tenantStore: createTenantStore(),
+});
 
 const container = document.getElementById('root');
 if (!container) throw new Error('Missing #root element');
 
 createRoot(container).render(
   <StrictMode>
-    <AppProviders queryClient={queryClient} apiClient={apiClient} i18n={i18n}>
-      <RouterProvider router={router} />
+    <AppProviders
+      queryClient={services.queryClient}
+      apiClient={services.apiClient}
+      i18n={services.i18n}
+      gateway={services.gateway}
+      tenantStore={services.tenantStore}
+    >
+      <RouterProvider router={services.router} />
       <DevTools />
     </AppProviders>
   </StrictMode>,
