@@ -167,6 +167,47 @@ Exact versions are pinned in M0 and must be at least two weeks old at the time o
 | Database, Auth, Storage | Supabase | dev and prod projects |
 | Previews | Per PR for web; API previews optional | |
 
+### Environments
+
+Web host: Vercel (ADR 0011 left the choice open; `apps/web/vercel.json` is the configuration). Repo side of issue #7 is done; the accounts, tokens and the first deploy are pending, so the URLs are not known yet.
+
+| Environment | API URL | Web URL | Supabase project |
+|---|---|---|---|
+| dev | pending first Railway deploy | pending first Vercel deploy (previews per PR) | `mini-market-dev` |
+| prod | not created (created with the first live tenant) | not created | `mini-market-prod` |
+
+How a deploy works:
+
+| Step | Mechanism |
+|---|---|
+| Trigger (API) | `.github/workflows/deploy-api.yml`, `workflow_run` after `CI` succeeded on a push to `main`. Skips with a notice until the secret and variables below exist. |
+| Build (API) | Railway builds `apps/api/Dockerfile` (`railway.json`): `pnpm fetch`, offline install, build, `pnpm deploy --prod`. |
+| Migrations | Pre-deploy command `node dist/migrate.js` (`apps/api/src/migrate.ts`). Exit code 1 aborts the deploy and the previous version keeps serving. |
+| Health check | `GET /api/v1/health`. The deploy sets `GIT_SHA`, so `version` is `0.0.0+<commit sha>`; the workflow waits for it. |
+| Trigger (web) | Vercel Git integration (root directory `apps/web`); preview URL per PR. No workflow. |
+
+Variables, by name only (values live in the host, never in the repo):
+
+| Variable | Where it is set | Used by | Notes |
+|---|---|---|---|
+| `DATABASE_URL` | Railway service | API | Supabase pooler, role `app_user` |
+| `MIGRATION_DATABASE_URL` | Railway service | pre-deploy migration | Owner role (DDL); falls back to `DATABASE_URL` |
+| `SUPABASE_URL`, `SUPABASE_JWT_ISSUER` | Railway service | API | https only |
+| `SUPABASE_SERVICE_ROLE_KEY` | Railway service | API | Never in the web, the repo or logs |
+| `WEB_ORIGIN` | Railway service | API CORS | Exact web origin of the environment |
+| `NODE_ENV`, `LOG_LEVEL` | Railway service | API | `production`, `info` |
+| `PORT` | Railway sets it | API | `API_PORT` wins when set |
+| `GIT_SHA` | GitHub Action sets it before each deploy | Docker build arg | Version reported by the health check |
+| `VITE_API_URL` | Vercel project | web build | API origin; the client adds `/api/v1` |
+| `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | Vercel project | web build | Public values only |
+| `RAILWAY_TOKEN` | GitHub Actions secret | deploy workflow | Project token of the environment |
+| `RAILWAY_SERVICE` | GitHub Actions variable | deploy workflow | Service name or id |
+| `API_URL` | GitHub Actions variable | deploy workflow | Public API origin, for the health wait |
+
+`MIGRATION_DATABASE_URL` is the owner role. Railway gives the pre-deploy command the variables of the service, so setting it on the API service also puts that role, which bypasses RLS, in the API container. Decide before the first deploy: a separate Railway service for migrations, or accept the risk for the dev environment only.
+
+The web CSP (`apps/web/vercel.json`) allows `connect-src` to `https://*.supabase.co` and `https://*.up.railway.app`; a custom API domain needs a line there.
+
 ## 11. Request flow
 
 1. Web obtains a Supabase session and sends `Authorization: Bearer <jwt>` and `X-Tenant-Id` to the API.

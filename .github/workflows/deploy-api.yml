@@ -1,17 +1,162 @@
 name: Deploy API
 
-# Skeleton. Completed in issue M0-6 (Railway deploy + drizzle migrations on release).
+# Issue #7. Railway builds apps/api/Dockerfile (railway.json) and runs `node dist/migrate.js` as the
+# pre-deploy command: a failing migration aborts the deploy and the previous version keeps serving.
+# The web deploys through the Vercel Git integration, so it needs no workflow.
+#
+#  - pull_request / workflow_dispatch: build the image and prove it (migrations, abort on failure,
+#    health) against a throwaway Postgres. No secrets.
+#  - workflow_run: after CI succeeded on a push to main, deploy to Railway. Skips with a notice
+#    while the Railway secret and variables are not configured.
+
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
+  pull_request:
     paths:
-      - "apps/api/**"
-      - "packages/**"
-      - ".github/workflows/deploy-api.yml"
+      - apps/api/Dockerfile
+      - .dockerignore
+      - railway.json
+      - apps/api/src/migrate.ts
+      - apps/api/drizzle/**
+      - .github/workflows/deploy-api.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-api-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  image:
+    name: image
+    if: github.event_name != 'workflow_run'
     runs-on: ubuntu-latest
-    if: ${{ false }} # enable in M0-6
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: mini_market
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_URL: postgresql://postgres:ci@localhost:5432/mini_market
     steps:
-      - run: echo "configure Railway deploy and migrations in M0-6"
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build the image
+        run: docker build -f apps/api/Dockerfile --build-arg GIT_SHA="$GITHUB_SHA" -t mini-market-api:ci .
+      - name: Migrations apply to an empty database, twice
+        run: |
+          docker run --rm --network host -e MIGRATION_DATABASE_URL="$DB_URL" mini-market-api:ci node dist/migrate.js
+          docker run --rm --network host -e MIGRATION_DATABASE_URL="$DB_URL" mini-market-api:ci node dist/migrate.js
+          docker run --rm --network host -e PGPASSWORD=ci postgres:15 \
+            psql -h localhost -U postgres -d mini_market -tAc "select count(*) from tenants" | grep -qx 0
+      - name: A failing migration aborts and rolls back everything pending
+        run: |
+          mkdir bad && cp -r apps/api/drizzle/. bad/
+          node -e "
+            const fs = require('fs');
+            const journal = JSON.parse(fs.readFileSync('bad/meta/_journal.json', 'utf8'));
+            const last = journal.entries.at(-1);
+            journal.entries.push({ idx: last.idx + 1, version: last.version, when: last.when + 1000, tag: '29990101000000_broken', breakpoints: true });
+            fs.writeFileSync('bad/meta/_journal.json', JSON.stringify(journal));
+            fs.writeFileSync('bad/29990101000000_broken.sql', 'CREATE TABLE left_behind (id int);\nCREATE TABLE broken ( this is not sql );');
+          "
+          if docker run --rm --network host -v "$PWD/bad:/app/drizzle:ro" -e MIGRATION_DATABASE_URL="$DB_URL" mini-market-api:ci node dist/migrate.js; then
+            echo "A broken migration must exit non-zero"; exit 1
+          fi
+          docker run --rm --network host -e PGPASSWORD=ci postgres:15 \
+            psql -h localhost -U postgres -d mini_market -tAc "select to_regclass('left_behind')" | grep -qx ''
+      - name: The container serves the health check with the build version
+        run: |
+          docker run -d --name api --network host \
+            -e API_PORT=3001 -e NODE_ENV=production -e LOG_LEVEL=warn \
+            -e DATABASE_URL="$DB_URL" \
+            -e SUPABASE_URL=https://example.supabase.co \
+            -e SUPABASE_JWT_ISSUER=https://example.supabase.co/auth/v1 \
+            -e SUPABASE_SERVICE_ROLE_KEY=ci-not-a-real-key \
+            -e WEB_ORIGIN=https://app.example.com \
+            mini-market-api:ci
+          for i in $(seq 1 30); do
+            if body=$(curl -fsS http://localhost:3001/api/v1/health); then break; fi
+            sleep 2
+          done
+          echo "$body"
+          echo "$body" | grep -q '"status":"ok"'
+          echo "$body" | grep -q "0.0.0+$GITHUB_SHA"
+      - name: Container logs on failure
+        if: ${{ failure() }}
+        run: docker logs api || true
+
+  deploy:
+    name: deploy
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE }}
+      API_URL: ${{ vars.API_URL }}
+      HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - name: Check the Railway configuration
+        id: config
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_SERVICE" ] || [ -z "$API_URL" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Deploy skipped::Set secret RAILWAY_TOKEN and variables RAILWAY_SERVICE and API_URL (docs/02-architecture.md, Environments)."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.configured == 'true'
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        if: steps.config.outputs.configured == 'true'
+        with:
+          node-version-file: .nvmrc
+      - name: Install the Railway CLI
+        if: steps.config.outputs.configured == 'true'
+        run: npm install --global @railway/cli@5.57.8
+      - name: Deploy
+        if: steps.config.outputs.configured == 'true'
+        env:
+          # Only this step holds the token, not the installs or the health wait.
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          # The Dockerfile turns GIT_SHA into the version the health check reports.
+          railway variables --service "$RAILWAY_SERVICE" --set "GIT_SHA=$HEAD_SHA" --skip-deploys
+          railway up --ci --service "$RAILWAY_SERVICE"
+      - name: Wait until the new version answers the health check
+        if: steps.config.outputs.configured == 'true'
+        run: |
+          # A failing pre-deploy migration never replaces the running version, so this times out
+          # and fails the job while the previous version keeps serving.
+          for i in $(seq 1 60); do
+            body=$(curl -fsS "$API_URL/api/v1/health" || true)
+            echo "$body"
+            if echo "$body" | grep -q "0.0.0+$HEAD_SHA"; then exit 0; fi
+            sleep 10
+          done
+          echo "::error::The API did not report version 0.0.0+$HEAD_SHA within 10 minutes"
+          exit 1
