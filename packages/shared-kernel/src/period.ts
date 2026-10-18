@@ -9,7 +9,36 @@ const PERIOD_PATTERN = /^(\d{4})-(\d{2})$/;
 const MIN_YEAR = 1000;
 const MAX_YEAR = 9999;
 
+const DAY_KEY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+
 const pad = (value: number, width: number): string => String(value).padStart(width, '0');
+
+/** Half-open UTC interval `[start, end)`: `start` is inside, `end` is the first instant after. */
+export interface UtcRange {
+  readonly start: Date;
+  readonly end: Date;
+}
+
+const isKnownTimeZone = (timeZone: string): boolean => {
+  try {
+    zonedParts(new Date(0), timeZone);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/** Splits "YYYY-MM-DD" into numbers, or undefined when it is not a real calendar day. */
+const parseDayKey = (
+  dayKey: string,
+): { readonly year: number; readonly month: number; readonly day: number } | undefined => {
+  const match = DAY_KEY_PATTERN.exec(dayKey);
+  if (match === null) return undefined;
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])] as const;
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const real = year >= MIN_YEAR && month >= 1 && month <= 12 && day >= 1 && day <= daysInMonth;
+  return real ? { year, month, day } : undefined;
+};
 
 export class Period {
   readonly year: number;
@@ -53,6 +82,39 @@ export class Period {
   static dayKey(date: Date, timeZone: string): string {
     const { year, month, day } = zonedParts(date, timeZone);
     return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}`;
+  }
+
+  /**
+   * Half-open UTC range of the local day "YYYY-MM-DD" in `timeZone`: from its first local instant
+   * to the first local instant of the next day. A DST day is 23 or 25 hours long, and consecutive
+   * days share their boundary, so no instant is lost or counted twice.
+   * An invalid day key or unknown time zone is an expected failure of caller input, so it returns
+   * a ValidationError like `parse` (unlike `startOf`, whose zone comes from trusted settings).
+   */
+  static dayRange(dayKey: string, timeZone: string): Result<UtcRange, ValidationError> {
+    const parts = parseDayKey(dayKey);
+    if (parts === undefined) {
+      return err(new ValidationError('Day must be YYYY-MM-DD', { input: inputPreview(dayKey) }));
+    }
+    const { year, month, day } = parts;
+    if (!isKnownTimeZone(timeZone)) {
+      return err(new ValidationError('Unknown time zone', { timeZone: inputPreview(timeZone) }));
+    }
+    const nextDay = new Date(Date.UTC(year, month - 1, day + 1));
+    return ok({
+      start: zonedMidnightToUtc(year, month, day, timeZone),
+      end: zonedMidnightToUtc(
+        nextDay.getUTCFullYear(),
+        nextDay.getUTCMonth() + 1,
+        nextDay.getUTCDate(),
+        timeZone,
+      ),
+    });
+  }
+
+  /** The whole month as the half-open UTC range `[startOf, endOfExclusive)`, same shape as `dayRange`. */
+  range(timeZone: string): UtcRange {
+    return { start: this.startOf(timeZone), end: this.endOfExclusive(timeZone) };
   }
 
   /** Inclusive UTC start: the first instant of the month in `timeZone`. */

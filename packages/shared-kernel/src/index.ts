@@ -8,7 +8,7 @@ export {
   type ErrorDetails,
 } from './domain-error.js';
 export { Money } from './money.js';
-export { Period } from './period.js';
+export { Period, type UtcRange } from './period.js';
 export { Quantity } from './quantity.js';
 export {
   andThen,
