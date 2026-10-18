@@ -127,6 +127,29 @@ describe('module boundaries', () => {
     expect(db?.messages.map((m) => m.ruleId)).toContain('boundaries/dependencies');
   });
 
+  it('lets use cases name the transaction types but not import the infrastructure runtime', async () => {
+    // AC-3 (ADR 0014 and 0016: use cases receive withTransaction and the tx handle as deps)
+    const lint = async (code: string) => {
+      const [result] = await createEslint().lintText(code, {
+        filePath: path.join(
+          boundariesRoot,
+          'apps/api/src/modules/sales/application/confirm-sale.ts',
+        ),
+      });
+      return (result?.messages ?? []).map((m) => m.ruleId);
+    };
+    expect(
+      await lint(
+        "import type { Table } from '../../../infrastructure/db/tenant-table';\nexport type T = Table;\n",
+      ),
+    ).toEqual([]);
+    expect(
+      await lint(
+        "import { tenantTable } from '../../../infrastructure/db/tenant-table';\nexport const t = tenantTable;\n",
+      ),
+    ).toContain('boundaries/dependencies');
+  });
+
   it('keeps IO and frameworks out of domain and Nest out of application', async () => {
     // docs/02-architecture.md section 5
     const lint = async (layer: string, code: string) => {
