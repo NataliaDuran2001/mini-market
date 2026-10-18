@@ -10,10 +10,18 @@ export const healthResponseSchema = z.object({
 
 export type HealthResponse = z.infer<typeof healthResponseSchema>;
 
-export function useApiHealth() {
+export type ApiHealth =
+  | { readonly status: 'checking' }
+  | { readonly status: 'error' }
+  | { readonly status: 'ok'; readonly version: string | undefined };
+
+export function useApiHealth(): ApiHealth {
   const api = useApiClient();
-  return useQuery({
+  const query = useQuery({
     queryKey: ['health'],
     queryFn: ({ signal }) => api.get('/health', { schema: healthResponseSchema, signal }),
   });
+  if (query.isPending) return { status: 'checking' };
+  if (query.isError) return { status: 'error' };
+  return { status: 'ok', version: query.data.version };
 }

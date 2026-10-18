@@ -4,20 +4,27 @@ import { ApiError, NETWORK_ERROR_CODE, UNKNOWN_ERROR_CODE } from './api-error';
 /** REST prefix of every endpoint (docs/04-coding-standards.md section 6). */
 export const API_PREFIX = '/api/v1';
 
-export interface ApiRequestOptions<T> {
+interface RequestBase {
   readonly headers?: Readonly<Record<string, string>>;
-  readonly body?: unknown;
   readonly signal?: AbortSignal;
-  /** Validates the JSON response against the shared contract (ADR 0017). */
-  readonly schema?: z.ZodType<T>;
+}
+
+export interface ApiReadOptions<T> extends RequestBase {
+  /** Validates the JSON response against the shared contract (ADR 0017); required, never cast. */
+  readonly schema: z.ZodType<T>;
+}
+
+export interface ApiWriteOptions<T> extends ApiReadOptions<T> {
+  readonly body?: unknown;
 }
 
 export interface ApiClient {
-  get<T>(path: string, options?: Omit<ApiRequestOptions<T>, 'body'>): Promise<T>;
-  post<T>(path: string, options?: ApiRequestOptions<T>): Promise<T>;
-  put<T>(path: string, options?: ApiRequestOptions<T>): Promise<T>;
-  patch<T>(path: string, options?: ApiRequestOptions<T>): Promise<T>;
-  delete<T>(path: string, options?: Omit<ApiRequestOptions<T>, 'body'>): Promise<T>;
+  get<T>(path: string, options: ApiReadOptions<T>): Promise<T>;
+  post<T>(path: string, options: ApiWriteOptions<T>): Promise<T>;
+  put<T>(path: string, options: ApiWriteOptions<T>): Promise<T>;
+  patch<T>(path: string, options: ApiWriteOptions<T>): Promise<T>;
+  /** For endpoints that answer 204 with no body. */
+  delete(path: string, options?: RequestBase): Promise<void>;
 }
 
 export interface ApiClientConfig {
@@ -59,11 +66,11 @@ async function readJson(response: Response): Promise<unknown> {
 export function createApiClient(config: ApiClientConfig): ApiClient {
   const base = config.baseUrl.replace(/\/+$/, '') + API_PREFIX;
 
-  async function request<T>(
+  async function send(
     method: Method,
     path: string,
-    options: ApiRequestOptions<T> = {},
-  ): Promise<T> {
+    options: RequestBase & { readonly body?: unknown },
+  ): Promise<unknown> {
     const doFetch = config.fetch ?? fetch;
     const hasBody = options.body !== undefined;
     let response: Response;
@@ -83,16 +90,19 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
       throw new ApiError({ status: 0, code: NETWORK_ERROR_CODE });
     }
     if (!response.ok) throw await toApiError(response);
-    const json = await readJson(response);
-    // Empty bodies (204) and unvalidated calls: the caller declares the type it expects.
-    return (options.schema ? options.schema.parse(json) : json) as T;
+    return readJson(response);
   }
 
+  const read = async <T>(method: Method, path: string, options: ApiWriteOptions<T>) =>
+    options.schema.parse(await send(method, path, options));
+
   return {
-    get: (path, options) => request('GET', path, options),
-    post: (path, options) => request('POST', path, options),
-    put: (path, options) => request('PUT', path, options),
-    patch: (path, options) => request('PATCH', path, options),
-    delete: (path, options) => request('DELETE', path, options),
+    get: (path, options) => read('GET', path, options),
+    post: (path, options) => read('POST', path, options),
+    put: (path, options) => read('PUT', path, options),
+    patch: (path, options) => read('PATCH', path, options),
+    delete: async (path, options = {}) => {
+      await send('DELETE', path, options);
+    },
   };
 }

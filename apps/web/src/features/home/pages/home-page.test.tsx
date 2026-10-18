@@ -15,6 +15,15 @@ describe('HomePage', () => {
     expect(await screen.findByText(home.api.ok)).toBeInTheDocument();
   });
 
+  it('renders the value the API returned, not only a fixed string', async () => {
+    // AC-2
+    server.use(
+      http.get(apiUrl('/health'), () => HttpResponse.json({ status: 'ok', version: '9.9.9-mock' })),
+    );
+    renderWithProviders(<HomePage />);
+    expect(await screen.findByText('Versión del servidor: 9.9.9-mock')).toBeInTheDocument();
+  });
+
   it('shows the Spanish error when the API is unreachable', async () => {
     // AC-2
     server.use(http.get(apiUrl('/health'), () => HttpResponse.error()));

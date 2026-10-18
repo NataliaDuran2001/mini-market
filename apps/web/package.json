@@ -9,18 +9,14 @@
     "build": "pnpm generate && tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "pnpm generate && tsc --noEmit",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "pnpm generate && eslint .",
+    "lint:fix": "pnpm generate && eslint . --fix",
     "test": "pnpm generate && vitest run",
     "test:watch": "pnpm generate && vitest"
   },
   "dependencies": {
     "@hookform/resolvers": "5.9.1",
-    "@mini-market/contracts": "workspace:*",
-    "@mini-market/shared-kernel": "workspace:*",
-    "@supabase/supabase-js": "2.117.2",
     "@tanstack/react-query": "5.104.1",
-    "@tanstack/react-query-devtools": "5.104.1",
     "@tanstack/react-router": "1.170.41",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
@@ -38,6 +34,7 @@
   "devDependencies": {
     "@mini-market/config": "workspace:*",
     "@tailwindcss/vite": "4.3.3",
+    "@tanstack/react-query-devtools": "5.104.1",
     "@tanstack/router-cli": "1.167.40",
     "@tanstack/router-plugin": "1.168.42",
     "@testing-library/dom": "10.4.2",

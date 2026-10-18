@@ -11,7 +11,8 @@ export default defineConfig(({ mode }) => {
   // The dev server port comes from WEB_PORT (shell or apps/web/.env) so parallel lanes can run
   // side by side; default 5173.
   const fileEnv = loadEnv(mode, import.meta.dirname, '');
-  const webPort = Number(process.env['WEB_PORT'] ?? fileEnv['WEB_PORT'] ?? 5173);
+  const requestedPort = Number(process.env['WEB_PORT'] ?? fileEnv['WEB_PORT']);
+  const webPort = Number.isInteger(requestedPort) && requestedPort > 0 ? requestedPort : 5173;
 
   return {
     plugins: [

@@ -6,7 +6,6 @@ import { useApiHealth } from '../api/use-api-health';
 export function HomePage() {
   const { t } = useTranslation('home');
   const health = useApiHealth();
-  const status = health.isPending ? 'checking' : health.isError ? 'error' : 'ok';
   return (
     <section className="grid gap-4 py-4">
       <header className="grid gap-1">
@@ -17,8 +16,13 @@ export function HomePage() {
         <CardHeader>
           <CardTitle>{t('api.title')}</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p role="status">{t(`api.${status}`)}</p>
+        <CardContent className="grid gap-1">
+          <p role="status">{t(`api.${health.status}`)}</p>
+          {health.status === 'ok' && health.version ? (
+            <p className="text-sm text-muted-foreground">
+              {t('api.version', { version: health.version })}
+            </p>
+          ) : null}
         </CardContent>
       </Card>
     </section>
