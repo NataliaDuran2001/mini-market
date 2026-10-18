@@ -50,6 +50,8 @@ export async function createTestApp(options: {
   readonly overrides?: readonly { readonly token: symbol; readonly useValue: unknown }[];
   /** Key pair the app trusts. Defaults to a fresh one; read it back through `bearerFor`. */
   readonly auth?: TestAuth;
+  /** Runs after `configureApp` and before the routes exist: register test middleware here. */
+  readonly beforeInit?: (app: NestExpressApplication) => void;
 }): Promise<INestApplication> {
   const env = options.env ?? testEnv();
   const version = 'test';
@@ -72,6 +74,7 @@ export async function createTestApp(options: {
   const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication<NestExpressApplication>(APP_FACTORY_OPTIONS);
   configureApp(app, { env, version });
+  options.beforeInit?.(app);
   await app.init();
   authByApp.set(app, auth);
   return app;

@@ -12,6 +12,10 @@
     "./common": {
       "types": "./dist/common/index.d.ts",
       "default": "./dist/common/index.js"
+    },
+    "./tenancy": {
+      "types": "./dist/tenancy/index.d.ts",
+      "default": "./dist/tenancy/index.js"
     }
   },
   "files": [
