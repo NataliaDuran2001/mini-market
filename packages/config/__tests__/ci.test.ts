@@ -35,10 +35,14 @@ describe('.github/workflows/ci.yml', () => {
     expect(workflow).toContain('pnpm audit --prod --audit-level high');
   });
 
-  it('cancels superseded runs of the same ref, uploads coverage and installs from the lockfile', () => {
-    expect(workflow).toMatch(
-      /concurrency:\n\s+group: ci-\$\{\{ github\.ref \}\}\n\s+cancel-in-progress: true/,
-    );
+  it('cancels superseded runs except on main, audits weekly, keeps no credentials', () => {
+    expect(workflow).toMatch(/concurrency:\n\s+group: ci-\$\{\{ github\.ref \}\}\n/);
+    expect(workflow).toContain("cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}");
+    expect(workflow).toMatch(/schedule:\n\s+#.*\n\s+- cron: '0 9 \* \* 1'/);
+    expect(workflow.match(/persist-credentials: false/g)).toHaveLength(2);
+  });
+
+  it('uploads coverage and installs from the lockfile', () => {
     expect(workflow).toContain('name: coverage');
     expect(workflow).toContain('pnpm install --frozen-lockfile');
   });
