@@ -1,0 +1,18 @@
+{
+  "app": {
+    "name": "Mini-Market"
+  },
+  "actions": {
+    "close": "Cerrar"
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "description": "La dirección que abriste no existe o fue movida.",
+    "backHome": "Volver al inicio"
+  },
+  "errors": {
+    "generic": "Ocurrió un error inesperado. Intenta de nuevo.",
+    "network": "No se pudo conectar con el servidor. Revisa tu conexión a internet.",
+    "invalidField": "Revisa este campo."
+  }
+}

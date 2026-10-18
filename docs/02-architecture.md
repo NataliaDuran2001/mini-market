@@ -18,6 +18,8 @@ mini-market/
 │   └── web/                         # React 19 + Vite 6, port 5173
 │       └── src/
 │           ├── features/<domain>/   # api/ components/ pages/ index.ts
+│           ├── routes/              # TanStack file-based routes (thin: wire a feature page)
+│           ├── locales/es/          # i18n: common.json + one <feature>.json per feature
 │           ├── app/                 # router, providers, shell, role guards
 │           ├── lib/                 # supabase client (auth only), api client, i18n
 │           └── ui/                  # shadcn/ui primitives

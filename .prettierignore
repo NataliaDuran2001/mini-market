@@ -4,6 +4,7 @@ dist
 coverage
 pnpm-lock.yaml
 **/__fixtures__
+**/*.gen.ts
 
 # Owner-maintained docs and harness files keep their hand-aligned style
 *.md
