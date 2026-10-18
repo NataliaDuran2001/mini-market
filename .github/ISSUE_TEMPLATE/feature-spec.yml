@@ -1,0 +1,72 @@
+name: Feature spec
+description: Executable spec for one technical slice. Same 8 sections the planned issues use.
+title: "[area] "
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: deliverable
+    attributes:
+      label: Milestone deliverable
+      description: Which part of the milestone's testable deliverable this issue covers.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Why. Cite business rules (S1–S13), docs and ADRs by number.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      value: |
+        ### In
+        -
+        ### Out
+        -
+    validations:
+      required: true
+  - type: textarea
+    id: ac
+    attributes:
+      label: Acceptance criteria
+      value: |
+        - AC-1: Given … When … Then …
+        - AC-2: …
+    validations:
+      required: true
+  - type: textarea
+    id: tech
+    attributes:
+      label: Technical notes
+      description: Modules and layers, use cases (verb-noun), endpoints, tables, events, flags, web routes and components, contracts schemas.
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: Tests required
+      description: Unit, integration (PGlite, RLS on, tenant isolation), web component tests (MSW), e2e tag.
+    validations:
+      required: true
+  - type: textarea
+    id: deps
+    attributes:
+      label: Dependencies
+      value: "None"
+  - type: textarea
+    id: dod
+    attributes:
+      label: Definition of Done
+      value: |
+        - [ ] typecheck, lint, tests green locally and in CI
+        - [ ] every AC has a test marked `// AC-n`
+        - [ ] tenant isolation test when tenant data is touched
+        - [ ] owner and employee permission cases covered
+        - [ ] no business logic in controllers or pages
+        - [ ] migrations reversible; ledgers untouched
+        - [ ] Spanish i18n strings for all new UI text
+        - [ ] docs/ADR updated if a rule or decision changed
+        - [ ] PR with `Closes #<n>`

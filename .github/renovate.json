@@ -1,0 +1,10 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommits", "group:allNonMajor"],
+  "schedule": ["before 6am on monday"],
+  "minimumReleaseAge": "14 days",
+  "lockFileMaintenance": { "enabled": true },
+  "packageRules": [
+    { "matchUpdateTypes": ["major"], "dependencyDashboardApproval": true }
+  ]
+}

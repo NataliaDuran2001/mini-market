@@ -1,0 +1,17 @@
+name: Deploy Web
+
+# Skeleton. Completed in issue M0-6 (static build to Vercel or Cloudflare Pages).
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - ".github/workflows/deploy-web.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ false }} # enable in M0-6
+    steps:
+      - run: echo "configure web deploy in M0-6"

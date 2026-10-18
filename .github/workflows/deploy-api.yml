@@ -1,0 +1,17 @@
+name: Deploy API
+
+# Skeleton. Completed in issue M0-6 (Railway deploy + drizzle migrations on release).
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - "packages/**"
+      - ".github/workflows/deploy-api.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ false }} # enable in M0-6
+    steps:
+      - run: echo "configure Railway deploy and migrations in M0-6"

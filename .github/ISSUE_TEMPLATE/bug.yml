@@ -1,0 +1,27 @@
+name: Bug
+description: Something behaves differently from the spec or a business rule.
+title: "[bug] "
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected (cite issue, AC or S-rule)
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce (tenant, role, data)
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment (dev / prod, commit)
