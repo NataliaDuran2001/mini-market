@@ -128,7 +128,15 @@ describe('Period.dayRange', () => {
       expect(result.ok, timeZone).toBe(false);
       if (result.ok) continue;
       expect(result.error).toBeInstanceOf(ValidationError);
+      expect(result.error.code).toBe('VALIDATION_ERROR');
+      expect(result.error.details).toEqual({ timeZone });
     }
+  });
+
+  it('reports the day key first when both inputs are invalid', () => {
+    // AC-6
+    const result = Period.dayRange('2026-02-30', 'Mars/Base');
+    expect(!result.ok && result.error.details).toEqual({ input: '2026-02-30' });
   });
 });
 
