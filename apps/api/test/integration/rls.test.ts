@@ -114,9 +114,12 @@ describe('row level security', () => {
       email: 'a@e.com',
       role: 'employee',
     });
-    const scope: TransactionScope = { tenantId: tenantA, events: [] };
+    // The production scope carries the user as well as the tenant.
+    const scope: TransactionScope = { tenantId: tenantA, userId: USER_A, events: [] };
     const found = await rows<{ tenant_id: string }>(scope, selectAll('memberships'));
     expect(found.map((row) => row.tenant_id)).toEqual([tenantA]);
+    const visible = await rows<{ id: string }>(scope, selectAll('tenants'));
+    expect(visible.map((row) => row.id)).toEqual([tenantA]);
   });
 
   it('runs the API role without BYPASSRLS, with RLS forced on the tenant tables and a policy on each', async () => {

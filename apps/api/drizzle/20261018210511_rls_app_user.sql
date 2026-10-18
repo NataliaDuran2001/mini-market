@@ -9,6 +9,10 @@ BEGIN
 	IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'app_user') THEN
 		CREATE ROLE "app_user" NOLOGIN NOBYPASSRLS;
 	END IF;
+	-- A pre-existing role that can bypass RLS would silently turn isolation off: refuse it.
+	IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'app_user' AND (rolbypassrls OR rolsuper)) THEN
+		RAISE EXCEPTION 'role app_user can bypass row level security';
+	END IF;
 END
 $$;
 --> statement-breakpoint
@@ -46,8 +50,10 @@ SELECT "app"."enable_tenant_rls"('public.memberships');
 --> statement-breakpoint
 SELECT "app"."enable_tenant_rls"('public.audit_log');
 --> statement-breakpoint
--- A user reads their own memberships before choosing a tenant (GET /me/tenants).
-CREATE POLICY "own_rows" ON "memberships" FOR SELECT USING (user_id = "app"."current_user_id"());
+-- A user reads their own memberships before choosing a tenant (GET /me/tenants). Only while no tenant
+-- is bound: once a tenant is bound, the tenant policy is the only wall.
+CREATE POLICY "own_rows" ON "memberships" FOR SELECT
+	USING ("app"."current_tenant_id"() IS NULL AND user_id = "app"."current_user_id"());
 --> statement-breakpoint
 -- tenants has no tenant_id: its id is the tenant id.
 ALTER TABLE "tenants" ENABLE ROW LEVEL SECURITY;
@@ -59,7 +65,10 @@ CREATE POLICY "tenant_isolation" ON "tenants"
 	WITH CHECK (id = "app"."current_tenant_id"());
 --> statement-breakpoint
 CREATE POLICY "member_tenants" ON "tenants" FOR SELECT
-	USING (id IN (SELECT tenant_id FROM "memberships" WHERE user_id = "app"."current_user_id"()));
+	USING (
+		"app"."current_tenant_id"() IS NULL
+		AND id IN (SELECT tenant_id FROM "memberships" WHERE user_id = "app"."current_user_id"())
+	);
 --> statement-breakpoint
 -- Grants are explicit per table. Tenants are created by the provisioning script with the owner
 -- role, memberships are never deleted, and the audit log is append-only: no UPDATE, DELETE or
