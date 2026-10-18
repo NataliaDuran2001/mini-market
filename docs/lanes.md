@@ -44,7 +44,7 @@ Each lane uses its own ports when it runs servers: P1 and C use API 3101 and web
 8. Push the branch and open the PR with `Closes #<n>`, the DoD checklist and the acceptance criteria to tests table.
 9. Wait for CI: `gh pr checks <pr> --watch`. If CI fails, fix it. If the failure comes from the CI skeleton itself and not from your change, fix the workflow in the same PR.
 10. Merge only when CI is green and the review has no blocking findings: `gh pr merge <pr> --squash --delete-branch`. Never merge red or pending checks. Never force-push `main`.
-11. Confirm the issue is `CLOSED`, then start the next issue.
+11. Confirm the issue is `CLOSED`. If the merge did not close it, close it yourself with `gh issue close <n> --reason completed --comment "Delivered in PR #<pr>"`. Other lanes wait on this state. Then start the next issue.
 
 Commits are authored by the repository owner only, with no AI trailers.
 

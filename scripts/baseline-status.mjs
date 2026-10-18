@@ -80,7 +80,7 @@ for (const lane of ['P1', 'P2', 'P3', 'C', 'S', 'B', 'R']) {
 }
 
 console.log(`\nPlan days closed ${fmt(planDone)} of ${fmt(planTotal)}`);
-if (planDone > 0 && elapsed > 0) {
+if (planDone >= 3 && elapsed >= 0.5) {
   const throughput = planDone / elapsed;
   const remaining = planTotal - planDone;
   const eta = new Date(now.getTime() + (remaining / throughput) * 86_400_000);
@@ -94,5 +94,5 @@ if (planDone > 0 && elapsed > 0) {
     'Forecast is informational. The baseline stays as frozen; recalibrate when M1 closes.',
   );
 } else {
-  console.log('No closed issues yet: no throughput to forecast with.');
+  console.log('Not enough data to forecast yet (needs at least 3 plan days closed and half a calendar day elapsed).');
 }
