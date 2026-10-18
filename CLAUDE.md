@@ -80,6 +80,6 @@ Business semantics (S1–S13), scope, priorities and anything the client sees ar
 
 ## Conventions summary
 
-- Conventional Commits: `feat(sales): confirm sale with COGS snapshot (#42)`.
+- Conventional Commits: `feat(sales): confirm sale with COGS snapshot (#42)`. Commits are authored by the repository owner only: no AI co-author trailers or "Generated with" lines in commits or PR bodies.
 - Files kebab-case; DB tables snake_case plural; REST `/api/v1/<resource>`; events PascalCase past tense (`SaleConfirmed`).
 - Timestamps UTC in DB; periods computed in the tenant timezone via `Period` (ADR 0008).
