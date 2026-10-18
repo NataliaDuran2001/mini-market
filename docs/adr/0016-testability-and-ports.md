@@ -9,10 +9,10 @@ The requirement is that everything be testable and isolated. Hidden dependencies
 ## Decision
 
 - Use cases declare their dependencies as a `deps` object of ports (interfaces): repositories, `Clock`, `IdGenerator`, `EventPublisher`, `ModulePolicy`. Nest providers wire real implementations; tests wire real repositories on PGlite and fakes for out-of-process IO.
-- Domain code has no dependencies beyond `@mm/shared-kernel`.
+- Domain code has no dependencies beyond `@mini-market/shared-kernel`.
 - No module-level singletons except validated configuration. No access to the HTTP request inside modules; `TenantContext` is built once in presentation and passed down.
 - Builders and `seedTenant` provide test data per module; no shared global fixtures.
-- Coverage gates: 80% lines and branches on `domain` and `application`, 90% on `shared-kernel`.
+- Coverage gates: 80% lines and branches on `domain` and `application`, 100% on `shared-kernel`, a pure-logic package (amended 2026-10-18 to match the implemented gate).
 - Every acceptance criterion in an issue maps to a test marked `// AC-n`; `/verify-issue` enforces the mapping.
 
 ## Consequences

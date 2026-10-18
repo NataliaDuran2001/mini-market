@@ -8,7 +8,7 @@ Profit figures must match the owner's manual reconciliation to the centavo. Java
 
 ## Decision
 
-- Money is stored as `bigint` centavos in PostgreSQL and handled through the `Money` value object from `@mm/shared-kernel`. No column stores decimal money.
+- Money is stored as `bigint` centavos in PostgreSQL and handled through the `Money` value object from `@mini-market/shared-kernel`. No column stores decimal money.
 - `Money` exposes `add`, `subtract`, `multiplyByQuantity`, `allocate` (for splitting without losing centavos) and `compare`. Rounding is half-up to the centavo and happens only inside `Money`.
 - Quantities are stored as `numeric(14,3)` and handled through `Quantity` with three decimals.
 - Currency is fixed per tenant (`BOB` in v1) and carried on `Money` for assertions, not for conversion.

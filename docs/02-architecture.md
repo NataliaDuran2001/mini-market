@@ -35,7 +35,7 @@ mini-market/
 ├── turbo.json  pnpm-workspace.yaml  package.json
 ```
 
-Package names: `@mini-market/shared-kernel`, `@mini-market/contracts`, `@mini-market/config` (scope fixed in issue #2, 2026-10-18). The `@mm/...` spelling in the other docs and in the ADRs refers to the same packages.
+Package names: `@mini-market/shared-kernel`, `@mini-market/contracts`, `@mini-market/config` (scope fixed in issue #2, 2026-10-18). The `@mini-market/...` spelling in the other docs and in the ADRs refers to the same packages.
 
 ## 3. Domain modules
 
@@ -76,7 +76,7 @@ reporting   -> read access to every module's exported schema (never writes)
 ```
 apps/api/src/modules/sales/
 ├── domain/            # Pure TypeScript. Types, invariants, rules S1..S13. No IO, no Nest, no Drizzle.
-├── application/       # One use case per file (confirm-sale.ts). Ports (interfaces). DTOs come from @mm/contracts.
+├── application/       # One use case per file (confirm-sale.ts). Ports (interfaces). DTOs come from @mini-market/contracts.
 ├── infrastructure/    # Drizzle schema, repositories implementing ports, external adapters.
 ├── presentation/      # Nest controller and module wiring. Parse, call use case, map Result to HTTP.
 └── index.ts           # Public API: use case tokens, types, exported schema for reporting.
@@ -86,7 +86,7 @@ apps/api/src/modules/sales/
 
 ```
 apps/web/src/features/sales/
-├── api/               # TanStack Query hooks typed with @mm/contracts
+├── api/               # TanStack Query hooks typed with @mini-market/contracts
 ├── components/        # Presentational and container components
 ├── pages/             # Route components
 └── index.ts           # Public API: pages and any shared component
@@ -96,15 +96,15 @@ apps/web/src/features/sales/
 
 | From | May import |
 |---|---|
-| `apps/api/src/modules/X/domain` | `@mm/shared-kernel` |
-| `apps/api/src/modules/X/application` | own `domain`, `@mm/shared-kernel`, `@mm/contracts`, `modules/Y/index.ts` per the graph |
-| `apps/api/src/modules/X/infrastructure` | own `domain` and `application`, `apps/api/src/infrastructure/*`, `@mm/shared-kernel` |
-| `apps/api/src/modules/X/presentation` | own `application`, `@mm/contracts`, Nest |
+| `apps/api/src/modules/X/domain` | `@mini-market/shared-kernel` |
+| `apps/api/src/modules/X/application` | own `domain`, `@mini-market/shared-kernel`, `@mini-market/contracts`, `modules/Y/index.ts` per the graph |
+| `apps/api/src/modules/X/infrastructure` | own `domain` and `application`, `apps/api/src/infrastructure/*`, `@mini-market/shared-kernel` |
+| `apps/api/src/modules/X/presentation` | own `application`, `@mini-market/contracts`, Nest |
 | `apps/api/src/modules/reporting/infrastructure` | schemas exported by other modules' `index.ts` (documented read-only exception) |
-| `apps/web/src/features/X` | own files, `@mm/contracts`, `@mm/shared-kernel`, `src/ui`, `src/lib`, `features/Y/index.ts` |
+| `apps/web/src/features/X` | own files, `@mini-market/contracts`, `@mini-market/shared-kernel`, `src/ui`, `src/lib`, `features/Y/index.ts` |
 | `apps/web/src/app` | `features/*/index.ts`, `src/ui`, `src/lib` |
 | `packages/shared-kernel` | nothing from apps or other packages |
-| `packages/contracts` | `@mm/shared-kernel`, zod |
+| `packages/contracts` | `@mini-market/shared-kernel`, zod |
 
 Importing another module's `domain`, `application` or `infrastructure` directly is a lint error.
 
@@ -212,7 +212,7 @@ The web CSP (`apps/web/vercel.json`) allows `connect-src` to `https://*.supabase
 
 1. Web obtains a Supabase session and sends `Authorization: Bearer <jwt>` and `X-Tenant-Id` to the API.
 2. `SupabaseJwtGuard` verifies the token. `TenantContextInterceptor` loads the membership for (user, tenant) and builds `TenantContext` with role, permissions and settings snapshot.
-3. Controller parses the body with the Zod schema from `@mm/contracts` and calls one use case.
+3. Controller parses the body with the Zod schema from `@mini-market/contracts` and calls one use case.
 4. Use case checks permission, runs domain logic, uses repositories inside `withTransaction` (which sets `app.tenant_id`), returns `Result`.
 5. Controller maps `Ok` to the response DTO and `Err(DomainError)` to an HTTP status and a translated message key.
 

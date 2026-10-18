@@ -142,3 +142,11 @@ This is a lower bound. It adds no buffer for merge waits, CI failures, rework or
 | Date | Change | Reason | Approved by |
 |---|---|---|---|
 | 2026-10-18 | Baseline frozen: 51 issues, 9 milestones, 7 lanes | Initial plan | Natalia |
+
+### Unplanned work discovered during execution
+
+Tracked next to the baseline, not inside it. The baseline numbers above do not change.
+
+| Date | Item | Plan days | Found by | Reason |
+|---|---|---|---|---|
+| 2026-10-18 | Shared foundations: integer `moneySchema`, `Period` day range helper, docs corrections | 0.25 | Lane P3 report | Lanes C, S, B and R need them before their first money field and day boundary |

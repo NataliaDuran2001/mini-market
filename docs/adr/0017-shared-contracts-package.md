@@ -8,11 +8,11 @@ API and web live in the same repository but are separate apps. Duplicated reques
 
 ## Decision
 
-- `packages/contracts` (`@mm/contracts`) holds one Zod schema per request body, query and response, grouped by module (`contracts/sales/confirm-sale.ts`). Types are inferred from schemas.
+- `packages/contracts` (`@mini-market/contracts`) holds one Zod schema per request body, query and response, grouped by module (`contracts/sales/confirm-sale.ts`). Types are inferred from schemas.
 - The API parses inputs with these schemas (through `nestjs-zod`) and types controller outputs with the response types. A contract test per endpoint validates real responses against the response schema.
 - The web types TanStack Query hooks, forms (react-hook-form resolvers) and MSW handlers with the same schemas.
 - OpenAPI is generated from Nest decorators for documentation and external tooling. It is not the source of truth.
-- Money travels as integer centavos; dates as ISO strings; ids as strings. Contracts never import from `apps/*`.
+- Money travels as integer centavos: `moneySchema` is a safe integer, never a decimal string. Decimal strings exist only for display formatting and CSV import or export. Quantities travel as decimal strings with up to 3 decimals. Dates as ISO strings; ids as strings. Contracts never import from `apps/*`. (Clarified 2026-10-18 after the P3 lane report found a conflicting line in issue #5.)
 
 ## Consequences
 

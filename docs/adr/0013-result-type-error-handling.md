@@ -8,7 +8,7 @@ Business failures (insufficient stock, customer over credit limit, employee not 
 
 ## Decision
 
-- `Result<T, E>` lives in `@mm/shared-kernel` with `ok(value)`, `err(error)`, `isOk`, `isErr`, `map`, `andThen`, `unwrapOr`.
+- `Result<T, E>` lives in `@mini-market/shared-kernel` with `ok(value)`, `err(error)`, `isOk`, `isErr`, `map`, `andThen`, `unwrapOr`.
 - Use cases return `Promise<Result<Output, DomainError>>`. Domain functions return `Result` when they can fail for business reasons.
 - `DomainError` is an abstract class with a stable `code` (`INSUFFICIENT_STOCK`), an HTTP status hint and optional `details`. Concrete errors extend it.
 - Exceptions are reserved for bugs and infrastructure failures (lost connection, invariant violation). A global Nest filter maps unexpected exceptions to 500 with a request id and no internals.

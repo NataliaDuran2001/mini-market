@@ -10,7 +10,7 @@ Daily and monthly reports depend on where a sale falls on the calendar. Bolivia 
 
 - All timestamps are `timestamptz` and stored in UTC.
 - Each tenant has `timezone` in settings (`America/La_Paz` by default).
-- `Period` in `@mm/shared-kernel` represents a calendar day or month in a given timezone and produces the UTC range `[start, end)` for queries.
+- `Period` in `@mini-market/shared-kernel` represents a calendar day or month in a given timezone and produces the UTC range `[start, end)` for queries.
 - Expenses carry an explicit `period` column (`YYYY-MM`) chosen by the user, independent of timestamps (S5).
 - Daily sales and monthly reports compute boundaries with `Period`, never with `date_trunc` in UTC.
 

@@ -6,7 +6,7 @@ These rules apply to every pull request. CI enforces the ones marked "lint" or "
 
 | Rule | Enforcement |
 |---|---|
-| `strict: true`, `noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true` | tsconfig in `@mm/config` |
+| `strict: true`, `noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true` | tsconfig in `@mini-market/config` |
 | No `any`. `unknown` plus narrowing instead. | lint (`no-explicit-any`) |
 | Type assertions (`as`) only with a one-line comment explaining why the compiler cannot know. | review |
 | No non-null assertions (`!`). | lint |
@@ -28,7 +28,7 @@ These rules apply to every pull request. CI enforces the ones marked "lint" or "
 | Permissions in use cases | First line of a use case is the permission check. UI checks are convenience only. |
 | `Result` for expected errors | Use cases return `Result<T, DomainError>`. Throw only for bugs and infrastructure failures. |
 | Typed domain errors | `class InsufficientStockError extends DomainError` with a stable `code` used by the web for translation. |
-| Value objects for money and quantity | `Money` (integer centavos) and `Quantity` (3 decimals) from `@mm/shared-kernel`. Arithmetic with raw `number` on money is a review blocker. |
+| Value objects for money and quantity | `Money` (integer centavos) and `Quantity` (3 decimals) from `@mini-market/shared-kernel`. Arithmetic with raw `number` on money is a review blocker. |
 | Immutability | Domain objects are `readonly`. Functions return new values. No mutation of inputs. |
 | Repository per aggregate | `SaleRepository`, `ProductRepository`. Ports are interfaces in `application/ports/`. Implementations live in `infrastructure/`. |
 | No ORM in use cases | Use cases talk to ports only. Exception: `reporting` queries. |
@@ -73,8 +73,8 @@ These rules apply to every pull request. CI enforces the ones marked "lint" or "
 ## 7. React feature conventions
 
 - A feature exposes pages and shared components through `index.ts` only.
-- Data access lives in `features/<x>/api/` as TanStack Query hooks typed with `@mm/contracts`. Components never call `fetch`.
-- Forms use react-hook-form with the Zod schema from `@mm/contracts`, so client validation equals server validation.
+- Data access lives in `features/<x>/api/` as TanStack Query hooks typed with `@mini-market/contracts`. Components never call `fetch`.
+- Forms use react-hook-form with the Zod schema from `@mini-market/contracts`, so client validation equals server validation.
 - Role-aware rendering uses a `useCan(permission)` hook backed by the permissions in the session; it hides UI, it does not authorize.
 - Money is rendered through `formatMoney(money, locale)` from `src/lib`; never format centavos by hand.
 - Components receive data and callbacks; containers (pages) wire hooks. Keep business decisions out of JSX.

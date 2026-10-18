@@ -13,7 +13,7 @@ The requirement is clean, scalable code organized by domain, testable in isolati
 - Dependencies between modules form a directed acyclic graph documented in `02-architecture.md`. Modules talk only through public use cases and exported types.
 - `eslint-plugin-boundaries` encodes the layer and module rules. A forbidden import fails lint and CI.
 - The web mirrors this with `features/<domain>` exposing `index.ts`.
-- Shared primitives live in `@mm/shared-kernel`; API shapes live in `@mm/contracts`. Neither depends on the apps.
+- Shared primitives live in `@mini-market/shared-kernel`; API shapes live in `@mini-market/contracts`. Neither depends on the apps.
 
 ## Consequences
 
