@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { Writable } from 'node:stream';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
@@ -6,13 +7,15 @@ import { createTestApp, testEnv, TEST_WEB_ORIGIN } from '../create-test-app';
 import { createTestDb } from '../harness';
 import type { TestDb } from '../harness';
 
+const FIXTURE_MIGRATIONS = path.resolve(__dirname, '../fixtures/migrations');
+
 describe('GET /api/v1/health', () => {
   let testDb: TestDb;
   let app: INestApplication;
   const logLines: string[] = [];
 
   beforeAll(async () => {
-    testDb = await createTestDb();
+    testDb = await createTestDb({ migrationsFolder: FIXTURE_MIGRATIONS });
     const logStream = new Writable({
       write(chunk: Buffer, _encoding, done) {
         logLines.push(chunk.toString());
@@ -81,14 +84,15 @@ describe('GET /api/v1/health', () => {
     expect(response.headers['access-control-allow-credentials']).toBeUndefined();
   });
 
-  it('logs the request with the Authorization header redacted', async () => {
+  it('logs the request with the Authorization header redacted and the request id', async () => {
     // AC-5
-    await request(app.getHttpServer())
+    const response = await request(app.getHttpServer())
       .get('/api/v1/health')
       .set('Authorization', 'Bearer super-secret-token')
       .expect(200);
 
     const text = logLines.join('');
+    expect(text).toContain(`"id":"${String(response.headers['x-request-id'])}"`);
     expect(text).not.toContain('super-secret-token');
     const completed = logLines
       .map((line) => JSON.parse(line) as { req?: { headers?: Record<string, string> } })

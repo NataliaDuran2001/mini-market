@@ -32,6 +32,14 @@ export class DomainEventBus {
     };
   }
 
+  private report(event: DomainEvent, error: unknown): void {
+    try {
+      this.reportFailure(event, error);
+    } catch {
+      // Reporting must never turn a committed write into a failed request.
+    }
+  }
+
   /**
    * Delivers events in order. A failing handler is reported and isolated: it never affects the
    * committed write or the other handlers.
@@ -42,7 +50,7 @@ export class DomainEventBus {
         try {
           await handler(event);
         } catch (error) {
-          this.reportFailure(event, error);
+          this.report(event, error);
         }
       }
     }

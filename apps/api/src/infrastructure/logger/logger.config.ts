@@ -11,6 +11,12 @@ export const LOG_REDACT_PATHS = [
   'res.headers["set-cookie"]',
   '*.password',
   '*.token',
+  '*.databaseUrl',
+  '*.supabaseServiceRoleKey',
+  // Query errors carry the bound parameters (see describe-error.ts)
+  'err.params',
+  'err.query',
+  'err.cause.params',
 ] as const;
 
 export const REQUEST_ID_HEADER = 'x-request-id';

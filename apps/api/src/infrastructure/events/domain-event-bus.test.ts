@@ -32,6 +32,17 @@ describe('DomainEventBus', () => {
     expect(reportFailure).toHaveBeenCalledWith(saleConfirmed, expect.any(Error));
   });
 
+  it('survives a failure reporter that throws', async () => {
+    const bus = new DomainEventBus(() => {
+      throw new Error('logger down');
+    });
+    bus.subscribe('SaleConfirmed', () => {
+      throw new Error('boom');
+    });
+
+    await expect(bus.dispatch([saleConfirmed])).resolves.toBeUndefined();
+  });
+
   it('stops delivering after unsubscribe', async () => {
     const bus = new DomainEventBus();
     const handler = vi.fn();

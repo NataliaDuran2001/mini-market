@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -29,6 +30,19 @@ describe('pnpm nest:module', () => {
       "export { CreditSalesModule } from './credit-sales.module';\n",
     );
     expect(existsSync(path.join(root, 'infrastructure', 'schema.ts'))).toBe(true);
+  });
+
+  it('prints the usage and exits 1 when the command line is wrong', () => {
+    const script = path.resolve(__dirname, 'create-module.ts');
+    for (const args of [[], ['Not_Kebab']]) {
+      const result = spawnSync(process.execPath, ['-r', '@swc-node/register', script, ...args], {
+        cwd: path.resolve(__dirname, '..'),
+        encoding: 'utf8',
+        timeout: 60_000,
+      });
+      expect(result.status, args.join(' ')).toBe(1);
+      expect(result.stderr).toContain('Usage: pnpm nest:module <name>');
+    }
   });
 
   it('refuses names that are not kebab-case and modules that already exist', () => {

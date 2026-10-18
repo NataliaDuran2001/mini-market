@@ -113,7 +113,7 @@ The rules live in `packages/config/eslint/boundaries.mjs` (`MODULE_GRAPH` is sec
 | Module root files | `index.ts` (public API) may import every layer of its own module. `<domain>.module.ts` and `<domain>.permissions.ts` wire the layers of their own module. |
 | Drizzle schema | `infrastructure/schema.ts` of a module is re-exported by `apps/api/src/infrastructure/db/schema.ts`. |
 | `access` | Every module may import the public API of `access` (`TenantContext`, permissions, `AuditPort`; issue #11). `tenancy` may import it with `import type` only, so the runtime graph stays acyclic. |
-| API shared infrastructure | `apps/api/src/infrastructure/http` may be used by controllers (`presentation`). Other `infrastructure` folders may not. `infrastructure/*` may import the `TenantContext` type from `access`. |
+| API shared infrastructure | `apps/api/src/infrastructure/http` may be used by controllers (`presentation`). Other `infrastructure` folders may not. `infrastructure/*` may import the `TenantContext` type from `access`. `application` may import types (not runtime values) from `apps/api/src/infrastructure/*`, so a use case can name `WithTransaction` and the transaction handle it receives as dependencies. |
 | Purity | `domain` imports no Nest, ORM, React, `node:*` or IO packages. `application` imports no ORM, Nest or React. `presentation` imports no ORM. |
 | Test files | `*.test.ts`, `test/` and `__tests__/` are not checked. |
 

@@ -32,12 +32,24 @@ Adding a module, in this order:
 2. Add one import and one entry to `src/app.modules.ts`, sorted alphabetically.
 3. Add one `export * from '../../modules/<name>/infrastructure/schema';` line to `src/infrastructure/db/schema.ts`, sorted alphabetically.
 
-Merge conflicts in those two files: keep both sides, sorted. Migrations are named with a timestamp prefix (`drizzle.config.ts`), so two branches that add a migration do not collide: keep both.
+Those two files merge with git's `union` driver (`.gitattributes`): both sides are kept. `test/conventions.test.ts` fails when a module is missing, listed twice or out of alphabetical order.
+
+### Migrations
+
+Migration files carry a timestamp prefix (`drizzle.config.ts`), but `drizzle/meta/_journal.json` and the snapshots are shared state. When another branch merged a migration before yours:
+
+1. `git rebase origin/main`.
+2. Delete your generated `.sql`, snapshot and journal entry.
+3. `pnpm --filter @mini-market/api db:generate` again, so the new snapshot builds on the merged one.
+
+`test/conventions.test.ts` checks that journal timestamps increase and that every entry has its SQL file. Never edit an applied migration.
 
 Boundaries are enforced by lint (`packages/config/eslint/boundaries.mjs`). Controllers import `src/infrastructure/http` only; use cases receive their dependencies as ports and are provided in `<domain>.module.ts`.
+
+Request bodies are limited to 1 MB (JSON). CSV import (5 MB, docs/05-security.md) must use multipart upload or a route level limit, not the JSON parser.
 
 ## Tests
 
 - `src/**/*.test.ts`: unit tests next to the code.
-- `test/harness.ts`: `createTestDb()` starts PGlite and applies every migration from `drizzle/`; call `truncateAll()` in `beforeEach`. One database per test file.
+- `test/harness.ts`: `createTestDb()` starts PGlite and applies every migration from `drizzle/`; call `truncateAll()` in `beforeEach`. One database per test file. It connects as the PGlite superuser; issue #12 adds the `app_user` role and RLS to it.
 - `test/create-test-app.ts`: boots the app exactly like `main.ts` on that database, for supertest.

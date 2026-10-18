@@ -3,3 +3,8 @@
 *.jpg binary
 *.ico binary
 *.woff2 binary
+
+# Lanes append to these registries at the same time: keep both sides on a merge.
+# apps/api/test/conventions.test.ts fails when the result is unsorted or incomplete.
+apps/api/src/app.modules.ts merge=union
+apps/api/src/infrastructure/db/schema.ts merge=union

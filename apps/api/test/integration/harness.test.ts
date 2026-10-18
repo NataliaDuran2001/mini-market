@@ -108,6 +108,43 @@ describe('withTransaction', () => {
     expect(ctx.events).toEqual([]);
   });
 
+  it('delivers events that a handler publishes in a later round', async () => {
+    // ADR 0014
+    const seen: string[] = [];
+    const ctx = { events: [] as DomainEvent[] };
+    testDb.bus.subscribe('OrderPlaced', (event) => {
+      seen.push(event.type);
+      publishAfterCommit(ctx, { type: 'StockBelowMinimum' });
+    });
+    testDb.bus.subscribe('StockBelowMinimum', (event) => void seen.push(event.type));
+
+    await testDb.withTransaction(ctx, () => {
+      publishAfterCommit(ctx, orderPlaced);
+      return Promise.resolve();
+    });
+
+    expect(seen).toEqual(['OrderPlaced', 'StockBelowMinimum']);
+    expect(ctx.events).toEqual([]);
+  });
+
+  it('stops a handler that keeps publishing and leaves no event behind for the next transaction', async () => {
+    // ADR 0014
+    let rounds = 0;
+    const ctx = { events: [] as DomainEvent[] };
+    testDb.bus.subscribe('OrderPlaced', () => {
+      rounds++;
+      publishAfterCommit(ctx, orderPlaced);
+    });
+
+    await testDb.withTransaction(ctx, () => {
+      publishAfterCommit(ctx, orderPlaced);
+      return Promise.resolve();
+    });
+
+    expect(rounds).toBe(10);
+    expect(ctx.events).toEqual([]);
+  });
+
   it('runs without a context for work that is not tenant scoped', async () => {
     const result = await testDb.withTransaction(null, () => Promise.resolve('done'));
     expect(result).toBe('done');

@@ -53,6 +53,12 @@ importers:
 
   apps/api:
     dependencies:
+      '@mini-market/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@mini-market/shared-kernel':
+        specifier: workspace:*
+        version: link:../../packages/shared-kernel
       '@nestjs/common':
         specifier: 11.2.7
         version: 11.2.7(reflect-metadata@0.2.2)(rxjs@7.8.2)

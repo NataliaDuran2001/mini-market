@@ -190,6 +190,12 @@ const DEPENDENCIES_RULE = [
         type('shared-kernel'),
         type('contracts'),
       ]),
+      // Use cases take `withTransaction` and the transaction handle as dependencies (ADR 0014,
+      // 0016): they may name those types, never import the runtime of the shared infrastructure.
+      {
+        from: [type('module-application')],
+        allow: { to: [type('api-infrastructure')], dependency: { kind: 'type' } },
+      },
       // Modules: adapters (the Drizzle schema.ts is part of infrastructure)
       policy(type('module-infrastructure'), [
         type('module-domain', sameModule),

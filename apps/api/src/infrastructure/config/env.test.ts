@@ -1,3 +1,4 @@
+import { inspect } from 'node:util';
 import { describe, expect, it } from 'vitest';
 import { EnvValidationError, loadEnv } from './env';
 
@@ -57,5 +58,31 @@ describe('loadEnv', () => {
 
   it('rejects a port outside the valid range', () => {
     expect(failureOf({ ...validEnv, API_PORT: '70000' }).invalidKeys).toEqual(['API_PORT']);
+  });
+
+  it('defaults NODE_ENV to production so a forgotten variable fails safe', () => {
+    // docs/05-security.md section 4: Swagger UI only outside production
+    const { NODE_ENV: _removed, ...withoutNodeEnv } = validEnv;
+    expect(loadEnv(withoutNodeEnv).nodeEnv).toBe('production');
+  });
+
+  it('normalizes WEB_ORIGIN to an origin and rejects one with a path', () => {
+    // docs/05-security.md section 4: CORS equals the exact web origin
+    expect(loadEnv({ ...validEnv, WEB_ORIGIN: 'http://localhost:5173/' }).webOrigin).toBe(
+      'http://localhost:5173',
+    );
+    expect(failureOf({ ...validEnv, WEB_ORIGIN: 'http://localhost:5173/app' }).invalidKeys).toEqual(
+      ['WEB_ORIGIN'],
+    );
+  });
+
+  it('keeps the database url and the service role key out of JSON and inspect output', () => {
+    // docs/05-security.md section 5
+    const env = loadEnv(validEnv);
+    expect(env.databaseUrl).toBe(validEnv.DATABASE_URL);
+    expect(env.supabaseServiceRoleKey).toBe(validEnv.SUPABASE_SERVICE_ROLE_KEY);
+    const printed = `${JSON.stringify(env)} ${inspect(env)} ${JSON.stringify({ ...env })}`;
+    expect(printed).not.toContain('secret-password');
+    expect(printed).not.toContain('service-role-key');
   });
 });

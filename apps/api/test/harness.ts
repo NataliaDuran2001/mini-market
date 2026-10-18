@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
@@ -32,9 +32,12 @@ export async function createTestDb(
   const client = new PGlite();
   const db = drizzle(client, { schema, casing: 'snake_case' });
   const folder = options.migrationsFolder ?? MIGRATIONS_FOLDER;
-  // drizzle-kit writes meta/_journal.json with the first migration; before that there is nothing to apply.
+  // drizzle-kit writes meta/_journal.json with the first migration; before that there is nothing
+  // to apply. SQL files without a journal mean a broken checkout: fail instead of testing nothing.
   if (existsSync(path.join(folder, 'meta', '_journal.json'))) {
     await migrate(db, { migrationsFolder: folder });
+  } else if (readdirSync(folder).some((file) => file.endsWith('.sql'))) {
+    throw new Error(`${folder} has SQL migrations but no meta/_journal.json`);
   }
   const bus = new DomainEventBus();
   return {

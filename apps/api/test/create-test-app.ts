@@ -1,4 +1,4 @@
-import type { INestApplication } from '@nestjs/common';
+import type { INestApplication, Type } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
 import type { DestinationStream } from 'pino';
@@ -29,10 +29,13 @@ export async function createTestApp(options: {
   readonly database: Database;
   readonly env?: Env;
   readonly logStream?: DestinationStream;
+  /** Throwaway controllers a test needs, for example to prove validation on a request body. */
+  readonly controllers?: Type[];
 }): Promise<INestApplication> {
   const env = options.env ?? testEnv();
   const version = 'test';
   const moduleRef = await Test.createTestingModule({
+    controllers: options.controllers ?? [],
     imports: [
       AppModule.register({
         env,

@@ -6,6 +6,7 @@ import { createDatabase } from './db/database';
 import type { Database, DatabaseConnection } from './db/database';
 import { createWithTransaction } from './db/with-transaction';
 import { DomainEventBus } from './events/domain-event-bus';
+import { describeError } from './logger/describe-error';
 import {
   APP_VERSION,
   DATABASE,
@@ -48,7 +49,10 @@ export class InfrastructureModule implements OnApplicationShutdown {
         provide: DOMAIN_EVENT_BUS,
         useFactory: (logger: Logger) =>
           new DomainEventBus((event, error) =>
-            logger.error({ err: error, eventType: event.type }, 'domain event handler failed'),
+            logger.error(
+              { error: describeError(error), eventType: event.type },
+              'domain event handler failed',
+            ),
           ),
         inject: [Logger],
       },
