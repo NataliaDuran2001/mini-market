@@ -117,6 +117,9 @@ The rules live in `packages/config/eslint/boundaries.mjs` (`MODULE_GRAPH` is sec
 | `access` | Every module may import the public API of `access` (`TenantContext`, permissions, `AuditPort`; issue #11). `tenancy` may import it with `import type` only, so the runtime graph stays acyclic. |
 | API shared infrastructure | `apps/api/src/infrastructure/http` may be used by controllers (`presentation`). Other `infrastructure` folders may not. `infrastructure/*` may import the `TenantContext` type from `access`. `application` may import types (not runtime values) from `apps/api/src/infrastructure/*`, so a use case can name `WithTransaction` and the transaction handle it receives as dependencies. |
 | Purity | `domain` imports no Nest, ORM, React, `node:*` or IO packages. `application` imports no ORM, Nest or React. `presentation` imports no ORM. |
+| Schema references | `infrastructure/schema.ts` may import the `schema.ts` of the modules below it (foreign keys), so drizzle-kit loads schema files without Nest. |
+| Domain types | `domain` may `import type` from the public API of the modules below it (for example `TenantSettings` inside `TenantContext`); it never imports their runtime. |
+| Permissions | Each module declares `<domain>.permissions.ts` and adds `permissionsProvider("<domain>", PERMISSIONS)` to its Nest module; the owner and employee grant sit next to each permission. Routes use `@RequirePermission("area.action")`, use cases call `requirePermission(ctx, ...)` or `ctx.can(...)`. |
 | Test files | `*.test.ts`, `test/` and `__tests__/` are not checked. |
 
 ## 7. Cross-module orchestration

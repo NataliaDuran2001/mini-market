@@ -1,12 +1,16 @@
-import { isNull } from 'drizzle-orm';
+import { eq, isNull } from 'drizzle-orm';
 import type { Transaction } from '../../../infrastructure/db/database';
 import type {
   InvitationRepository,
   NewInvitation,
+  StoredInvitation,
 } from '../application/ports/invitation.repository';
 import type { Role } from '../domain/identity';
 import type { PendingInvitation } from '../domain/invitation';
 import { invitations } from './schema';
+
+// The invitations_role_check constraint only allows owner and employee.
+const asRole = (value: string): Role => value as Role;
 
 export class DrizzleInvitationRepository implements InvitationRepository {
   async savePending(tx: Transaction, invitation: NewInvitation): Promise<PendingInvitation> {
@@ -34,9 +38,35 @@ export class DrizzleInvitationRepository implements InvitationRepository {
       id: row.id,
       tenantId: row.tenantId,
       email: row.email,
-      role: row.role as Role, // the invitations_role_check constraint only allows owner and employee
+      role: asRole(row.role),
       invitedBy: row.invitedBy,
       expiresAt: row.expiresAt,
     };
+  }
+
+  async findByTokenHashForUpdate(
+    tx: Transaction,
+    tokenHash: string,
+  ): Promise<StoredInvitation | null> {
+    const [row] = await tx
+      .select()
+      .from(invitations)
+      .where(eq(invitations.tokenHash, tokenHash))
+      .limit(1)
+      .for('update');
+    if (!row) return null;
+    return {
+      id: row.id,
+      tenantId: row.tenantId,
+      email: row.email,
+      role: asRole(row.role),
+      invitedBy: row.invitedBy,
+      expiresAt: row.expiresAt,
+      consumedAt: row.consumedAt,
+    };
+  }
+
+  async markConsumed(tx: Transaction, invitationId: string, at: Date): Promise<void> {
+    await tx.update(invitations).set({ consumedAt: at }).where(eq(invitations.id, invitationId));
   }
 }

@@ -14,3 +14,33 @@ export class InviteDeliveryFailedError extends DomainError {
   readonly code = 'INVITE_DELIVERY_FAILED';
   readonly httpStatus = 502;
 }
+
+export class MemberNotFoundError extends DomainError {
+  readonly code = 'MEMBER_NOT_FOUND';
+  readonly httpStatus = 404;
+}
+
+/** Demoting or disabling the last active owner would leave the tenant without a manager. */
+export class LastOwnerError extends DomainError {
+  readonly code = 'LAST_OWNER';
+  readonly httpStatus = 409;
+}
+
+/**
+ * Unknown token, a token of an invitation for another email, or a tenant that no longer exists:
+ * one answer for all, so a token holder learns nothing about whom it was meant for.
+ */
+export class InvitationNotFoundError extends DomainError {
+  readonly code = 'INVITATION_NOT_FOUND';
+  readonly httpStatus = 404;
+}
+
+export class InvitationExpiredError extends DomainError {
+  readonly code = 'INVITATION_EXPIRED';
+  readonly httpStatus = 410;
+}
+
+export class InvitationAlreadyUsedError extends DomainError {
+  readonly code = 'INVITATION_ALREADY_USED';
+  readonly httpStatus = 409;
+}

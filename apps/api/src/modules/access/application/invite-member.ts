@@ -1,20 +1,16 @@
-import { err, ForbiddenError, ok } from '@mini-market/shared-kernel';
+import { err, ok } from '@mini-market/shared-kernel';
 import type { Clock, DomainError, Result } from '@mini-market/shared-kernel';
 import type { WithTransaction } from '../../../infrastructure/db/with-transaction';
-import { InviteDeliveryFailedError, NotAMemberError } from '../domain/errors';
+import { InviteDeliveryFailedError } from '../domain/errors';
 import type { Role } from '../domain/identity';
 import { invitationExpiry, normalizeEmail } from '../domain/invitation';
+import type { TenantContext } from '../domain/tenant-context';
 import type { InvitationRepository } from './ports/invitation.repository';
 import type { InvitationTokenPort } from './ports/invitation-token.port';
-import type { MembershipDirectory } from './ports/membership-directory.port';
 import type { SupabaseAdminPort } from './ports/supabase-admin.port';
+import { requirePermission } from './require-permission';
 
 export const INVITE_MEMBER = Symbol('INVITE_MEMBER');
-
-export interface InviteMemberActor {
-  readonly tenantId: string;
-  readonly userId: string;
-}
 
 export interface InviteMemberInput {
   readonly email: string;
@@ -29,14 +25,13 @@ export interface InvitationReceipt {
 }
 
 export type InviteMember = (
-  actor: InviteMemberActor,
+  ctx: TenantContext,
   input: InviteMemberInput,
 ) => Promise<Result<InvitationReceipt, DomainError>>;
 
 export interface InviteMemberDeps {
   readonly clock: Clock;
   readonly invitations: InvitationRepository;
-  readonly memberships: MembershipDirectory;
   readonly supabaseAdmin: SupabaseAdminPort;
   readonly tokens: InvitationTokenPort;
   readonly withTransaction: WithTransaction;
@@ -46,46 +41,28 @@ export interface InviteMemberDeps {
   readonly acceptInvitationUrl: string;
 }
 
-/** Only an owner may invite (docs/01-domain.md section 4). */
-async function authorizeOwner(
-  deps: InviteMemberDeps,
-  actor: InviteMemberActor,
-): Promise<DomainError | undefined> {
-  const role = await deps.withTransaction(null, (tx) =>
-    deps.memberships.roleOf(tx, actor.tenantId, actor.userId),
-  );
-  if (role === null) {
-    return new NotAMemberError('You are not a member of this business');
-  }
-  if (role !== 'owner') {
-    return new ForbiddenError('Only the owner can invite members', {
-      permission: 'members.manage',
-    });
-  }
-  return undefined;
-}
-
 /**
- * Owner invites a person into the tenant. The invitation is stored first and committed; the email
- * goes out afterwards, so a failed send leaves a pending invitation the owner can resend instead
- * of a half-open transaction. The receipt never says whether the email already has an account.
+ * Owner invites a person into the tenant (docs/01-domain.md section 4: invite or remove users is
+ * owner only). The invitation is stored first and committed; the email goes out afterwards, so a
+ * failed send leaves a pending invitation the owner can resend instead of a half-open transaction.
+ * The receipt never says whether the email already has an account.
  */
 export async function inviteMember(
   deps: InviteMemberDeps,
-  actor: InviteMemberActor,
+  ctx: TenantContext,
   input: InviteMemberInput,
 ): Promise<Result<InvitationReceipt, DomainError>> {
-  const denied = await authorizeOwner(deps, actor);
-  if (denied) return err(denied);
+  const allowed = requirePermission(ctx, 'members.manage');
+  if (!allowed.ok) return allowed;
 
   const email = normalizeEmail(input.email);
   const { token, tokenHash } = deps.tokens.generate();
-  const invitation = await deps.withTransaction(null, (tx) =>
+  const invitation = await deps.withTransaction(ctx, (tx) =>
     deps.invitations.savePending(tx, {
-      tenantId: actor.tenantId,
+      tenantId: ctx.tenantId,
       email,
       role: input.role,
-      invitedBy: actor.userId,
+      invitedBy: ctx.userId,
       tokenHash,
       expiresAt: invitationExpiry(deps.clock.now()),
     }),

@@ -1,4 +1,4 @@
-import type { INestApplication, Type } from '@nestjs/common';
+import type { INestApplication, Provider, Type } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
 import type { DestinationStream } from 'pino';
@@ -46,6 +46,8 @@ export async function createTestApp(options: {
   readonly logStream?: DestinationStream;
   /** Throwaway controllers a test needs, for example to prove validation on a request body. */
   readonly controllers?: Type[];
+  /** Extra providers a test needs, for example `permissionsProvider('sales', ...)`. */
+  readonly providers?: Provider[];
   /** Replaces providers by token, for example the Supabase admin client. */
   readonly overrides?: readonly { readonly token: symbol; readonly useValue: unknown }[];
   /** Key pair the app trusts. Defaults to a fresh one; read it back through `bearerFor`. */
@@ -58,6 +60,7 @@ export async function createTestApp(options: {
   const auth = options.auth ?? (await createTestAuth());
   const builder = Test.createTestingModule({
     controllers: options.controllers ?? [],
+    providers: options.providers ?? [],
     imports: [
       AppModule.register({
         env,

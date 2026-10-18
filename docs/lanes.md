@@ -65,7 +65,8 @@ Repeat at most 6 times. After that, stop and report which issue blocks you.
 
 ## What every API lane needs to know (from P1)
 
-- Every API route needs a Supabase access token unless it carries `@Public()` (from `modules/access`). In integration tests build the app with `createTestApp` (it trusts a local key pair) and send `await bearerFor(app, claims)` as `Authorization`. Permissions arrive with issue #11.
+- Every API route needs a Supabase access token unless it carries `@Public()` (from `modules/access`), and is tenant scoped unless it carries `@WithoutTenant()`: the caller sends `X-Tenant-Id`, the tenant guard checks an active membership and builds the `TenantContext` that `@Ctx()` hands to the controller. `@RequirePermission("area.action")` guards a route; a use case ends up with `ctx` as its first parameter and starts with `requirePermission(ctx, ...)` or `ctx.can(...)`. Each module registers its permissions with `permissionsProvider("<domain>", PERMISSIONS)` in its Nest module, next to a `<domain>.permissions.ts`.
+- Tests: `test/helpers/contexts.ts` has `asOwner(tenantId)` and `asEmployee(tenantId, { permissions, settings })` for use case tests; `test/helpers/seed.ts` has `seedTenant` and `seedMember`; `useAccessApp()` in `test/access-fixture.ts` gives an HTTP suite two seeded tenants and `ctx.addMember`. In integration tests build the app with `createTestApp` (it trusts a local key pair) and send `await bearerFor(app, claims)` as `Authorization`.
 - Errors reach the client only through `ApiExceptionFilter`: a controller does `if (!result.ok) throw result.error`. Log failures with `describeError(error)`.
 - The boundary preset now classifies imports that resolve into `packages/*/dist` (it used to skip them), so `domain` importing `@mini-market/contracts` is a lint error. Use cases may import types, never runtime values, from `apps/api/src/infrastructure/*`.
 - Every migration needs `drizzle/rollback/<tag>.sql`; a test runs all rollbacks.

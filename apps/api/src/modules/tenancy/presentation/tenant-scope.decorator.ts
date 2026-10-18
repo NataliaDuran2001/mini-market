@@ -4,8 +4,9 @@ import { ForbiddenError } from '@mini-market/shared-kernel';
 import type { TenantScope } from '../application/tenant-scope';
 
 /**
- * Reads the caller scope that the tenant guard of issue #11 puts on the request. Until that guard
- * exists nothing sets it, so these routes answer 403: they fail closed instead of guessing a tenant.
+ * Reads the caller scope that the tenant guard of the access module puts on the request
+ * (`request.tenantScope`, a TenantContext). Without it the route answers 403: it fails closed
+ * instead of guessing a tenant.
  */
 export const CurrentTenantScope = createParamDecorator(
   (_data: unknown, context: ExecutionContext): TenantScope => {

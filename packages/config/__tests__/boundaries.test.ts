@@ -168,6 +168,52 @@ describe('module boundaries', () => {
     ).toContain('boundaries/dependencies');
   });
 
+  it('lets a schema.ts reference the schema.ts of a module below it, for foreign keys', async () => {
+    // AC-3 (docs/04-coding-standards.md section 8; drizzle-kit loads schema files alone)
+    const lint = async (from: string, importPath: string) => {
+      const [result] = await createEslint().lintText(
+        `import { t } from '${importPath}';\nexport const x = t;\n`,
+        {
+          filePath: path.join(
+            boundariesRoot,
+            `apps/api/src/modules/${from}/infrastructure/schema.ts`,
+          ),
+        },
+      );
+      return (result?.messages ?? []).map((m) => m.ruleId);
+    };
+    // inventory -> catalog is an edge of the graph, catalog -> inventory is not
+    expect(await lint('inventory', '../../catalog/infrastructure/schema')).toEqual([]);
+    expect(await lint('catalog', '../../inventory/infrastructure/schema')).toContain(
+      'boundaries/dependencies',
+    );
+  });
+
+  it('lets a domain name the types of the modules below it, never import their runtime', async () => {
+    // AC-3 (TenantContext in access/domain holds the TenantSettings type of tenancy)
+    const lint = async (code: string) => {
+      const [result] = await createEslint().lintText(code, {
+        filePath: path.join(boundariesRoot, 'apps/api/src/modules/sales/domain/uses-types.ts'),
+      });
+      return (result?.messages ?? []).map((m) => m.ruleId);
+    };
+    expect(
+      await lint(
+        "import type { InventoryNumber } from '../../inventory/index';\nexport type T = InventoryNumber;\n",
+      ),
+    ).toEqual([]);
+    expect(
+      await lint(
+        "import { inventoryApi } from '../../inventory/index';\nexport const t = inventoryApi;\n",
+      ),
+    ).toContain('boundaries/dependencies');
+    expect(
+      await lint(
+        "import type { InventoryNumber } from '../../catalog/application/not-in-graph';\nexport type T = InventoryNumber;\n",
+      ),
+    ).toContain('boundaries/dependencies');
+  });
+
   it('keeps IO and frameworks out of domain and Nest out of application', async () => {
     // docs/02-architecture.md section 5
     const lint = async (layer: string, code: string) => {

@@ -2,11 +2,22 @@
 import { z } from 'zod';
 import { uuidSchema } from '../common/index.js';
 
+const roleSchema = z.enum(['owner', 'employee']);
+
 /** `GET /api/v1/me` */
 export const meResponseSchema = z.object({
   userId: uuidSchema,
   email: z.string(),
 });
+
+/** One business of the signed-in user, for the tenant picker. `GET /api/v1/me/tenants` */
+export const myTenantSchema = z.object({
+  tenantId: uuidSchema,
+  slug: z.string(),
+  name: z.string(),
+  role: roleSchema,
+});
+export const myTenantsResponseSchema = z.object({ items: z.array(myTenantSchema) });
 
 /** `POST /api/v1/auth/invitations` (owner only). Employees are the only role that can be invited. */
 export const inviteMemberRequestSchema = z.object({
@@ -18,10 +29,44 @@ export const inviteMemberRequestSchema = z.object({
 export const inviteMemberResponseSchema = z.object({
   invitationId: uuidSchema,
   email: z.string(),
-  role: z.enum(['owner', 'employee']),
+  role: roleSchema,
   expiresAt: z.iso.datetime(),
 });
 
+/** `POST /api/v1/invitations/accept`: the token comes from the link in the invitation email. */
+export const acceptInvitationRequestSchema = z.object({
+  token: z.string().min(16).max(256),
+});
+export const acceptInvitationResponseSchema = z.object({
+  tenantId: uuidSchema,
+  role: roleSchema,
+});
+
+export const memberSchema = z.object({
+  userId: uuidSchema,
+  email: z.string(),
+  role: roleSchema,
+  status: z.enum(['active', 'disabled']),
+});
+
+/** `GET /api/v1/members` (owner only) */
+export const listMembersResponseSchema = z.object({ items: z.array(memberSchema) });
+
+/**
+ * `PATCH /api/v1/members/:userId` (owner only): change the role, or disable the member. Exactly
+ * one of the two; a disabled member is never deleted.
+ */
+export const updateMemberRequestSchema = z
+  .object({ role: roleSchema.optional(), status: z.literal('disabled').optional() })
+  .strict()
+  .refine((body) => (body.role === undefined) !== (body.status === undefined), {
+    message: 'Send exactly one of role or status',
+  });
+
 export type MeResponse = z.infer<typeof meResponseSchema>;
+export type MyTenant = z.infer<typeof myTenantSchema>;
 export type InviteMemberRequest = z.infer<typeof inviteMemberRequestSchema>;
 export type InviteMemberResponse = z.infer<typeof inviteMemberResponseSchema>;
+export type AcceptInvitationRequest = z.infer<typeof acceptInvitationRequestSchema>;
+export type Member = z.infer<typeof memberSchema>;
+export type UpdateMemberRequest = z.infer<typeof updateMemberRequestSchema>;

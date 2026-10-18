@@ -5,4 +5,6 @@ export interface GeneratedInvitationToken {
 
 export interface InvitationTokenPort {
   generate(): GeneratedInvitationToken;
+  /** The value stored for a token: what `generate` returns as `tokenHash`. */
+  hash(token: string): string;
 }
