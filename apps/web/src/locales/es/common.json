@@ -2,6 +2,7 @@
   "app": {
     "name": "Mini-Market"
   },
+  "loading": "Cargando...",
   "actions": {
     "close": "Cerrar"
   },

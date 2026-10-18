@@ -1,0 +1,27 @@
+{
+  "nav": {
+    "primary": "Navegación principal",
+    "secondary": "Secciones",
+    "more": "Más",
+    "moreDescription": "Otras secciones del negocio",
+    "moreEmpty": "No hay más opciones disponibles.",
+    "sales": "Vender",
+    "products": "Productos",
+    "purchases": "Compras",
+    "customers": "Fiado / Clientes",
+    "expenses": "Gastos",
+    "reports": "Reportes",
+    "capital": "Capital",
+    "settings": "Configuración"
+  },
+  "header": {
+    "account": "Cuenta",
+    "signedInAs": "Sesión iniciada como {{email}}",
+    "switchTenant": "Cambiar de negocio",
+    "tenantLoading": "Cargando negocio..."
+  },
+  "dashboard": {
+    "shortcuts": "Accesos directos",
+    "empty": "Todavía no hay movimientos. Cuando registres ventas y compras, aquí verás el resumen de tu negocio."
+  }
+}

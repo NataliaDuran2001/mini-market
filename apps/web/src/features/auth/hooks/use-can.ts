@@ -1,4 +1,5 @@
 import { useCurrentTenant } from '@/lib/auth/session';
+import { useTenant } from '@/features/tenancy';
 import { useMyTenants } from '../api/my-tenants';
 import { can, type Role } from '../domain/role-permissions';
 
@@ -10,10 +11,17 @@ export function useCurrentRole(): Role | null {
 }
 
 /**
- * Role-aware rendering (docs/04-coding-standards.md section 7). It hides UI; it never authorizes.
+ * Returns `can(permission)` for the current person and business: role plus the tenant settings
+ * the matrix depends on (`employeeCanVoid`). Role-aware rendering hides UI; it never authorizes
+ * (docs/04-coding-standards.md section 7).
  */
-// TODO(#15): pass tenant.settings.employeeCanVoid once the shell loads GET /tenant; until then an
-// employee never sees sales.void in the UI (fails closed; the API decides).
+export function usePermissionCheck(): (permission: string) => boolean {
+  const role = useCurrentRole();
+  const tenant = useTenant();
+  const employeeCanVoid = tenant.data?.settings.employeeCanVoid ?? false;
+  return (permission) => can(role, permission, { employeeCanVoid });
+}
+
 export function useCan(permission: string): boolean {
-  return can(useCurrentRole(), permission);
+  return usePermissionCheck()(permission);
 }
