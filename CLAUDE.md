@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Multi-tenant SaaS for small retail businesses in Bolivia (minimarkets first, pharmacies second): inventory, purchases, sales, expenses and accounts payable, owner capital, credit sales, and profit reports. Work is executed **issue by issue** from the GitHub Project "Mini Market v1". Issues are the specs; this file tells you how to execute them.
+Multi-tenant SaaS for small retail businesses in Bolivia (minimarkets first, pharmacies second): inventory, purchases, sales, expenses and accounts payable, owner capital, credit sales, and profit reports. Work is executed **issue by issue** from the GitHub Project "Mini-Market". Issues are the specs; this file tells you how to execute them.
 
 ## Read first (in this order)
 

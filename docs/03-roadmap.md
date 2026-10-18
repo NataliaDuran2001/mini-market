@@ -1,9 +1,9 @@
 # 03 - Roadmap
 
-> GitHub Project: https://github.com/users/NataliaDuran2001/projects/4 (execute issues in the `Order` field sequence).
+> GitHub Project: https://github.com/users/NataliaDuran2001/projects/3 (execute issues in the `Order` field sequence).
 
 
-Source of truth for execution is the GitHub Project "Mini Market v1" and its issues. This file is the map. Links are filled once milestones and epics exist.
+Source of truth for execution is the GitHub Project "Mini-Market" and its issues. This file is the map.
 
 ## Milestones v1
 

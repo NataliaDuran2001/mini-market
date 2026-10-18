@@ -12,7 +12,7 @@ Multi-tenant SaaS for small retail businesses (minimarkets, pharmacies and simil
 
 ## Work is driven by GitHub issues
 
-Milestones M0–M8 each deliver one testable module end to end. See `docs/03-roadmap.md` and the GitHub Project "Mini Market v1". Developers and Claude Code execute issues in the `Order` field sequence. See `CLAUDE.md` for the per-issue workflow.
+Milestones M0–M8 each deliver one testable module end to end. See `docs/03-roadmap.md` and the GitHub Project "Mini-Market". Developers and Claude Code execute issues in the `Order` field sequence. See `CLAUDE.md` for the per-issue workflow.
 
 ## Getting started (after milestone M0)
 
