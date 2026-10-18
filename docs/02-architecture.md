@@ -33,7 +33,7 @@ mini-market/
 ├── turbo.json  pnpm-workspace.yaml  package.json
 ```
 
-Package names: `@mm/shared-kernel`, `@mm/contracts`, `@mm/config`.
+Package names: `@mini-market/shared-kernel`, `@mini-market/contracts`, `@mini-market/config` (scope fixed in issue #2, 2026-10-18). The `@mm/...` spelling in the other docs and in the ADRs refers to the same packages.
 
 ## 3. Domain modules
 

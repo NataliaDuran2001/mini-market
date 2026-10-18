@@ -1,0 +1,14 @@
+{
+  "name": "@mini-market/e2e",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "devDependencies": {
+    "@mini-market/config": "workspace:*",
+    "eslint": "catalog:"
+  }
+}

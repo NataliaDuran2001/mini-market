@@ -1,0 +1,256 @@
+// Architecture boundaries (docs/02-architecture.md sections 4 and 6, ADR 0009).
+// Violations fail lint and therefore CI. Do not disable these rules.
+//
+// eslint-plugin-boundaries 7 renamed the `boundaries/element-types` rule to
+// `boundaries/dependencies` (same semantics, new policy syntax). This preset uses the current
+// name; the deprecated alias prints warnings on every lint run.
+import { createRequire } from 'node:module';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import boundaries from 'eslint-plugin-boundaries';
+
+const require = createRequire(import.meta.url);
+
+/** Repository root, three levels above packages/config/eslint. */
+export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+
+/**
+ * Direct dependencies between API modules ("A -> B": A uses the public API of B).
+ * Source of truth: docs/02-architecture.md section 4. Change it together with that document.
+ */
+export const MODULE_GRAPH = {
+  access: ['tenancy'],
+  audit: ['tenancy'],
+  catalog: ['tenancy'],
+  equity: ['tenancy'],
+  health: [],
+  inventory: ['catalog'],
+  payables: ['tenancy'],
+  purchasing: ['inventory', 'payables'],
+  receivables: ['tenancy'],
+  // reporting reads every module's exported schema and never writes (documented exception).
+  reporting: [
+    'access',
+    'audit',
+    'catalog',
+    'equity',
+    'inventory',
+    'payables',
+    'purchasing',
+    'receivables',
+    'sales',
+    'tenancy',
+  ],
+  sales: ['catalog', 'inventory', 'receivables'],
+  tenancy: [],
+};
+
+/**
+ * Every module receives a TenantContext and checks permissions, so every module may use the public
+ * API of `access` (issue #11: "exposed to other modules through access/index.ts"). The graph in
+ * docs/02-architecture.md does not list this edge explicitly; flagged for the owner.
+ */
+export const ALWAYS_ALLOWED_MODULES = ['access'];
+
+// Files that are not part of the architecture and may import anything.
+const IGNORED_FILES = [
+  '**/*.test.{ts,tsx}',
+  '**/*.spec.{ts,tsx}',
+  '**/test/**',
+  '**/__tests__/**',
+  '**/node_modules/**',
+  '**/dist/**',
+];
+
+// Patterns are relative to the repository root and match the full path. Elements are folders
+// (the first match wins); single files such as index.ts are classified with file categories.
+const element = (type, pattern, capture) => ({
+  type,
+  pattern,
+  partialMatch: false,
+  stopMatching: true,
+  ...(capture ? { capture } : {}),
+});
+
+const ELEMENTS = [
+  // API modules, one folder per layer (docs/02-architecture.md section 5)
+  element('module-domain', 'apps/api/src/modules/*/domain', ['module']),
+  element('module-application', 'apps/api/src/modules/*/application', ['module']),
+  element('module-infrastructure', 'apps/api/src/modules/*/infrastructure', ['module']),
+  element('module-presentation', 'apps/api/src/modules/*/presentation', ['module']),
+  // Files at the module root: index.ts, <domain>.module.ts, <domain>.permissions.ts
+  element('module', 'apps/api/src/modules/*', ['module']),
+  // API outside the modules
+  element('api-infrastructure', 'apps/api/src/infrastructure'),
+  element('api-script', 'apps/api/scripts'),
+  element('api-app', 'apps/api/src'),
+  // Web features and app shell
+  element('feature', 'apps/web/src/features/*', ['feature']),
+  element('app', 'apps/*/src/app'),
+  element('web-ui', 'apps/web/src/ui'),
+  element('web-lib', 'apps/web/src/lib'),
+  // Packages
+  element('shared-kernel', 'packages/shared-kernel'),
+  element('contracts', 'packages/contracts'),
+];
+
+const file = (category, pattern) => ({ category, pattern, exclusive: true });
+
+const FILES = [
+  file('module-schema', 'apps/api/src/modules/*/infrastructure/schema.ts'),
+  file('module-public', 'apps/api/src/modules/*/index.ts'),
+  file('module-root', 'apps/api/src/modules/*/*.ts'),
+  file('feature-public', 'apps/web/src/features/*/index.ts'),
+];
+
+const type = (name, captured, category) => ({
+  element: { type: name, ...(captured ? { captured } : {}) },
+  ...(category ? { file: { categories: category } } : {}),
+});
+const sameModule = { module: '{{ from.element.captured.module }}' };
+const sameFeature = { feature: '{{ from.element.captured.feature }}' };
+
+/** @param {object | object[]} from entity selector(s) @param {object[]} to allowed targets */
+const policy = (from, to) => ({
+  from: Array.isArray(from) ? from : [from],
+  allow: { to },
+});
+
+const publicApi = (captured) => type('module', captured, 'module-public');
+const moduleRoot = (captured) => type('module', captured, 'module-root');
+const schema = (captured) => type('module-infrastructure', captured, 'module-schema');
+
+function crossModulePolicies() {
+  const policies = [];
+  for (const [module, uses] of Object.entries(MODULE_GRAPH)) {
+    const targets = [...new Set([...uses, ...ALWAYS_ALLOWED_MODULES])].filter((m) => m !== module);
+    if (targets.length === 0) continue;
+    const own = { module };
+    policies.push(
+      policy(
+        [
+          type('module-application', own),
+          type('module-infrastructure', own),
+          type('module-presentation', own),
+          moduleRoot(own),
+        ],
+        [publicApi({ module: `{${targets.join(',')}}` })],
+      ),
+    );
+  }
+  return policies;
+}
+
+const DEPENDENCIES_RULE = [
+  'error',
+  {
+    default: 'disallow',
+    policies: [
+      // Modules: pure domain
+      policy(type('module-domain'), [type('shared-kernel')]),
+      // Modules: use cases
+      policy(type('module-application'), [
+        type('module-domain', sameModule),
+        type('shared-kernel'),
+        type('contracts'),
+      ]),
+      // Modules: adapters (the Drizzle schema.ts is part of infrastructure)
+      policy(type('module-infrastructure'), [
+        type('module-domain', sameModule),
+        type('module-application', sameModule),
+        type('api-infrastructure'),
+        type('shared-kernel'),
+      ]),
+      // Nest controllers
+      policy(type('module-presentation'), [
+        type('module-application', sameModule),
+        type('shared-kernel'),
+        type('contracts'),
+      ]),
+      // <domain>.module.ts, <domain>.permissions.ts: wire the layers of their own module
+      policy(moduleRoot(), [
+        type('module-domain', sameModule),
+        type('module-application', sameModule),
+        type('module-infrastructure', sameModule),
+        type('module-presentation', sameModule),
+        type('api-infrastructure'),
+        type('shared-kernel'),
+        type('contracts'),
+      ]),
+      // index.ts: the public surface of the module
+      policy(publicApi(), [
+        type('module-domain', sameModule),
+        type('module-application', sameModule),
+        type('module-infrastructure', sameModule),
+        type('module-presentation', sameModule),
+        moduleRoot(sameModule),
+        type('shared-kernel'),
+        type('contracts'),
+      ]),
+      // Cross-module edges per MODULE_GRAPH
+      ...crossModulePolicies(),
+      // API shared infrastructure: db, config, logger, events, http
+      policy(type('api-infrastructure'), [type('shared-kernel'), type('contracts'), schema()]),
+      // main.ts, app.module.ts, app.modules.ts
+      policy(type('api-app'), [
+        type('api-infrastructure'),
+        publicApi(),
+        moduleRoot(),
+        type('shared-kernel'),
+        type('contracts'),
+      ]),
+      // CLI scripts such as provision-tenant
+      policy(type('api-script'), [
+        type('api-infrastructure'),
+        publicApi(),
+        type('shared-kernel'),
+        type('contracts'),
+      ]),
+      // Web: a feature reaches another feature only through its index.ts
+      policy(type('feature'), [
+        type('feature', sameFeature),
+        type('feature', { feature: '!{{ from.element.captured.feature }}' }, 'feature-public'),
+        type('contracts'),
+        type('shared-kernel'),
+        type('web-lib'),
+        type('web-ui'),
+      ]),
+      policy(type('app'), [
+        type('feature', undefined, 'feature-public'),
+        type('contracts'),
+        type('shared-kernel'),
+        type('web-lib'),
+        type('web-ui'),
+      ]),
+      policy(type('web-ui'), [type('web-lib'), type('shared-kernel')]),
+      policy(type('web-lib'), [type('contracts'), type('shared-kernel')]),
+      // Packages
+      policy(type('contracts'), [type('shared-kernel')]),
+    ],
+  },
+];
+
+/**
+ * @param {{ rootPath?: string }} [options] rootPath: directory the element patterns are relative to
+ *   (the repository root; tests point it at a fixture tree).
+ */
+export function boundariesConfig({ rootPath = REPO_ROOT } = {}) {
+  return {
+    name: 'mini-market/boundaries',
+    files: ['**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}'],
+    plugins: { boundaries },
+    settings: {
+      'boundaries/root-path': rootPath,
+      'boundaries/elements': ELEMENTS,
+      'boundaries/files': FILES,
+      'boundaries/ignore': IGNORED_FILES,
+      // Absolute path: pnpm does not expose this package to the workspaces that run ESLint.
+      'import/resolver': {
+        [require.resolve('eslint-import-resolver-typescript')]: { alwaysTryTypes: true },
+      },
+    },
+    rules: {
+      'boundaries/dependencies': DEPENDENCIES_RULE,
+    },
+  };
+}

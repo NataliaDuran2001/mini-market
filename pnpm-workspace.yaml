@@ -1,4 +1,19 @@
 packages:
-  - "apps/*"
-  - "packages/*"
-  - "e2e"
+  - 'apps/*'
+  - 'packages/*'
+  - 'e2e'
+
+# Shared tool versions for every workspace (reference them with "catalog:").
+# Pinned exact; each version was published at least two weeks before it was pinned.
+catalog:
+  '@eslint/js': 10.0.1
+  '@types/node': 22.20.4
+  eslint: 10.12.0
+  eslint-import-resolver-typescript: 4.4.5
+  eslint-plugin-boundaries: 7.2.0
+  eslint-plugin-import-x: 4.17.1
+  globals: 17.13.0
+  prettier: 3.9.9
+  typescript: 5.9.3
+  typescript-eslint: 8.71.0
+  vitest: 4.1.11
