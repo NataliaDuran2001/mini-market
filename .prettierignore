@@ -3,3 +3,11 @@ dist
 .turbo
 coverage
 pnpm-lock.yaml
+**/__fixtures__
+
+# Owner-maintained docs and harness files keep their hand-aligned style
+*.md
+.claude
+.github
+supabase
+docs/baseline.json

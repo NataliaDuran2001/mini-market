@@ -5,16 +5,23 @@
   "description": "Multi-tenant SaaS for small retail businesses (minimarkets, pharmacies): inventory, sales, purchases, expenses, capital and profit reports.",
   "packageManager": "pnpm@10.18.0",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.0.0",
+    "pnpm": ">=10.18.0"
   },
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck",
     "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "typecheck": "turbo run typecheck",
     "e2e": "turbo run e2e",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "catalog:",
+    "turbo": "2.11.7"
   }
 }
