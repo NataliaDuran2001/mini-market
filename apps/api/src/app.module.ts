@@ -16,6 +16,8 @@ export interface AppModuleOptions {
   readonly version: string;
   /** Tests inject PGlite here instead of connecting to `DATABASE_URL`. */
   readonly database?: Database;
+  /** Tests: run every transaction as this database role (see InfrastructureOptions). */
+  readonly assumeRole?: string;
   /** Tests capture log lines here. */
   readonly logStream?: DestinationStream;
 }
@@ -31,6 +33,7 @@ export class AppModule {
           env: options.env,
           version: options.version,
           ...(options.database ? { database: options.database } : {}),
+          ...(options.assumeRole ? { assumeRole: options.assumeRole } : {}),
         }),
         ...APP_MODULES,
       ],

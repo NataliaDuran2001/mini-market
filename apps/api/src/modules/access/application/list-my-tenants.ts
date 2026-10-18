@@ -20,5 +20,7 @@ export function listMyTenants(
   deps: ListMyTenantsDeps,
   user: AuthenticatedUser,
 ): Promise<readonly MyTenant[]> {
-  return deps.withTransaction(null, (tx) => deps.memberships.listTenantsOf(tx, user.userId));
+  return deps.withTransaction({ userId: user.userId, events: [] }, (tx) =>
+    deps.memberships.listTenantsOf(tx, user.userId),
+  );
 }

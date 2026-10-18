@@ -1,0 +1,1 @@
+CREATE INDEX "memberships_tenant_id_idx" ON "memberships" USING btree ("tenant_id");

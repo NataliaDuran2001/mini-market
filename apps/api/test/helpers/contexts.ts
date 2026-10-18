@@ -3,6 +3,10 @@ import type { PermissionDefinitions } from '../../src/modules/access';
 import { applySettingsPatch, presetFor } from '../../src/modules/tenancy';
 import type { TenantSettingsPatch, Vertical } from '../../src/modules/tenancy';
 
+/** Default users of `asOwner` and `asEmployee`: real UUIDs, because RLS casts `app.user_id`. */
+export const OWNER_USER_ID = '00000000-0000-0000-0000-0000000000f1';
+export const EMPLOYEE_USER_ID = '00000000-0000-0000-0000-0000000000f2';
+
 export interface ContextOptions {
   readonly userId?: string;
   readonly vertical?: Vertical;
@@ -26,7 +30,7 @@ function aContext(
   );
   return new TenantContext({
     tenantId,
-    userId: options.userId ?? `${role}-of-${tenantId}`,
+    userId: options.userId ?? (role === 'owner' ? OWNER_USER_ID : EMPLOYEE_USER_ID),
     role,
     settings,
     permissions: grantedPermissions(

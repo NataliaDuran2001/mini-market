@@ -1,3 +1,4 @@
+import { EMPLOYEE_USER_ID, OWNER_USER_ID } from './contexts';
 import { ACCESS_PERMISSIONS, TenantContext, grantedPermissions } from '../../src/modules/access';
 import { presetFor } from '../../src/modules/tenancy';
 import type { TenantScope, TenantSettings, Vertical } from '../../src/modules/tenancy';
@@ -14,7 +15,7 @@ export function aScope(
   const settings = options.settings ?? presetFor(options.vertical ?? 'minimarket');
   return new TenantContext({
     tenantId,
-    userId: `${role}-of-${tenantId}`,
+    userId: role === 'owner' ? OWNER_USER_ID : EMPLOYEE_USER_ID,
     role,
     settings,
     permissions: grantedPermissions(ACCESS_PERMISSIONS, role, settings),

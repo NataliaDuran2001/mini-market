@@ -10,6 +10,7 @@ import { tenants } from '../../src/modules/tenancy/infrastructure/schema';
 import { presetFor } from '../../src/modules/tenancy';
 import { createTestDb } from '../harness';
 import type { TestDb } from '../harness';
+import { OWNER_USER_ID } from '../helpers/contexts';
 import { aScope } from '../helpers/tenancy-scope';
 
 describe('tenancy use cases on PGlite', () => {
@@ -24,8 +25,9 @@ describe('tenancy use cases on PGlite', () => {
     };
     return {
       repo,
+      // Provisioning runs with the owner role, not as app_user (RLS only lets a tenant see itself).
       create: (input: Parameters<typeof createTenant>[1]) =>
-        createTenant({ tenants: repo, events, clock }, input),
+        createTenant({ tenants: createTenantRepository(testDb.asAdmin), events, clock }, input),
       get: (scope: Parameters<typeof getTenantSettings>[1]) =>
         getTenantSettings({ tenants: repo }, scope),
       update: (
@@ -223,7 +225,7 @@ describe('tenancy use cases on PGlite', () => {
         {
           type: 'TenantSettingsChanged',
           tenantId: tenant.id,
-          userId: `owner-of-${tenant.id}`,
+          userId: OWNER_USER_ID,
           before: presetFor('minimarket'),
           after: { ...presetFor('minimarket'), employeeCanVoid: true },
           occurredAt: clock.now(),
