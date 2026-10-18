@@ -1,12 +1,16 @@
 import { createRouter, type RouterHistory } from '@tanstack/react-router';
 import { routeTree } from '@/routeTree.gen';
 import { NotFound } from './not-found';
+import { RouteError } from './route-error';
+import type { RouterContext } from './router-context';
 
 /** Routes are files under src/routes (TanStack file-based routing); nothing is registered here. */
-export function createAppRouter(options: { history?: RouterHistory } = {}) {
+export function createAppRouter(options: { context: RouterContext; history?: RouterHistory }) {
   return createRouter({
     routeTree,
+    context: options.context,
     defaultNotFoundComponent: NotFound,
+    defaultErrorComponent: RouteError,
     defaultPreload: 'intent',
     ...(options.history ? { history: options.history } : {}),
   });

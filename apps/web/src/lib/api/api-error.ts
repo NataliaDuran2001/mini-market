@@ -17,5 +17,5 @@ export class ApiError extends Error {
 }
 
 /** Status 0: the request never reached the API (offline, DNS, CORS). */
-export const NETWORK_ERROR_CODE = 'network_error';
-export const UNKNOWN_ERROR_CODE = 'unknown_error';
+export const NETWORK_ERROR_CODE = 'NETWORK_ERROR';
+export const UNKNOWN_ERROR_CODE = 'UNKNOWN_ERROR';

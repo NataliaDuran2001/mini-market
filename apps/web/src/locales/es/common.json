@@ -13,10 +13,28 @@
     "description": "La dirección que abriste no existe o fue movida.",
     "backHome": "Volver al inicio"
   },
+  "routeError": {
+    "title": "No se pudo cargar la pantalla",
+    "retry": "Reintentar"
+  },
   "errors": {
     "generic": "Ocurrió un error inesperado. Intenta de nuevo.",
     "network": "No se pudo conectar con el servidor. Revisa tu conexión a internet.",
     "invalidField": "Revisa este campo.",
-    "required": "Este campo es obligatorio."
+    "required": "Este campo es obligatorio.",
+    "forbiddenToast": "No tienes permiso para realizar esta acción.",
+    "codes": {
+      "NETWORK_ERROR": "No se pudo conectar con el servidor. Revisa tu conexión a internet.",
+      "UNKNOWN_ERROR": "Ocurrió un error inesperado. Intenta de nuevo.",
+      "IDENTITY_PROVIDER_UNAVAILABLE": "El servicio de inicio de sesión no responde. Intenta de nuevo en unos minutos.",
+      "INTERNAL_ERROR": "Ocurrió un error en el servidor. Intenta de nuevo en unos minutos.",
+      "VALIDATION_ERROR": "Revisa los datos ingresados.",
+      "UNAUTHENTICATED": "Tu sesión venció. Inicia sesión de nuevo.",
+      "FORBIDDEN": "No tienes permiso para realizar esta acción.",
+      "NOT_A_MEMBER": "No perteneces a este negocio.",
+      "INVITATION_NOT_FOUND": "La invitación no es válida.",
+      "INVITATION_EXPIRED": "La invitación venció. Pide al dueño que te invite de nuevo.",
+      "INVITATION_ALREADY_USED": "Esta invitación ya fue usada."
+    }
   }
 }
