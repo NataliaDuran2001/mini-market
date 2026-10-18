@@ -24,7 +24,16 @@ export interface MembershipRepository {
   disable(tx: Transaction, tenantId: string, userId: string): Promise<void>;
 
   /** Creates the membership, or reactivates a disabled one with `role`. */
-  activate(tx: Transaction, tenantId: string, userId: string, role: Role): Promise<void>;
+  activate(
+    tx: Transaction,
+    tenantId: string,
+    userId: string,
+    role: Role,
+    invitedBy: string | null,
+  ): Promise<void>;
+
+  /** Serializes the changes of one tenant's members until the transaction ends (no deadlocks). */
+  lockMembers(tx: Transaction, tenantId: string): Promise<void>;
 
   /** Tenants where the user is an active member. Not scoped to one tenant by design. */
   listTenantsOf(tx: Transaction, userId: string): Promise<readonly MyTenant[]>;

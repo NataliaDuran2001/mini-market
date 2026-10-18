@@ -37,11 +37,15 @@ export async function disableMember(
   if (!allowed.ok) return allowed;
 
   return deps.withTransaction(ctx, async (tx) => {
+    await deps.memberships.lockMembers(tx, ctx.tenantId);
     const member = await deps.memberships.findForUpdate(tx, ctx.tenantId, input.userId);
     if (!member) return err(new MemberNotFoundError('Member not found'));
     if (member.status === 'disabled') return ok(member);
 
-    const owners = await deps.memberships.countActiveOwnersForUpdate(tx, ctx.tenantId);
+    const owners =
+      member.role === 'owner'
+        ? await deps.memberships.countActiveOwnersForUpdate(tx, ctx.tenantId)
+        : 0;
     if (wouldLeaveNoOwner(member, owners)) {
       return err(new LastOwnerError('The business must keep at least one active owner'));
     }

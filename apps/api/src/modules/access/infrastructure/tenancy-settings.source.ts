@@ -16,7 +16,12 @@ export class TenancySettingsSource implements TenantSettingsSource {
     readonly userId: string;
     readonly role: Role;
   }): Promise<TenantSettings> {
-    const provisional: TenantScope = { ...caller, settings: presetFor('generic'), events: [] };
+    const provisional: TenantScope = {
+      ...caller,
+      settings: presetFor('generic'),
+      events: [],
+      can: () => false, // reading settings needs no permission; deny anything else
+    };
     const view = await this.getTenantSettings(provisional);
     if (!view.ok) throw view.error;
     return view.value.settings;

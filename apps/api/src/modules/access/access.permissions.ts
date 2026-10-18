@@ -5,8 +5,10 @@ import type { PermissionDefinitions } from './domain/permissions';
 
 /**
  * Permissions of the access module, plus the ones of modules that sit below it in the dependency
- * graph and therefore cannot register their own: tenancy checks the owner role in its use cases
- * and exposes `settings.write` here so `ctx.can("settings.write")` works for the web.
+ * graph and therefore cannot register their own: the tenancy use case that changes settings asks
+ * `ctx.can("settings.write")`. Permissions of tenancy (provisioning, #13) are added here; do not
+ * declare these names in another module, the application would refuse to start ("declared by
+ * both").
  */
 export const ACCESS_PERMISSIONS = {
   'members.manage': { owner: true, employee: false },

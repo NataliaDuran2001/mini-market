@@ -31,8 +31,12 @@ export async function updateTenantSettings(
   ctx: TenantScope,
   patch: UpdateTenantSettingsInput,
 ): Promise<Result<TenantView, UpdateError>> {
-  if (ctx.role !== 'owner') {
-    return err(new ForbiddenError('Only the owner can change tenant settings'));
+  if (!ctx.can('settings.write')) {
+    return err(
+      new ForbiddenError('Only the owner can change tenant settings', {
+        permission: 'settings.write',
+      }),
+    );
   }
   const parsedPatch = updateTenantSettingsSchema.safeParse(patch);
   if (!parsedPatch.success) {

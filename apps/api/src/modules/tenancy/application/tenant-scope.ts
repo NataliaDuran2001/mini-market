@@ -13,4 +13,6 @@ export interface TenantScope {
   readonly settings: TenantSettings;
   /** After-commit event buffer of the running transaction (ADR 0014). */
   readonly events: { readonly type: string }[];
+  /** Whether the caller holds a permission of the matrix, for example `settings.write`. */
+  can(permission: string): boolean;
 }

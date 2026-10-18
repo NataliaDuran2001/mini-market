@@ -17,18 +17,23 @@ export class PermissionGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     if (context.getType() !== 'http') return false;
-    const permission = this.reflector.getAllAndOverride<string | undefined>(
-      REQUIRED_PERMISSION_KEY,
-      [context.getHandler(), context.getClass()],
-    );
-    if (!permission) return true;
+    // Class and method may both declare one; the caller must hold every one of them, so a weaker
+    // permission on a method cannot replace a stronger one on its controller.
+    const required = this.reflector
+      .getAll<(string | undefined)[]>(REQUIRED_PERMISSION_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ])
+      .filter((permission): permission is string => typeof permission === 'string');
 
     const { tenantScope } = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    // A permission on a route without a tenant context can never be granted: fail closed.
-    const allowed = tenantScope
-      ? requirePermission(tenantScope, permission)
-      : { ok: false as const, error: new ForbiddenError('No tenant context', { permission }) };
-    if (!allowed.ok) throw allowed.error;
+    for (const permission of required) {
+      // A permission on a route without a tenant context can never be granted: fail closed.
+      const allowed = tenantScope
+        ? requirePermission(tenantScope, permission)
+        : { ok: false as const, error: new ForbiddenError('No tenant context', { permission }) };
+      if (!allowed.ok) throw allowed.error;
+    }
     return true;
   }
 }

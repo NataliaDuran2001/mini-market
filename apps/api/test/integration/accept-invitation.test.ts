@@ -128,6 +128,21 @@ describe('POST /api/v1/invitations/accept', () => {
     expect((await accept(token)).status).toBe(200);
   });
 
+  it('tells a stranger nothing about a used or expired invitation: still 404', async () => {
+    const used = await inviteAndGetToken();
+    await accept(used).then((first) => expect(first.status).toBe(200));
+    const stranger = { sub: EMPLOYEE_ID, email: 'someone.else@example.com' };
+    expect((await accept(used, stranger)).status).toBe(404);
+
+    const expired = await inviteAndGetToken('other.person@example.com');
+    await ctx
+      .testDb()
+      .client.exec(
+        "update invitations set expires_at = now() - interval '1 minute' where email = 'other.person@example.com'",
+      );
+    expect((await accept(expired, stranger)).status).toBe(404);
+  });
+
   it('matches the invited email ignoring case', async () => {
     const token = await inviteAndGetToken();
     const response = await accept(token, { sub: INVITEE_ID, email: 'New.Employee@Example.com' });

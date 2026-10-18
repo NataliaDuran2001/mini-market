@@ -22,13 +22,13 @@ describe('GET /api/v1/tenant and PATCH /api/v1/tenant/settings', () => {
     const scoped = tenant === null ? req : req.set('X-Tenant-Id', tenant);
     return options.body ? scoped.send(options.body) : scoped;
   };
-  const asOwner = () =>
+  const seedOwner = () =>
     ctx.addMember({ tenantId: ctx.tenantId(), userId: OWNER_ID, role: 'owner' });
-  const asEmployee = () =>
+  const seedEmployee = () =>
     ctx.addMember({ tenantId: ctx.tenantId(), userId: EMPLOYEE_ID, role: 'employee' });
 
   it('answers 401 UNAUTHENTICATED without a token, before any tenant logic runs', async () => {
-    await asOwner();
+    await seedOwner();
     const response = await request(server())
       .patch('/api/v1/tenant/settings')
       .set('X-Tenant-Id', ctx.tenantId())
@@ -38,7 +38,7 @@ describe('GET /api/v1/tenant and PATCH /api/v1/tenant/settings', () => {
   });
 
   it('answers 400 without X-Tenant-Id and 403 NOT_A_MEMBER for a caller outside the tenant (fails closed)', async () => {
-    await asOwner();
+    await seedOwner();
     await call('get', '/api/v1/tenant', OWNER_ID, { tenant: null }).then((response) =>
       expect(response.status).toBe(400),
     );
@@ -48,7 +48,7 @@ describe('GET /api/v1/tenant and PATCH /api/v1/tenant/settings', () => {
   });
 
   it('returns name and settings to an employee, matching the response contract', async () => {
-    await asEmployee();
+    await seedEmployee();
     const response = await call('get', '/api/v1/tenant', EMPLOYEE_ID).then((res) => res);
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -62,7 +62,7 @@ describe('GET /api/v1/tenant and PATCH /api/v1/tenant/settings', () => {
 
   it('lets the owner patch one key: it persists and every other key is untouched', async () => {
     // AC-2 of #10
-    await asOwner();
+    await seedOwner();
     const response = await call('patch', '/api/v1/tenant/settings', OWNER_ID, {
       body: { allowNegativeStock: true },
     });
@@ -79,8 +79,8 @@ describe('GET /api/v1/tenant and PATCH /api/v1/tenant/settings', () => {
 
   it('answers an employee PATCH with 403 and the FORBIDDEN code, and changes nothing', async () => {
     // AC-3 of #10
-    await asOwner();
-    await asEmployee();
+    await seedOwner();
+    await seedEmployee();
     const response = await call('patch', '/api/v1/tenant/settings', EMPLOYEE_ID, {
       body: { allowNegativeStock: true },
     });
@@ -92,7 +92,7 @@ describe('GET /api/v1/tenant and PATCH /api/v1/tenant/settings', () => {
 
   it('answers 400 with field errors for an unknown time zone', async () => {
     // AC-5 of #10
-    await asOwner();
+    await seedOwner();
     const response = await call('patch', '/api/v1/tenant/settings', OWNER_ID, {
       body: { timezone: 'Mars/Base' },
     });
@@ -114,13 +114,13 @@ describe('GET /api/v1/tenant and PATCH /api/v1/tenant/settings', () => {
     [{ currency: 'USD' }],
   ])('answers 400 for the invalid patch %j', async (body) => {
     // AC-5 of #10
-    await asOwner();
+    await seedOwner();
     const response = await call('patch', '/api/v1/tenant/settings', OWNER_ID, { body });
     expect(response.status).toBe(400);
   });
 
   it('answers 403 NOT_A_MEMBER, the same as for any outsider, when the tenant does not exist', async () => {
-    await asOwner();
+    await seedOwner();
     const response = await call('get', '/api/v1/tenant', OWNER_ID, {
       tenant: '00000000-0000-0000-0000-0000000000aa',
     });

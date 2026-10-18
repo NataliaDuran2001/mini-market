@@ -87,14 +87,26 @@ export class DrizzleMembershipRepository implements MembershipRepository {
       .where(inTenantFor(tenantId, userId));
   }
 
-  async activate(tx: Transaction, tenantId: string, userId: string, role: Role): Promise<void> {
+  async activate(
+    tx: Transaction,
+    tenantId: string,
+    userId: string,
+    role: Role,
+    invitedBy: string | null,
+  ): Promise<void> {
     await tx
       .insert(memberships)
-      .values({ tenantId, userId, role, status: 'active' })
+      .values({ tenantId, userId, role, status: 'active', invitedBy })
       .onConflictDoUpdate({
         target: [memberships.tenantId, memberships.userId],
-        set: { role, status: 'active', updatedAt: sql`now()` },
+        set: { role, status: 'active', invitedBy, updatedAt: sql`now()` },
       });
+  }
+
+  async lockMembers(tx: Transaction, tenantId: string): Promise<void> {
+    // One advisory lock per tenant, taken first by every member change: two owners editing each
+    // other at the same time wait in line instead of deadlocking on each other's rows.
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${tenantId}))`);
   }
 
   async listTenantsOf(tx: Transaction, userId: string): Promise<readonly MyTenant[]> {

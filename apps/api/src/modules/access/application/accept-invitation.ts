@@ -47,16 +47,17 @@ export async function acceptInvitation(
 ): Promise<Result<Accepted, DomainError>> {
   return deps.withTransaction(null, async (tx) => {
     const invitation = await deps.invitations.findByTokenHashForUpdate(tx, deps.tokens.hash(token));
-    if (!invitation) return err(new InvitationNotFoundError('Invitation not found'));
+    // Whose invitation it is comes first: a stranger holding a forwarded link learns nothing, not
+    // even whether it was used or has expired.
+    if (!invitation || invitation.email !== normalizeEmail(user.email)) {
+      return err(new InvitationNotFoundError('Invitation not found'));
+    }
     if (invitation.consumedAt) {
       return err(new InvitationAlreadyUsedError('This invitation was already used'));
     }
     const now = deps.clock.now();
     if (invitation.expiresAt <= now) {
       return err(new InvitationExpiredError('This invitation has expired'));
-    }
-    if (invitation.email !== normalizeEmail(user.email)) {
-      return err(new InvitationNotFoundError('Invitation not found'));
     }
 
     const existing = await deps.memberships.findForUpdate(tx, invitation.tenantId, user.userId);
@@ -66,7 +67,13 @@ export async function acceptInvitation(
       // can never demote an owner.
       return ok({ tenantId: invitation.tenantId, role: existing.role });
     }
-    await deps.memberships.activate(tx, invitation.tenantId, user.userId, invitation.role);
+    await deps.memberships.activate(
+      tx,
+      invitation.tenantId,
+      user.userId,
+      invitation.role,
+      invitation.invitedBy,
+    );
     await deps.audit.record(tx, {
       tenantId: invitation.tenantId,
       actorUserId: user.userId,
@@ -74,7 +81,7 @@ export async function acceptInvitation(
       entity: 'membership',
       entityId: user.userId,
       before: existing ? { status: existing.status, role: existing.role } : undefined,
-      after: { status: 'active', role: invitation.role },
+      after: { status: 'active', role: invitation.role, invitedBy: invitation.invitedBy },
       at: now,
     });
     return ok({ tenantId: invitation.tenantId, role: invitation.role });

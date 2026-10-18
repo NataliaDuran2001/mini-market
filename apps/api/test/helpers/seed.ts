@@ -42,7 +42,7 @@ export async function seedMember(
   const memberships = new DrizzleMembershipRepository();
   await testDb.withTransaction(null, async (tx) => {
     await users.upsert(tx, { userId: member.userId, email: member.email });
-    await memberships.activate(tx, member.tenantId, member.userId, member.role);
+    await memberships.activate(tx, member.tenantId, member.userId, member.role, null);
     if (member.status === 'disabled') {
       await memberships.disable(tx, member.tenantId, member.userId);
     }

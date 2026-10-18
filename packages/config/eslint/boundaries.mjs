@@ -174,7 +174,9 @@ function crossModulePolicies() {
     }
     // schema.ts files reference each other for foreign keys. They stay free of Nest and of any
     // use case, so drizzle-kit can load them alone.
-    const referenced = [...value, ...typeOnly].filter((name) => name !== SHARED_MODULE);
+    // Not `access` for the modules it depends on: two schema files importing each other would be
+    // a cycle for drizzle-kit.
+    const referenced = [...value, ...typeOnly.filter((name) => name !== SHARED_MODULE)];
     if (referenced.length > 0) {
       policies.push(policy([schema(own)], [schema({ module: oneOf(referenced) })]));
     }

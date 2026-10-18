@@ -68,9 +68,9 @@ describe('tenant guard and @RequirePermission', () => {
       .set('Authorization', await ctx.bearer({ sub: userId }))
       .set('X-Tenant-Id', ctx.tenantId())
       .send(body);
-  const asOwner = () =>
+  const seedOwner = () =>
     ctx.addMember({ tenantId: ctx.tenantId(), userId: OWNER_ID, role: 'owner' });
-  const asEmployee = () =>
+  const seedEmployee = () =>
     ctx.addMember({ tenantId: ctx.tenantId(), userId: EMPLOYEE_ID, role: 'employee' });
 
   it('answers 403 NOT_A_MEMBER to a user who is not a member of the tenant', async () => {
@@ -84,8 +84,18 @@ describe('tenant guard and @RequirePermission', () => {
     expect(apiErrorSchema.safeParse(response.body).success).toBe(true);
   });
 
+  it('gives the same 403 NOT_A_MEMBER for a tenant that does not exist', async () => {
+    // a caller cannot tell an unknown business from one they are not part of
+    await seedOwner();
+
+    const response = await get('open', OWNER_ID, '00000000-0000-0000-0000-0000000000aa');
+
+    expect(response.status).toBe(403);
+    expect(response.body).toMatchObject({ code: 'NOT_A_MEMBER' });
+  });
+
   it('answers 400 when X-Tenant-Id is missing or not a UUID, and 401 before that without a token', async () => {
-    await asOwner();
+    await seedOwner();
 
     expect((await get('open', OWNER_ID, '')).status).toBe(400);
     const malformed = await get('open', OWNER_ID, 'not-a-uuid');
@@ -98,8 +108,8 @@ describe('tenant guard and @RequirePermission', () => {
   });
 
   it('gives a member the context of the tenant they named, with role and permissions', async () => {
-    await asOwner();
-    await asEmployee();
+    await seedOwner();
+    await seedEmployee();
 
     const owner = await get('open', OWNER_ID);
     expect(owner.status).toBe(200);
@@ -115,7 +125,7 @@ describe('tenant guard and @RequirePermission', () => {
 
   it('answers 403 FORBIDDEN naming the permission when an employee calls an owner route', async () => {
     // AC-2
-    await asEmployee();
+    await seedEmployee();
 
     const response = await get('reports', EMPLOYEE_ID);
 
@@ -126,7 +136,7 @@ describe('tenant guard and @RequirePermission', () => {
 
   it('lets the owner through the same route', async () => {
     // AC-2 (positive control)
-    await asOwner();
+    await seedOwner();
     const response = await get('reports', OWNER_ID);
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ tenantId: ctx.tenantId() });
@@ -134,8 +144,8 @@ describe('tenant guard and @RequirePermission', () => {
 
   it('evaluates sales.void against the settings: employee refused, then allowed once the owner flips employeeCanVoid', async () => {
     // AC-3 (permission evaluation reads the settings snapshot of every request)
-    await asOwner();
-    await asEmployee();
+    await seedOwner();
+    await seedEmployee();
 
     const refused = await get('void', EMPLOYEE_ID);
     expect(refused.status).toBe(403);
@@ -165,14 +175,14 @@ describe('tenant guard and @RequirePermission', () => {
 
   it('denies an unknown permission to everybody, the owner included', async () => {
     // ctx.can on a name nobody registered: a typo locks out, never lets in
-    await asOwner();
+    await seedOwner();
     const response = await get('typo', OWNER_ID);
     expect(response.status).toBe(403);
     expect(response.body).toMatchObject({ code: 'FORBIDDEN', permission: 'sales.voidd' });
   });
 
   it('denies a permission declared on a route that has no tenant context', async () => {
-    await asOwner();
+    await seedOwner();
     const response = await request(server())
       .get('/api/v1/probe/no-tenant')
       .set('Authorization', await ctx.bearer({ sub: OWNER_ID }));

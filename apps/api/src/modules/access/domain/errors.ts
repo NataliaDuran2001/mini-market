@@ -27,8 +27,8 @@ export class LastOwnerError extends DomainError {
 }
 
 /**
- * Unknown token, a token of an invitation for another email, or a tenant that no longer exists:
- * one answer for all, so a token holder learns nothing about whom it was meant for.
+ * Unknown token, or a token of an invitation for another email: one answer for both, so a token
+ * holder learns nothing about whom it was meant for.
  */
 export class InvitationNotFoundError extends DomainError {
   readonly code = 'INVITATION_NOT_FOUND';

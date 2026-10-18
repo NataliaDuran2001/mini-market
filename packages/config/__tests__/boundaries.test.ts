@@ -169,7 +169,7 @@ describe('module boundaries', () => {
   });
 
   it('lets a schema.ts reference the schema.ts of a module below it, for foreign keys', async () => {
-    // AC-3 (docs/04-coding-standards.md section 8; drizzle-kit loads schema files alone)
+    // issue #11 convention (docs/04-coding-standards.md section 8; drizzle-kit loads schema files alone)
     const lint = async (from: string, importPath: string) => {
       const [result] = await createEslint().lintText(
         `import { t } from '${importPath}';\nexport const x = t;\n`,
@@ -187,10 +187,16 @@ describe('module boundaries', () => {
     expect(await lint('catalog', '../../inventory/infrastructure/schema')).toContain(
       'boundaries/dependencies',
     );
+    // every module may reference the users and memberships of access (created_by, foreign keys),
+    // except the modules access depends on: that would make two schema files import each other
+    expect(await lint('sales', '../../access/infrastructure/schema')).toEqual([]);
+    expect(await lint('tenancy', '../../access/infrastructure/schema')).toContain(
+      'boundaries/dependencies',
+    );
   });
 
   it('lets a domain name the types of the modules below it, never import their runtime', async () => {
-    // AC-3 (TenantContext in access/domain holds the TenantSettings type of tenancy)
+    // issue #11 convention (TenantContext in access/domain holds the TenantSettings type of tenancy)
     const lint = async (code: string) => {
       const [result] = await createEslint().lintText(code, {
         filePath: path.join(boundariesRoot, 'apps/api/src/modules/sales/domain/uses-types.ts'),
