@@ -6,6 +6,7 @@ import {
   apiErrorSchema,
   paginatedSchema,
   paginationQuerySchema,
+  positiveQuantitySchema,
   quantitySchema,
   uuidSchema,
 } from '../src/common/index.js';
@@ -29,6 +30,21 @@ describe('common schemas', () => {
     expect(quantitySchema.safeParse(0.333).success).toBe(false); // numbers are never accepted
   });
 
+  it('bounds quantities to numeric(14,3) so a valid value never overflows the column', () => {
+    expect(quantitySchema.safeParse('99999999999.999').success).toBe(true);
+    expect(quantitySchema.safeParse('-99999999999.999').success).toBe(true);
+    expect(quantitySchema.safeParse('100000000000.000').success).toBe(false);
+    expect(quantitySchema.safeParse(`${'9'.repeat(28)}.999`).success).toBe(false);
+    expect(quantitySchema.safeParse('9'.repeat(1_000_000)).success).toBe(false);
+  });
+
+  it('requires purchase and sale quantities to be greater than zero', () => {
+    expect(positiveQuantitySchema.safeParse('0.001').success).toBe(true);
+    for (const bad of ['0', '0.000', '-1', 'abc', '100000000000.000']) {
+      expect(positiveQuantitySchema.safeParse(bad).success, bad).toBe(false);
+    }
+  });
+
   it('paginates with defaults and coerces query strings', () => {
     expect(paginationQuerySchema.parse({})).toEqual({ page: 1, pageSize: DEFAULT_PAGE_SIZE });
     expect(paginationQuerySchema.parse({ page: '3', pageSize: '50' })).toEqual({
@@ -42,6 +58,11 @@ describe('common schemas', () => {
     { page: '1.5' },
     { pageSize: '0' },
     { pageSize: String(MAX_PAGE_SIZE + 1) },
+    { page: '0x10' },
+    { page: '1e1' },
+    { page: ' 5 ' },
+    { page: '100001' },
+    { page: '1234567890' },
     { page: 'x' },
   ])('rejects the pagination query %j', (query) => {
     expect(paginationQuerySchema.safeParse(query).success).toBe(false);

@@ -16,7 +16,15 @@ export function divideRounded(
   }
   const quotient = numerator / denominator;
   const remainder = numerator % denominator;
-  if (mode === 'DOWN' || remainder === 0n) return quotient;
+  if (remainder === 0n) return quotient;
+  switch (mode) {
+    case 'DOWN':
+      return quotient;
+    case 'HALF_UP':
+      break;
+    default:
+      throw new RangeError(`Unknown rounding mode: ${String(mode satisfies never)}`);
+  }
   const magnitude = remainder < 0n ? -remainder : remainder;
   if (magnitude * 2n < denominator) return quotient;
   return numerator < 0n ? quotient - 1n : quotient + 1n;

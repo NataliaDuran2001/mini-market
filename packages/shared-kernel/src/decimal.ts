@@ -20,6 +20,11 @@ export function parseScaled(input: string, scale: number): bigint | undefined {
   return negative ? -magnitude : magnitude;
 }
 
+/** First 32 characters of user input, safe to put in an error body (never echo megabytes). */
+export function inputPreview(input: string): string {
+  return input.length > MAX_DECIMAL_LENGTH ? `${input.slice(0, MAX_DECIMAL_LENGTH)}...` : input;
+}
+
 /** Formats a scaled integer with exactly `scale` decimals: (-5n, 2) gives "-0.05". */
 export function formatScaled(value: bigint, scale: number): string {
   const negative = value < 0n;

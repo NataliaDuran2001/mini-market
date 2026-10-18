@@ -1,5 +1,6 @@
 // Period: a calendar month in the tenant timezone (ADR 0008, S5). Day keys group daily reports.
 // Queries use the half-open UTC range [startOf, endOfExclusive). Never date_trunc in UTC.
+import { inputPreview } from './decimal.js';
 import { ValidationError } from './domain-error.js';
 import { err, ok, type Result } from './result.js';
 import { zonedMidnightToUtc, zonedParts } from './zoned-time.js';
@@ -39,7 +40,7 @@ export class Period {
       const month = Number(match[2]);
       if (year >= MIN_YEAR && month >= 1 && month <= 12) return ok(new Period(year, month));
     }
-    return err(new ValidationError('Period must be YYYY-MM', { input }));
+    return err(new ValidationError('Period must be YYYY-MM', { input: inputPreview(input) }));
   }
 
   /** The month `date` falls in, seen from `timeZone`. */

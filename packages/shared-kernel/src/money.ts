@@ -2,13 +2,15 @@
 //
 // Deliberately has no toJSON: a Money inside JSON.stringify throws (bigint), so serialization is
 // always an explicit mapping in contracts and never an accident.
-import { formatScaled, parseScaled, toBigInt } from './decimal.js';
+import { formatScaled, inputPreview, parseScaled, toBigInt } from './decimal.js';
 import { ValidationError } from './domain-error.js';
 import type { Quantity } from './quantity.js';
 import { err, ok, type Result } from './result.js';
 import { divideRounded, type RoundingMode } from './rounding.js';
 
 const SCALE = 2;
+// Largest amount a bigint centavos column can hold (Postgres bigint), ADR 0004.
+const MAX_CENTAVOS = 2n ** 63n - 1n;
 
 export class Money {
   readonly currency = 'BOB';
@@ -30,8 +32,12 @@ export class Money {
   /** Parses "12.50" (at most 2 decimals). Returns a Validation error otherwise ("12.345"). */
   static fromDecimalString(input: string): Result<Money, ValidationError> {
     const scaled = parseScaled(input, SCALE);
-    if (scaled === undefined) {
-      return err(new ValidationError('Money must be a decimal with at most 2 decimals', { input }));
+    if (scaled === undefined || scaled > MAX_CENTAVOS || scaled < -MAX_CENTAVOS) {
+      return err(
+        new ValidationError('Money must be a decimal with at most 2 decimals within range', {
+          input: inputPreview(input),
+        }),
+      );
     }
     return ok(new Money(scaled));
   }
@@ -55,7 +61,7 @@ export class Money {
    * without losing a centavo: the parts always add up to the amount. Leftover centavos go one by
    * one to the first parts with a non-zero ratio.
    */
-  allocate(ratios: readonly number[]): Money[] {
+  allocate(ratios: readonly number[]): readonly Money[] {
     const weights = ratios.map((ratio) => toBigInt(ratio, 'Ratio'));
     const total = weights.reduce((sum, weight) => sum + weight, 0n);
     if (weights.some((weight) => weight < 0n) || total === 0n) {
@@ -63,13 +69,11 @@ export class Money {
     }
     const sign = this.centavos < 0n ? -1n : 1n;
     const magnitude = this.centavos * sign;
-    const shares = weights.map((weight) => ({ weight, share: (magnitude * weight) / total }));
-    let leftover = magnitude - shares.reduce((sum, { share }) => sum + share, 0n);
-    return shares.map(({ weight, share }) => {
-      const getsExtra = leftover > 0n && weight > 0n;
-      if (getsExtra) leftover -= 1n;
-      return new Money((getsExtra ? share + 1n : share) * sign);
-    });
+    const shares = weights.map((weight) => (magnitude * weight) / total);
+    const remainder = magnitude - shares.reduce((sum, share) => sum + share, 0n);
+    const eligible = weights.flatMap((weight, index) => (weight > 0n ? [index] : []));
+    const extra = new Set(eligible.slice(0, Number(remainder)));
+    return shares.map((share, index) => new Money((extra.has(index) ? share + 1n : share) * sign));
   }
 
   compare(other: Money): -1 | 0 | 1 {

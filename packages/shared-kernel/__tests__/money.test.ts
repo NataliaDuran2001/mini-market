@@ -45,6 +45,20 @@ describe('Money', () => {
     expect(result.error.details).toEqual({ input: '12.345' });
   });
 
+  it('rejects amounts a bigint centavos column cannot hold, and keeps the largest', () => {
+    // AC-4
+    const max = Money.fromDecimalString('92233720368547758.07');
+    expect(max.ok && max.value.toCentavos()).toBe(9223372036854775807n);
+    expect(Money.fromDecimalString('92233720368547758.08').ok).toBe(false);
+    expect(Money.fromDecimalString('-92233720368547758.08').ok).toBe(false);
+  });
+
+  it('never echoes more than 32 characters of bad input in the error details', () => {
+    // AC-4
+    const result = Money.fromDecimalString('x'.repeat(1000));
+    expect(!result.ok && result.error.details).toEqual({ input: `${'x'.repeat(32)}...` });
+  });
+
   it.each(['', ' ', 'abc', '1e3', '.5', '5.', '1,50', '--1', '+1', '1 .5', '0x10', '1.2.3'])(
     'rejects the malformed decimal string %j',
     (input) => {
@@ -130,7 +144,7 @@ describe('Money', () => {
   });
 
   describe('allocate', () => {
-    const sum = (parts: Money[]): bigint =>
+    const sum = (parts: readonly Money[]): bigint =>
       parts.reduce((total, part) => total + part.toCentavos(), 0n);
 
     it('splits without losing a centavo', () => {

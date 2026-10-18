@@ -35,6 +35,18 @@ describe('Quantity', () => {
     },
   );
 
+  it('rejects values numeric(14,3) cannot hold and keeps the widest valid one', () => {
+    expect(q('99999999999.999').toThousandths()).toBe(99999999999999n);
+    expect(q('-99999999999.999').toThousandths()).toBe(-99999999999999n);
+    expect(Quantity.tryParse('100000000000.000').ok).toBe(false);
+    expect(Quantity.tryParse('-100000000000.000').ok).toBe(false);
+  });
+
+  it('never echoes more than 32 characters of bad input in the error details', () => {
+    const result = Quantity.tryParse('x'.repeat(1000));
+    expect(!result.ok && result.error.details).toEqual({ input: `${'x'.repeat(32)}...` });
+  });
+
   it('adds and subtracts exactly', () => {
     expect(q('0.1').add(q('0.2')).toString()).toBe('0.300');
     expect(q('1').subtract(q('1.5')).toString()).toBe('-0.500');

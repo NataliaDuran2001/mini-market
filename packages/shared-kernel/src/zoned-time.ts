@@ -21,11 +21,26 @@ export function zonedParts(instant: Date, timeZone: string): ZonedParts {
     minute: 'numeric',
     second: 'numeric',
   });
-  const fields: Record<string, number> = {};
+  const fields = new Map<string, number>();
   for (const part of formatter.formatToParts(instant)) {
-    fields[part.type] = Number(part.value);
+    fields.set(part.type, Number(part.value));
   }
-  return fields as unknown as ZonedParts; // formatToParts always yields these six numeric fields
+  const field = (type: string): number => {
+    const value = fields.get(type);
+    /* v8 ignore next 3 -- defensive: Intl always returns these six numeric fields */
+    if (value === undefined || Number.isNaN(value)) {
+      throw new RangeError(`Intl returned no numeric ${type} for ${timeZone}`);
+    }
+    return value;
+  };
+  return {
+    year: field('year'),
+    month: field('month'),
+    day: field('day'),
+    hour: field('hour'),
+    minute: field('minute'),
+    second: field('second'),
+  };
 }
 
 /** Zone offset from UTC, in milliseconds, at `instantMs` (negative west of Greenwich). */

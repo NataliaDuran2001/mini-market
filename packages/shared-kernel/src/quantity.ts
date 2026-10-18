@@ -1,9 +1,11 @@
 // Quantity: fixed point with 3 decimals, stored as bigint thousandths (ADR 0004, numeric(14,3)).
-import { formatScaled, parseScaled, toBigInt } from './decimal.js';
+import { formatScaled, inputPreview, parseScaled, toBigInt } from './decimal.js';
 import { ValidationError } from './domain-error.js';
 import { err, ok, type Result } from './result.js';
 
 const SCALE = 3;
+// numeric(14,3) holds 11 integer digits and 3 decimals (ADR 0004).
+const MAX_THOUSANDTHS = 10n ** 14n - 1n;
 
 export class Quantity {
   private readonly thousandths: bigint;
@@ -24,9 +26,11 @@ export class Quantity {
   /** Parses a decimal string with at most 3 decimals ("0.333"). Returns a Validation error otherwise. */
   static tryParse(input: string): Result<Quantity, ValidationError> {
     const scaled = parseScaled(input, SCALE);
-    if (scaled === undefined) {
+    if (scaled === undefined || scaled > MAX_THOUSANDTHS || scaled < -MAX_THOUSANDTHS) {
       return err(
-        new ValidationError('Quantity must be a decimal with at most 3 decimals', { input }),
+        new ValidationError('Quantity must be a decimal with at most 3 decimals within range', {
+          input: inputPreview(input),
+        }),
       );
     }
     return ok(new Quantity(scaled));

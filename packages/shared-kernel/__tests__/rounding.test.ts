@@ -16,6 +16,12 @@ describe('divideRounded', () => {
     expect(divideRounded(numerator, denominator, mode)).toBe(expected);
   });
 
+  it('refuses a rounding mode it does not implement instead of silently using HALF_UP', () => {
+    // a JS caller (or a stale cast) can still pass something outside the union
+    expect(() => divideRounded(5n, 2n, 'HALF_EVEN' as never)).toThrow(RangeError);
+    expect(divideRounded(4n, 2n, 'HALF_EVEN' as never)).toBe(2n); // exact division needs no mode
+  });
+
   it('rejects a denominator that is not positive', () => {
     expect(() => divideRounded(1n, 0n)).toThrow(RangeError);
     expect(() => divideRounded(1n, -2n)).toThrow(RangeError);
