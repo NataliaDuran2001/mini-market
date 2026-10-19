@@ -63,6 +63,7 @@ describe('credit ledger rules (S6)', () => {
   ])(
     'balance %i plus charge %i against limit %s exceeds: %s',
     (balance, charge, limit, expected) => {
+      // AC-2
       const limitCentavos = limit === null ? null : BigInt(limit * 100);
 
       expect(exceedsCreditLimit(bs(balance), bs(charge), limitCentavos)).toBe(expected);

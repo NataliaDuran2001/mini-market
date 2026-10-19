@@ -54,7 +54,6 @@ describe('customers and receivables endpoints (S6)', () => {
   const SALE_2 = '00000000-0000-4000-8000-000000000002';
 
   it('creates, lists and edits customers and validates the shapes against the contract', async () => {
-    // AC-1
     await seedPeople();
 
     const created = await newCustomer({ name: 'Doña Rosa', phone: '70011223' });
@@ -108,7 +107,6 @@ describe('customers and receivables endpoints (S6)', () => {
   });
 
   it('lists the balances biggest debt first with the total pending', async () => {
-    // AC-1
     await seedPeople();
     const rosa = await newCustomer({ name: 'Rosa' });
     const pedro = await newCustomer({ name: 'Pedro' });
@@ -146,7 +144,7 @@ describe('customers and receivables endpoints (S6)', () => {
   });
 
   it('lets the owner manage the credit limit and refuses the employee with 403 naming the permission', async () => {
-    // AC-3 of #58 depends on this: the employee reads the limit but cannot write it.
+    // The web (#58) depends on this: the employee reads the limit but cannot write it.
     await seedPeople();
     const { id } = await newCustomer({ name: 'Rosa', creditLimitCentavos: 10_000 });
 

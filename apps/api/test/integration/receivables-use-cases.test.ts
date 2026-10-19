@@ -147,7 +147,6 @@ describe('receivables use cases (S6)', () => {
     });
 
     it('keeps the credit limit visible to an employee on the statement and answers 404 for another tenant', async () => {
-      // AC-1
       const rosa = await newCustomer('Rosa', 100);
 
       const seen = await statement(rosa.id, employee());
@@ -187,7 +186,6 @@ describe('receivables use cases (S6)', () => {
     });
 
     it('lets the owner set, change and clear the limit, and audits each change', async () => {
-      // AC-2
       const rosa = await newCustomer('Rosa');
 
       await updateCustomer(deps(), owner(), rosa.id, { creditLimitCentavos: bs(50) });
@@ -204,7 +202,6 @@ describe('receivables use cases (S6)', () => {
     });
 
     it('does not let an employee set or change the limit, nor deactivate a customer', async () => {
-      // AC-2
       const rosa = await newCustomer('Rosa', 100);
 
       const creating = await createCustomer(deps(), employee(), {
@@ -228,7 +225,6 @@ describe('receivables use cases (S6)', () => {
 
   describe('customers', () => {
     it('lets an employee create a customer without limit and edit contact data', async () => {
-      // AC-2
       const created = await createCustomer(deps(), employee(), {
         name: 'Don Pedro',
         phone: '70011223',
@@ -339,6 +335,15 @@ describe('receivables use cases (S6)', () => {
       expect((await statement(rosa.id)).balance.toCentavos()).toBe(0n);
     });
 
+    it('cannot reverse the charge of a sale of another tenant', async () => {
+      const theirs = await newCustomer('Ajena', undefined, owner(otherTenantId));
+      await charge(theirs.id, 50, 1, owner(otherTenantId));
+
+      expect(codeOf(await reverse(1))).toBe('CHARGE_NOT_FOUND');
+      const result = await statement(theirs.id, owner(otherTenantId));
+      expect(result.balance.toCentavos()).toBe(5_000n);
+    });
+
     it('still reverses a charge after the module was switched off, but charges no more', async () => {
       const rosa = await newCustomer();
       await charge(rosa.id, 50, 1);
@@ -445,6 +450,18 @@ describe('receivables use cases (S6)', () => {
       expect(owing.items.map((row) => row.customer.name)).toEqual(['Rosa']);
       expect(byName.items.map((row) => row.customer.name)).toEqual(['Pedro']);
       expect(byName.totalPending.toCentavos()).toBe(2_500n);
+    });
+
+    it('never shows or totals the debt of another tenant', async () => {
+      const mine = await newCustomer('Mia');
+      const theirs = await newCustomer('Ajena', undefined, owner(otherTenantId));
+      await charge(mine.id, 10, 1);
+      await charge(theirs.id, 500, 2, owner(otherTenantId));
+
+      const result = unwrapOrThrow(await listBalances(deps(), owner(), {}));
+
+      expect(result.items.map((row) => row.customer.name)).toEqual(['Mia']);
+      expect(result.totalPending.toCentavos()).toBe(1_000n);
     });
 
     it('does not count a reversed charge as debt', async () => {
