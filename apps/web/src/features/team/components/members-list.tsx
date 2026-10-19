@@ -35,7 +35,7 @@ export function MembersList({
                 {member.email}
                 {member.userId === currentUserId ? (
                   <span className="ml-2 text-sm font-normal text-muted-foreground">
-                    ({t('members.you')})
+                    {t('members.you')}
                   </span>
                 ) : null}
               </p>

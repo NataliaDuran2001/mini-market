@@ -1,7 +1,4 @@
 {
-  "nav": {
-    "title": "Equipo"
-  },
   "title": "Equipo",
   "description": "Las personas que trabajan en tu negocio. Invita a tus empleados y desactiva a quien ya no deba entrar.",
   "role": {
@@ -20,7 +17,7 @@
     "loadError": "No se pudo cargar la lista de miembros.",
     "retry": "Reintentar",
     "empty": "Todavía no hay miembros.",
-    "you": "Tú",
+    "you": "(Tú)",
     "disable": "Desactivar",
     "disableNamed": "Desactivar a {{email}}",
     "enable": "Activar",
@@ -41,8 +38,7 @@
     "loading": "Cargando invitaciones...",
     "loadError": "No se pudo cargar la lista de invitaciones.",
     "retry": "Reintentar",
-    "sentOn": "Enviada el {{date}}",
-    "expiresOn": "Vence el {{date}}",
+    "dates": "Enviada el {{sent}} · Vence el {{expires}}",
     "expiredHint": "Invita de nuevo al mismo correo para enviar un enlace nuevo."
   },
   "invite": {

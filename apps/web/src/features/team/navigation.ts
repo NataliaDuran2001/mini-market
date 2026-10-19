@@ -7,7 +7,7 @@ export const navigation: readonly NavigationItem[] = [
   {
     id: 'team',
     path: '/team',
-    labelKey: 'team:nav.title',
+    labelKey: 'shell:nav.team',
     icon: UsersRound,
     placement: 'more',
     order: 75,

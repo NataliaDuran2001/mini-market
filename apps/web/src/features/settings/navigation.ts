@@ -7,7 +7,7 @@ export const navigation: readonly NavigationItem[] = [
   {
     id: 'settings',
     path: '/settings',
-    labelKey: 'settings:nav.title',
+    labelKey: 'shell:nav.settings',
     icon: Settings,
     placement: 'more',
     order: 80,

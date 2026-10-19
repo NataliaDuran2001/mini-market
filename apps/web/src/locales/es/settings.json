@@ -1,7 +1,4 @@
 {
-  "nav": {
-    "title": "Configuración"
-  },
   "title": "Configuración",
   "description": "Cómo está configurado tu negocio.",
   "loading": "Cargando configuración...",

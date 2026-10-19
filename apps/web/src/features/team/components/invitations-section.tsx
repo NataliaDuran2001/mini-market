@@ -51,10 +51,9 @@ export function InvitationsSection() {
                 </span>
               </p>
               <p className="text-xs text-muted-foreground">
-                {t('invitations.sentOn', { date: formatDate(invitation.invitedAt, dateOptions) })}
-                {' · '}
-                {t('invitations.expiresOn', {
-                  date: formatDate(invitation.expiresAt, dateOptions),
+                {t('invitations.dates', {
+                  sent: formatDate(invitation.invitedAt, dateOptions),
+                  expires: formatDate(invitation.expiresAt, dateOptions),
                 })}
               </p>
               {pending ? null : (

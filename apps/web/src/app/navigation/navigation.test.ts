@@ -89,6 +89,7 @@ describe('navigation registry', () => {
       'expenses',
       'reports',
       'capital',
+      'team',
       'settings',
     ]);
     expect(NAVIGATION.every((entry) => entry.labelKey.startsWith('shell:nav.'))).toBe(true);
@@ -107,6 +108,7 @@ describe('navigation registry', () => {
     expect(byId['reports']?.permission).toBeDefined();
     expect(byId['capital']?.permission).toBeDefined();
     expect(byId['settings']?.permission).toBeDefined();
+    expect(byId['team']?.permission).toBe('members.manage');
     expect(byId['customers']?.module).toBe('credit_sales');
     expect(filterNavigation(NAVIGATION, everything)).toHaveLength(NAVIGATION.length);
   });
