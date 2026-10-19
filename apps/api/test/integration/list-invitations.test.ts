@@ -263,6 +263,7 @@ describe('GET /api/v1/invitations', () => {
     const crossed = await testDb.withTransaction({ tenantId: tenantB, events: [] }, (tx) =>
       repository.listOpen(tx, asOwner(tenantA)),
     );
+    expect(crossed.map((row) => row.email)).toEqual(asA.map((row) => row.email));
     expect(crossed.every((row) => row.tenantId === tenantA)).toBe(true);
     expect(Object.keys(asA[0] ?? {}).sort()).toEqual(
       ['email', 'expiresAt', 'id', 'invitedAt', 'role', 'tenantId'].sort(),

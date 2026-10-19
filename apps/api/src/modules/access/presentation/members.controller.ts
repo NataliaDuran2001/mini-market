@@ -42,10 +42,12 @@ export class MembersController {
     if (body.role !== undefined) {
       return unwrapOrThrow(await this.changeMemberRole(ctx, { userId, role: body.role }));
     }
+    // The request schema guarantees exactly one of role or status, so the three branches are
+    // exhaustive; nothing disables a member unless `status` says `disabled`.
     return unwrapOrThrow(
-      body.status === 'active'
-        ? await this.enableMember(ctx, { userId })
-        : await this.disableMember(ctx, { userId }),
+      body.status === 'disabled'
+        ? await this.disableMember(ctx, { userId })
+        : await this.enableMember(ctx, { userId }),
     );
   }
 }
