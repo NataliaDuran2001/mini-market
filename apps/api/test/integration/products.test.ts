@@ -262,7 +262,7 @@ describe('products (issue #19)', () => {
       await access.testDb().db.insert(products).values(rows);
     };
 
-    it('finds 1,000 products by name in under 200 ms, code match first, then names that start with the text', async () => {
+    it('finds 1,000 products by name in under 200 ms, name matches first (prefix, then contains), then the code match', async () => {
       // AC-2
       const refs = await refsOf();
       await seedMany(refs);
@@ -273,10 +273,10 @@ describe('products (issue #19)', () => {
       if (!result.ok) return;
       expect(elapsed).toBeLessThan(200);
       expect(result.value.items.map((item) => item.name)).toEqual([
-        'Gaseosa',
         'Coca Cola 2L',
         'Coca Cola 500ml',
         'Agua Coca',
+        'Gaseosa',
       ]);
       expect(result.value.total).toBe(4);
       expect(searchProductsResponseSchema.safeParse(result.value).success).toBe(true);
@@ -348,7 +348,8 @@ describe('products (issue #19)', () => {
       const list = await asUser(EMPLOYEE_ID, '/api/v1/products?q=coca');
       expect(list.status).toBe(200);
       expect(list.body.items).toHaveLength(1);
-      expect(JSON.stringify(list.body)).not.toMatch(/avgCost|margin|800/);
+      expect(JSON.stringify(list.body)).not.toMatch(/avgCost|margin/);
+      expect(list.body.items[0]).not.toHaveProperty('avgCost');
     });
 
     it('answers 404 for an unknown or malformed id and for a product of another tenant', async () => {

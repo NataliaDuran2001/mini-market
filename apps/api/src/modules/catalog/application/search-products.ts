@@ -20,8 +20,9 @@ export type SearchProducts = (
 ) => Promise<Result<SearchProductsResponse, ForbiddenError>>;
 
 /**
- * Finds products by name (contains, case-insensitive) or exact code, best match first: a code
- * match, then names that start with the text, then the rest by name. Every member may search.
+ * Finds products by name (contains, case-insensitive) or exact code, best match first: names that
+ * start with the text, names that contain it, then products found only by code. Every member may
+ * search.
  */
 export async function searchProducts(
   deps: SearchProductsDeps,

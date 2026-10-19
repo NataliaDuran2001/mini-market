@@ -1,6 +1,6 @@
 // Product contracts (issue #19, S11, ADR 0004). Money is integer centavos, quantities are decimal
 // strings with 3 decimals. The employee shapes carry no cost and no margin (docs/01-domain.md
-// section 4): the serializer picks the shape with `ctx.can('costs.read')`.
+// section 4): the API picks the shape with `ctx.can('costs.read')`.
 import { z } from 'zod';
 import {
   moneySchema,

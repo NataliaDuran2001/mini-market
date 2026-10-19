@@ -107,13 +107,16 @@ function searchConditions(tenantId: string, search: ProductSearch): SQL | undefi
   );
 }
 
-/** Code match first, then names that start with the text, then everything else by name. */
+/**
+ * Name matches first (names that start with the text, then names that contain it), then the
+ * products found only by their exact code; inside a group by name, then by code (issue #19).
+ */
 function searchOrder(search: ProductSearch): SQL[] {
   const text = search.q?.trim();
   const rank = text
     ? [
-        sql`case when lower(${products.code}) = lower(${text}) then 0
-                 when lower(${products.name}) like lower(${escapeLike(text) + '%'}) then 1
+        sql`case when lower(${products.name}) like lower(${escapeLike(text) + '%'}) then 0
+                 when ${ilike(products.name, `%${escapeLike(text)}%`)} then 1
                  else 2 end`,
       ]
     : [];
