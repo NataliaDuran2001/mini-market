@@ -1,0 +1,57 @@
+{
+  "title": "Configuración",
+  "description": "Cómo está configurado tu negocio.",
+  "loading": "Cargando configuración...",
+  "retry": "Reintentar",
+  "business": {
+    "title": "Negocio",
+    "name": "Nombre",
+    "vertical": "Rubro",
+    "timezone": "Zona horaria",
+    "currency": "Moneda"
+  },
+  "vertical": {
+    "minimarket": "Minimarket",
+    "farmacia": "Farmacia",
+    "generic": "Genérico"
+  },
+  "currency": {
+    "BOB": "Bolivianos (Bs)"
+  },
+  "modules": {
+    "title": "Módulos",
+    "description": "Funciones activas en tu negocio. Estos módulos los configura el equipo de soporte; si necesitas cambiar alguno, pídelo.",
+    "on": "Activado",
+    "off": "Desactivado",
+    "lots": {
+      "name": "Lotes y vencimientos",
+      "description": "Control de lotes con fecha de vencimiento."
+    },
+    "fractional": {
+      "name": "Venta fraccionada",
+      "description": "Venta por unidad suelta o fracción de un producto."
+    },
+    "credit_sales": {
+      "name": "Fiado",
+      "description": "Ventas a crédito con cuenta corriente por cliente."
+    },
+    "custom_fields": {
+      "name": "Campos personalizados",
+      "description": "Datos adicionales en los productos."
+    }
+  },
+  "flags": {
+    "title": "Reglas del negocio",
+    "description": "Estas dos reglas las puedes cambiar tú. Se aplican desde la siguiente acción.",
+    "saving": "Guardando...",
+    "saved": "Cambio guardado.",
+    "allowNegativeStock": {
+      "label": "Permitir stock negativo",
+      "description": "Si está activo, se puede vender un producto aunque el sistema no tenga stock suficiente."
+    },
+    "employeeCanVoid": {
+      "label": "Los empleados pueden anular ventas",
+      "description": "Si está activo, un empleado puede anular sus propias ventas del mismo día."
+    }
+  }
+}
