@@ -13,8 +13,8 @@ import {
   CATALOG_PERMISSIONS,
   DrizzleCatalogRepository,
   presetCatalogsFor,
-  seedPresetCatalogs,
 } from '../../src/modules/catalog';
+import { catalogSeeders, seedCatalogs } from '../../src/modules/tenancy';
 import type { CatalogKind } from '../../src/modules/catalog';
 import { createCatalogItem } from '../../src/modules/catalog/application/create-catalog-item';
 import { deactivateCatalogItem } from '../../src/modules/catalog/application/deactivate-catalog-item';
@@ -40,12 +40,12 @@ describe('catalogs (issue #18)', () => {
   const owner = (tenantId = access.tenantId()) => asOwner(tenantId, permissions);
   const employee = (tenantId = access.tenantId()) => asEmployee(tenantId, permissions);
 
+  // The way provisioning seeds: the seeders that modules registered with tenancy (issue #13).
   const seed = (tenantId: string, preset: 'minimarket' | 'farmacia' | 'generic' = 'minimarket') =>
-    access
-      .testDb()
-      .asAdmin({ tenantId, events: [] }, (tx) =>
-        seedPresetCatalogs({ catalogs, clock }, tx, { tenantId, preset }),
-      );
+    seedCatalogs(
+      { withTransaction: access.testDb().asAdmin, seeders: catalogSeeders },
+      { tenantId, preset },
+    );
 
   const namesOf = async (kind: CatalogKind, tenantId = access.tenantId()) => {
     const result = await listCatalog(deps(), owner(tenantId), kind);
