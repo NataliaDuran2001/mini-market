@@ -80,8 +80,13 @@ describe('expenses and recurring templates (S5, S9)', () => {
     );
   const auditActions = async () =>
     (
-      await testDb.client.query<{ action: string; actor_user_id: string; after: object }>(
-        "select action, actor_user_id, after from audit_log where action like 'expense.%' order by at, id",
+      await testDb.client.query<{
+        action: string;
+        actor_user_id: string;
+        before: object | null;
+        after: object;
+      }>(
+        "select action, actor_user_id, before, after from audit_log where action like 'expense.%' order by at, id",
       )
     ).rows;
 
@@ -136,7 +141,7 @@ describe('expenses and recurring templates (S5, S9)', () => {
       expect((await view('2027-01')).items).toHaveLength(0);
     });
 
-    it('stays idempotent when generation runs on demand, from a view and concurrently', async () => {
+    it('stays idempotent when generation runs on demand and from a view (the database index backs it)', async () => {
       // AC-1
       must(await createRecurringExpense(deps(), owner(), rent()));
       const period = Period.of(2026, 11);
@@ -389,11 +394,14 @@ describe('expenses and recurring templates (S5, S9)', () => {
       expect(equal.status).toBe('paid');
       const rows = await auditActions();
       // The audit rows share the fixed clock instant, so compare as a set.
-      expect(rows.map((row) => row.action).sort()).toEqual([
-        'expense.amount_changed',
-        'expense.amount_changed',
-        'expense.paid',
-      ]);
+      const changes = rows.filter((row) => row.action === 'expense.amount_changed');
+      expect(changes.map((row) => [row.before, row.after])).toEqual(
+        expect.arrayContaining([
+          [{ amountCentavos: 30000 }, { amountCentavos: 35000, status: 'pending' }],
+          [{ amountCentavos: 35000 }, { amountCentavos: 10000, status: 'paid' }],
+        ]),
+      );
+      expect(changes.every((row) => row.actor_user_id === OWNER_ID)).toBe(true);
     });
 
     it('changes name, due date, notes and category of a paid expense without touching the amount', async () => {
