@@ -27,6 +27,9 @@ export interface TenantRepository {
   /** Provisioning: there is no tenant context yet. A taken slug is a Conflict. */
   create(tenant: NewTenant): Promise<Result<StoredTenant, ConflictError>>;
 
+  /** Provisioning: looks a tenant up by its slug, with no tenant context (owner role only). */
+  findBySlug(slug: string): Promise<StoredTenant | null>;
+
   findById(ctx: TenantScope): Promise<StoredTenant | null>;
 
   /**

@@ -13,3 +13,21 @@ export interface SupabaseAdminPort {
    */
   inviteUserByEmail(request: SupabaseInviteRequest): Promise<void>;
 }
+
+/** Result of `findOrInviteUser`. */
+export interface SupabaseUserRef {
+  /** The Supabase auth user id (`sub` of its access tokens). */
+  readonly userId: string;
+  /** True when this call created the account and sent the invitation email. */
+  readonly invited: boolean;
+}
+
+/** Operator tooling (issue #13): the provisioning script needs the id of the owner it invites. */
+export interface SupabaseUserDirectory {
+  /**
+   * Returns the auth user of `request.email`, inviting the address first when it has no account.
+   * An existing account gets no email.
+   * @throws on infrastructure failure, or when the account exists but cannot be found.
+   */
+  findOrInviteUser(request: SupabaseInviteRequest): Promise<SupabaseUserRef>;
+}

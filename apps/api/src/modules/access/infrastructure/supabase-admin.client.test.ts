@@ -93,3 +93,47 @@ describe('SupabaseAdminClient.inviteUserByEmail', () => {
     await expect(client.inviteUserByEmail(request)).rejects.toThrow('status 502 (unknown)');
   });
 });
+
+describe('SupabaseAdminClient.findOrInviteUser', () => {
+  it('returns the id of the invited user', async () => {
+    const result = await clientReplying(200, { id: 'u1' }).findOrInviteUser(request);
+    expect(result).toEqual({ userId: 'u1', invited: true });
+  });
+
+  it('finds an existing account in the admin user list, case-insensitively, without an invitation', async () => {
+    const calls: Call[] = [];
+    const replies = [
+      new Response(JSON.stringify({ error_code: 'email_exists' }), { status: 422 }),
+      new Response(JSON.stringify({ users: [{ id: 'u9', email: 'Ana@Example.com' }] }), {
+        status: 200,
+      }),
+    ];
+    const client = new SupabaseAdminClient({
+      supabaseUrl: 'https://project.supabase.co',
+      serviceRoleKey: 'header.payload.signature',
+      fetchFn: (input, init) => {
+        calls.push({ url: String(input), init: init ?? {} });
+        return Promise.resolve(replies.shift() ?? new Response('{}', { status: 500 }));
+      },
+    });
+    await expect(client.findOrInviteUser(request)).resolves.toEqual({
+      userId: 'u9',
+      invited: false,
+    });
+    expect(new URL(calls[1]?.url ?? '').pathname).toBe('/auth/v1/admin/users');
+  });
+
+  it('throws when the account exists but is not in the list, and on other failures', async () => {
+    const replies = [
+      new Response(JSON.stringify({ error_code: 'email_exists' }), { status: 422 }),
+      new Response(JSON.stringify({ users: [] }), { status: 200 }),
+    ];
+    const missing = new SupabaseAdminClient({
+      supabaseUrl: 'https://project.supabase.co',
+      serviceRoleKey: 'header.payload.signature',
+      fetchFn: () => Promise.resolve(replies.shift() ?? new Response('{}', { status: 500 })),
+    });
+    await expect(missing.findOrInviteUser(request)).rejects.toThrow('not found in the user list');
+    await expect(clientReplying(429, {}).findOrInviteUser(request)).rejects.toThrow('status 429');
+  });
+});

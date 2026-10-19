@@ -89,3 +89,15 @@ Errors reach the client only through `ApiExceptionFilter` (`src/infrastructure/h
 - `test/harness.ts`: `createTestDb()` starts PGlite and applies every migration from `drizzle/`; call `truncateAll()` in `beforeEach`. One database per test file. It connects as the PGlite superuser; issue #12 adds the `app_user` role and RLS to it.
 - `test/create-test-app.ts`: boots the app exactly like `main.ts` on that database, for supertest. The app trusts a local key pair, so send `await bearerFor(app, { sub, email })` as `Authorization`; routes marked `@Public()` need nothing. `overrides` replaces providers by token (for example the Supabase admin client).
 - `test/access-fixture.ts`: `useAccessApp()` registers the hooks of a suite that exercises the guard (fresh app per test, fake Supabase admin, fake membership directory).
+
+## Provisioning a tenant
+
+Onboarding is manual in v1 (`docs/00-vision.md`). The operator runs, with the owner role in `MIGRATION_DATABASE_URL` and `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` and `WEB_ORIGIN` set (in `apps/api/.env` or the shell):
+
+```
+pnpm --filter @mini-market/api provision -- --name "Mini Market Doña X" --slug minimarket-x --preset minimarket --owner-email owner@example.com
+```
+
+The owner role must be able to bypass row level security (the Supabase `postgres` role can): the script reads and creates tenants with no tenant bound, and only the seeders and the owner step run bound to the new tenant. It creates the tenant with the settings of the preset (`minimarket`, `farmacia`, `generic`), invites the owner in Supabase Auth when the address has no account (the email lands on `/reset-password` to set a password), makes the owner a member, runs the registered catalog seeders (on every run) and records `tenant.provisioned` in the audit log. Running it again with the same slug creates nothing and exits 0; if a previous run stopped before the owner step, the next run completes it. An invalid option or preset prints the usage and exits 1.
+
+Catalog seeders are registered with `registerCatalogSeeder` from `modules/tenancy` (the catalog module does it in issue #18). Each one runs in a transaction bound to the new tenant and must be idempotent. The list is empty until then.

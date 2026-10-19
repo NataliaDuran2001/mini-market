@@ -26,3 +26,12 @@ export { TenantContext } from './domain/tenant-context';
 export { CurrentUser } from './presentation/current-user.decorator';
 export { Public } from './presentation/public.decorator';
 export { Ctx, RequirePermission, WithoutTenant } from './presentation/route-decorators';
+export { createOwnerProvisioning } from './provisioning';
+export type { OwnerProvisioning } from './provisioning';
+export type {
+  SupabaseAdminPort,
+  SupabaseInviteRequest,
+  SupabaseUserDirectory,
+  SupabaseUserRef,
+} from './application/ports/supabase-admin.port';
+export { SupabaseAdminClient } from './infrastructure/supabase-admin.client';
