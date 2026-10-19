@@ -32,6 +32,10 @@ CREATE TABLE "products" (
 	CONSTRAINT "products_min_stock_not_negative" CHECK ("products"."min_stock" >= 0)
 );
 --> statement-breakpoint
+-- Targets of the composite foreign keys: they must exist before the keys are created.
+CREATE UNIQUE INDEX "categories_tenant_id_id_idx" ON "categories" USING btree ("tenant_id","id");--> statement-breakpoint
+CREATE UNIQUE INDEX "units_tenant_id_id_idx" ON "units" USING btree ("tenant_id","id");--> statement-breakpoint
+CREATE UNIQUE INDEX "products_tenant_id_id_idx" ON "products" USING btree ("tenant_id","id");--> statement-breakpoint
 ALTER TABLE "product_presentations" ADD CONSTRAINT "product_presentations_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_presentations" ADD CONSTRAINT "product_presentations_product_fk" FOREIGN KEY ("tenant_id","product_id") REFERENCES "public"."products"("tenant_id","id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "products" ADD CONSTRAINT "products_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -43,6 +47,8 @@ CREATE UNIQUE INDEX "product_presentations_default_idx" ON "product_presentation
 CREATE INDEX "products_tenant_id_idx" ON "products" USING btree ("tenant_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "products_tenant_code_idx" ON "products" USING btree ("tenant_id",lower("code")) WHERE "products"."code" is not null;--> statement-breakpoint
 CREATE INDEX "products_tenant_name_idx" ON "products" USING btree ("tenant_id",lower("name"));--> statement-breakpoint
-CREATE UNIQUE INDEX "products_tenant_id_id_idx" ON "products" USING btree ("tenant_id","id");--> statement-breakpoint
-CREATE UNIQUE INDEX "categories_tenant_id_id_idx" ON "categories" USING btree ("tenant_id","id");--> statement-breakpoint
-CREATE UNIQUE INDEX "units_tenant_id_id_idx" ON "units" USING btree ("tenant_id","id");
+-- Row level security and grants (docs/04-coding-standards.md section 8). Products are retired with
+-- is_active, never deleted: no DELETE or TRUNCATE for app_user.
+SELECT "app"."enable_tenant_rls"('public.products');--> statement-breakpoint
+SELECT "app"."enable_tenant_rls"('public.product_presentations');--> statement-breakpoint
+GRANT SELECT, INSERT, UPDATE ON "products", "product_presentations" TO "app_user";
