@@ -157,7 +157,7 @@ By default a sale that would drive `stock_level` below zero is rejected with `In
 | inventory | StockMovement (append-only) | tenant_id, product_id, type (`initial`, `purchase`, `sale`, `adjustment`, `void`, `expired`), quantity (signed, base units), unit_cost, reference_type, reference_id, reason, created_by, created_at |
 | inventory | StockLevel (derived) | tenant_id, product_id, quantity, updated_at |
 | inventory | Lot (v2) | product_id, code, expiry_date, quantity |
-| purchasing | Supplier | tenant_id, name, phone, notes, is_active |
+| purchasing | Supplier | tenant_id, name, phone, email, tax_id, notes, active |
 | purchasing | Purchase | tenant_id, supplier_id, date, payment_type (`cash`, `credit`), total, due_date, status, created_by |
 | purchasing | PurchaseLine | purchase_id, product_id, presentation_id, quantity, base_quantity, unit_cost, total |
 | sales | Sale | tenant_id, number (per-tenant sequence), date, payment_method_id, customer_id (nullable), total, status (`confirmed`, `voided`), voided_at, voided_by, void_reason, created_by |

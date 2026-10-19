@@ -13,6 +13,10 @@
       "types": "./dist/common/index.d.ts",
       "default": "./dist/common/index.js"
     },
+    "./purchasing": {
+      "types": "./dist/purchasing/index.d.ts",
+      "default": "./dist/purchasing/index.js"
+    },
     "./tenancy": {
       "types": "./dist/tenancy/index.d.ts",
       "default": "./dist/tenancy/index.js"

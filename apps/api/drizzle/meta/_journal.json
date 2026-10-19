@@ -43,6 +43,13 @@
       "when": 1792357511013,
       "tag": "20261018210511_rls_app_user",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792381686573,
+      "tag": "20261019034806_purchasing_suppliers",
+      "breakpoints": true
     }
   ]
 }
