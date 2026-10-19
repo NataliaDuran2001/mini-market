@@ -38,6 +38,22 @@ export class ShellPage {
     return names.map((name) => name.trim());
   }
 
+  /**
+   * Opens a section from the menu the way a person does: the sidebar from 1024px, the bottom tab
+   * bar on a phone, or behind "Más" for the sections that do not fit the bar.
+   */
+  async openSection(name: string): Promise<void> {
+    await expect(this.navigation.getByRole('link', { name: 'Vender' })).toBeVisible();
+    const direct = this.navigation.getByRole('link', { name, exact: true });
+    if (await direct.isVisible()) {
+      await direct.click();
+      return;
+    }
+    await this.navigation.getByRole('button', { name: 'Más' }).click();
+    const sheet = this.page.getByRole('dialog');
+    await sheet.getByRole('link', { name, exact: true }).click();
+  }
+
   async openAccountMenu(): Promise<void> {
     await this.page.getByRole('button', { name: 'Cuenta' }).click();
   }
