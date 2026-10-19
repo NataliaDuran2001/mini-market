@@ -28,7 +28,7 @@ export PATH="$HOME/.nvm/versions/node/v22.23.3/bin:$PATH"
 
 Node 22 and pnpm 10.18 via corepack. Do not run `nvm alias` or change the user's default Node.
 
-Secrets live outside the repo in `C:\Users\natalia.duran\.mini-market\supabase-dev.env`. Copy only the variables an issue needs into the gitignored `apps/*/.env` of your worktree. Never print, log or commit values. The Supabase dev project is shared by all lanes: no destructive operations, no resets, tests use PGlite.
+Secrets live outside the repo in `~/.mini-market/supabase-dev.env`. Copy only the variables an issue needs into the gitignored `apps/*/.env` of your worktree. Never print, log or commit values. The Supabase dev project is shared by all lanes: no destructive operations, no resets, tests use PGlite.
 
 Each lane uses its own ports when it runs servers: P1 and C use API 3101 and web 5201, P2 and S use 3102 and 5202, P3 and B use 3103 and 5203, R uses 3104 and 5204.
 
