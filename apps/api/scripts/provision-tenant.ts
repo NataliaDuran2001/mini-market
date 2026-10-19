@@ -131,12 +131,12 @@ export async function runProvision(deps: ProvisionDeps, argv: readonly string[])
     });
   }
 
-  if (tenantCreated || ownerCreated) {
-    await seedCatalogs(
-      { withTransaction: deps.withTransaction, seeders: deps.seeders },
-      { tenantId, preset: tenant.vertical },
-    );
-  }
+  // Every run, not only the first: seeders are idempotent, and a run that stopped after the owner
+  // step must not leave the tenant without catalogs.
+  await seedCatalogs(
+    { withTransaction: deps.withTransaction, seeders: deps.seeders },
+    { tenantId, preset: tenant.vertical },
+  );
 
   if (!tenantCreated && !ownerCreated) {
     deps.log(`Tenant "${tenant.slug}" already exists (${tenantId}). Nothing created.`);

@@ -133,7 +133,9 @@ describe('provision-tenant script on PGlite', () => {
     expect(await count('users')).toBe(1);
     expect(await count('audit_log')).toBe(1);
     expect(invites).toHaveLength(1);
-    expect(boundTenants).toHaveLength(1);
+    // Seeders run on every run (they are idempotent), each time bound to the same tenant.
+    expect(new Set(boundTenants).size).toBe(1);
+    expect(boundTenants).toHaveLength(2);
     expect(stdout.join('\n')).toContain('already exists');
     expect(stderr).toEqual([]);
   });
