@@ -85,6 +85,11 @@ export const creditLedger = tenantTable(
       'credit_ledger_payment_method_check',
       sql`(${table.kind} = 'payment' and ${table.paymentMethod} is not null and ${table.paymentMethod} in ('cash', 'transfer', 'qr', 'card')) or (${table.kind} <> 'payment' and ${table.paymentMethod} is null)`,
     ),
+    // A charge and its reversal always point at a sale; a payment never does.
+    check(
+      'credit_ledger_reference_kind_check',
+      sql`(${table.kind} = 'payment' and ${table.referenceId} is null) or (${table.kind} <> 'payment' and ${table.referenceId} is not null)`,
+    ),
     index('credit_ledger_tenant_customer_idx').on(
       table.tenantId,
       table.customerId,

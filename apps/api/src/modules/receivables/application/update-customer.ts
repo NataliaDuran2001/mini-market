@@ -59,7 +59,7 @@ export async function updateCustomer(
   }
 
   return deps.withTransaction(ctx, async (tx): Promise<Result<Customer, DomainError>> => {
-    const before = await deps.customers.findById(tx, ctx.tenantId, id);
+    const before = await deps.customers.lockById(tx, ctx.tenantId, id);
     const updated = before && (await deps.customers.update(tx, ctx.tenantId, id, toPatch(input)));
     if (!before || !updated) return err(new CustomerNotFoundError('Customer not found'));
     if (before.creditLimitCentavos !== updated.creditLimitCentavos) {

@@ -3,6 +3,7 @@ import type { Clock, DomainError, Result } from '@mini-market/shared-kernel';
 import type { WithTransaction } from '../../../infrastructure/db/with-transaction';
 import type { TenantContext } from '../../access';
 import { daysBetween, oldestUnpaidChargeAt } from '../domain/credit-ledger';
+import type { LedgerEntry } from '../domain/credit-ledger';
 import type { Customer } from '../domain/customer';
 import { authorize } from './authorize';
 import type { CreditLedgerRepository } from './ports/credit-ledger.repository';
@@ -71,11 +72,15 @@ export async function listBalances(
         owing.map((customer) => customer.id),
       );
 
+      const byCustomer = new Map<string, LedgerEntry[]>();
+      for (const entry of entries) {
+        byCustomer.set(entry.customerId, [...(byCustomer.get(entry.customerId) ?? []), entry]);
+      }
       const items = listed
         .map((customer): ReceivableRow => {
           const balance = balanceFor(customer);
           const since = isOwed(balance)
-            ? oldestUnpaidChargeAt(entries.filter((entry) => entry.customerId === customer.id))
+            ? oldestUnpaidChargeAt(byCustomer.get(customer.id) ?? [])
             : null;
           const overdueDays =
             since === null ? null : daysBetween(Period.dayKey(since, ctx.settings.timezone), today);

@@ -579,7 +579,7 @@ describe('receivables use cases (S6)', () => {
             customerId: foreign.id,
             kind: 'charge',
             amount: Money.fromCentavos(100),
-            reference: null,
+            reference: saleRef(1),
             paymentMethod: null,
             occurredAt: clock.now(),
             createdBy: OWNER_ID,
