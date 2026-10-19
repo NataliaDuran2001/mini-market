@@ -142,6 +142,7 @@ This is a lower bound. It adds no buffer for merge waits, CI failures, rework or
 | Date | Change | Reason | Approved by |
 |---|---|---|---|
 | 2026-10-18 | Baseline frozen: 51 issues, 9 milestones, 7 lanes | Initial plan | Natalia |
+| 2026-10-19 | Issue #7 (initial deploy) deferred to the milestone Go-live. M0 closes without it. Plan days of #7 stay in the baseline totals, reported separately | Owner wants the local environment first and hosting decided after a stable v1 | Natalia |
 
 ### Unplanned work discovered during execution
 

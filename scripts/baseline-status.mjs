@@ -36,7 +36,9 @@ const days = (ms) => ms / 86_400_000;
 const fmt = (n) => (Math.round(n * 100) / 100).toString();
 const pad = (s, n) => String(s).padEnd(n);
 
-const issues = baseline.issues;
+const allIssues = baseline.issues;
+const deferred = allIssues.filter((i) => i.deferred);
+const issues = allIssues.filter((i) => !i.deferred);
 const done = issues.filter((i) => closedAt.has(i.number));
 const planDone = done.reduce((a, i) => a + i.estimate, 0);
 const planTotal = issues.reduce((a, i) => a + i.estimate, 0);

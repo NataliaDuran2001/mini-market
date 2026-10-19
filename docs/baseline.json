@@ -173,7 +173,8 @@
         6
       ],
       "plannedStart": 1.5,
-      "plannedFinish": 1.75
+      "plannedFinish": 1.75,
+      "deferred": "Go-live (after stable v1)"
     },
     {
       "number": 9,

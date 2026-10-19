@@ -24,3 +24,7 @@ Two tenants at launch, one developer, minimal budget, need for preview deploymen
 - Vercel serverless for the API: cold starts and connection limits with a NestJS app. Rejected.
 - Fly.io or Render for the API: equivalent; Railway chosen for simplicity of env management.
 - Self-hosted VPS: more control, more operations for one person.
+
+## Amendment 2026-10-19
+
+The owner deferred hosting until a stable v1 exists and asked to focus on the local environment first. Railway for the API and Vercel for the web were proposals, not commitments, and the choice is open again at go-live. Alternatives to evaluate then: Fly.io, Render, Google Cloud Run, or a VPS with Docker. The Docker image, migration job and workflows merged in PR #79 stay in the repo.
