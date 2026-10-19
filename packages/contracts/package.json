@@ -13,6 +13,14 @@
       "types": "./dist/common/index.d.ts",
       "default": "./dist/common/index.js"
     },
+    "./equity": {
+      "types": "./dist/equity/index.d.ts",
+      "default": "./dist/equity/index.js"
+    },
+    "./purchasing": {
+      "types": "./dist/purchasing/index.d.ts",
+      "default": "./dist/purchasing/index.js"
+    },
     "./tenancy": {
       "types": "./dist/tenancy/index.d.ts",
       "default": "./dist/tenancy/index.js"
