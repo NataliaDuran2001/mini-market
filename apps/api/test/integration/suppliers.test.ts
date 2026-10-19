@@ -1,9 +1,10 @@
 import { supplierSchema } from '@mini-market/contracts/purchasing';
+import { sql } from 'drizzle-orm';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { DrizzleSupplierRepository } from '../../src/modules/purchasing/infrastructure/drizzle-supplier.repository';
 import { EMPLOYEE_ID, OWNER_ID, OTHER_OWNER_ID, useAccessApp } from '../access-fixture';
-import { expectTenantIsolation } from '../isolation';
+import { expectDbError, expectTenantIsolation } from '../isolation';
 
 const NEW_SUPPLIER = { name: 'Distribuidora Sur', phone: '70011223', email: 'Ventas@Sur.com' };
 
@@ -61,6 +62,7 @@ describe('suppliers', () => {
     });
 
     it('lets another tenant use the same name', async () => {
+      // AC-1
       await seedTeam();
       await create();
 
@@ -200,6 +202,7 @@ describe('suppliers', () => {
       expect(details.status).toBe(403);
       expect(active.status).toBe(403);
       expect(details.body).toMatchObject({ permission: 'suppliers.manage' });
+      expect(active.body).toMatchObject({ permission: 'suppliers.manage' });
     });
 
     it('answers 404 for an unknown id and for the id of another tenant, 400 for a malformed one', async () => {
@@ -214,7 +217,8 @@ describe('suppliers', () => {
       expect((await patch(unknown, { name: 'X' })).status).toBe(404);
       expect((await patch(theirs.body.id, { name: 'X' })).status).toBe(404);
       expect((await patch(theirs.body.id, { active: false })).status).toBe(404);
-      expect((await patch('not-a-uuid', { name: 'X' })).status).toBe(400);
+      expect((await patch(unknown, {})).status).toBe(400);
+      expect((await patch(unknown, { name: 'X', active: false })).status).toBe(400);
       expect((await patch(unknown, {})).status).toBe(400);
       const stored = await ctx
         .testDb()
@@ -260,6 +264,20 @@ describe('suppliers', () => {
         repository.list(tx, tenantB, {}),
       );
       expect(crossRead).toEqual([]);
+    });
+
+    it('cannot delete a supplier: the API role has no DELETE grant', async () => {
+      await seedTeam();
+      await create();
+
+      await expectDbError(
+        ctx
+          .testDb()
+          .withTransaction({ tenantId: ctx.tenantId(), events: [] }, (tx) =>
+            tx.execute(sql`delete from suppliers`),
+          ),
+        /permission denied/,
+      );
     });
   });
 });
