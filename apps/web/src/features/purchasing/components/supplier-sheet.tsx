@@ -31,7 +31,7 @@ const INPUT_PROPS = {
   name: { autoComplete: 'organization' },
   phone: { type: 'tel', inputMode: 'tel', autoComplete: 'off' },
   email: { type: 'email', inputMode: 'email', autoComplete: 'off' },
-  taxId: { inputMode: 'numeric', autoComplete: 'off' },
+  taxId: { autoComplete: 'off' },
   notes: { autoComplete: 'off' },
 } as const;
 

@@ -1,6 +1,7 @@
 import {
   supplierSchema,
   type CreateSupplierRequest,
+  type UpdateSupplierRequest,
   type Supplier,
 } from '@mini-market/contracts/purchasing';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -31,7 +32,7 @@ export function useUpdateSupplier() {
   const api = useApiClient();
   const refresh = useRefreshSuppliers();
   return useMutation({
-    mutationFn: (input: { readonly id: string; readonly body: CreateSupplierRequest }) =>
+    mutationFn: (input: { readonly id: string; readonly body: UpdateSupplierRequest }) =>
       api.patch(`/suppliers/${input.id}`, { body: input.body, schema: supplierSchema }),
     onSuccess: refresh,
   });
