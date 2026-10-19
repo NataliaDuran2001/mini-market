@@ -2,7 +2,9 @@ import { expect, test as base } from '@playwright/test';
 import { AcceptInvitationPage } from '../pages/accept-invitation-page';
 import { LoginPage } from '../pages/login-page';
 import { ShellPage } from '../pages/shell-page';
+import { TeamPage } from '../pages/team-page';
 import {
+  acceptEmailedInvitation,
   apiBaseUrl,
   callApi,
   createEmployee,
@@ -81,7 +83,8 @@ test.describe('M1 login and roles @M1', () => {
     await expect(page.getByText(seed.tenants.a.name)).toHaveCount(0);
 
     // The pharmacy preset switches lots and fractional sales on; the minimarket preset does not.
-    // There is no settings screen yet (M2 and later), so the modules are read from the API.
+    // The settings screen shows them too (see "M1 team and settings screens"); here the API is
+    // checked directly for both presets.
     const pharmacy = await callApi({
       as: seed.tenants.b.ownerEmail,
       path: '/tenant',
@@ -247,5 +250,101 @@ test.describe('M1 invitations and disabling @M1', () => {
         'Tu cuenta todavía no pertenece a ningún negocio. Pide al dueño que te invite.',
       ),
     ).toBeVisible();
+  });
+});
+
+// Issue #93: the owner onboards and offboards an employee from the app, and reads the modules.
+// AC-1: part of `pnpm e2e --grep @M1` (chromium-mobile and chromium-desktop)
+test.describe('M1 team and settings screens @M1', () => {
+  test('the owner invites, disables and enables an employee from Equipo', async ({
+    page,
+    seed,
+  }) => {
+    const tenant = seed.tenants.a;
+    const email = uniqueEmail('team');
+    await new LoginPage(page).signIn(tenant.ownerEmail, seed.password);
+    const shell = new ShellPage(page);
+    await shell.openSection('Equipo');
+    const team = new TeamPage(page);
+    await expect(team.heading).toBeVisible();
+    await expect(page).toHaveURL('/team');
+
+    await team.invite(email);
+    await expect(team.notice(`Invitación enviada a ${email}.`)).toBeVisible();
+    await expect(team.row(email)).toContainText('Pendiente');
+
+    // The employee follows the link; the owner sees them as a member from then on.
+    await acceptEmailedInvitation(email);
+    await page.reload();
+    await expect(team.row(email)).toContainText('Empleado');
+    await expect(team.row(email)).toContainText('Activo');
+    await expect(team.row(email)).not.toContainText('Pendiente');
+    const tenantCall = () => callApi({ as: email, path: '/tenant', tenantId: tenant.tenantId });
+    expect((await tenantCall()).status).toBe(200);
+
+    await team.disable(email);
+    await expect(team.row(email)).toContainText('Inactivo');
+    expect((await tenantCall()).status).toBe(403);
+
+    await team.enable(email);
+    await expect(team.row(email)).toContainText('Activo');
+    await expect(team.row(email)).not.toContainText('Inactivo');
+    expect((await tenantCall()).status).toBe(200);
+  });
+
+  test('an employee has no Equipo entry and cannot open /team', async ({ page, seed }) => {
+    await new LoginPage(page).signIn(seed.tenants.a.employeeEmail, seed.password);
+    const shell = new ShellPage(page);
+    expect(await shell.sections()).not.toContain('Equipo');
+
+    await page.goto('/team');
+    await expect(page.getByRole('heading', { name: 'Sin permiso' })).toBeVisible();
+    await page.goto('/settings');
+    await expect(page.getByRole('heading', { name: 'Sin permiso' })).toBeVisible();
+  });
+
+  test('the owner of the pharmacy sees its modules read only in Configuración', async ({
+    page,
+    seed,
+  }) => {
+    await new LoginPage(page).signIn(seed.tenants.b.ownerEmail, seed.password);
+    await new ShellPage(page).openSection('Configuración');
+
+    await expect(page.getByRole('heading', { name: 'Configuración', level: 1 })).toBeVisible();
+    await expect(page.getByText('Farmacia', { exact: true })).toBeVisible();
+    for (const module of ['lots', 'fractional', 'credit_sales']) {
+      await expect(page.locator(`[data-module="${module}"]`)).toContainText('Activado');
+      await expect(page.locator(`[data-module="${module}"]`).getByRole('checkbox')).toHaveCount(0);
+    }
+    await expect(page.locator('[data-module="custom_fields"]')).toContainText('Desactivado');
+  });
+
+  // AC-6: a phone viewport of 400 px, no horizontal scroll and a usable invite form.
+  test('both screens fit a 400 px phone and the invite form is usable', async ({ page, seed }) => {
+    await page.setViewportSize({ width: 400, height: 800 });
+    await new LoginPage(page).signIn(seed.tenants.a.ownerEmail, seed.password);
+    const overflow = () =>
+      page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+
+    await page.goto('/team');
+    await expect(new TeamPage(page).heading).toBeVisible();
+    await expect(page.getByRole('listitem').first()).toBeVisible();
+    expect(await overflow()).toBeLessThanOrEqual(0);
+
+    await page.getByRole('button', { name: 'Invitar empleado' }).click();
+    const sheet = page.getByRole('dialog');
+    await expect(sheet.getByLabel('Correo del empleado')).toBeVisible();
+    const submit = sheet.getByRole('button', { name: 'Enviar invitación' });
+    await expect(submit).toBeInViewport();
+    const box = await submit.boundingBox();
+    expect(box?.x ?? -1).toBeGreaterThanOrEqual(0);
+    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(400);
+    expect(await overflow()).toBeLessThanOrEqual(0);
+    await page.keyboard.press('Escape');
+
+    await page.goto('/settings');
+    await expect(page.getByRole('heading', { name: 'Configuración', level: 1 })).toBeVisible();
+    await expect(page.locator('[data-module="lots"]')).toBeVisible();
+    expect(await overflow()).toBeLessThanOrEqual(0);
   });
 });

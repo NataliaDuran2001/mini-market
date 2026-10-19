@@ -92,7 +92,15 @@ export async function inviteEmployee(tenant: SeededTenant, email: string): Promi
 
 /** Invites and accepts through the API, for specs that need an employee as a starting point. */
 export async function createEmployee(tenant: SeededTenant, email: string): Promise<void> {
-  const token = await inviteEmployee(tenant, email);
+  await acceptInvitation(email, await inviteEmployee(tenant, email));
+}
+
+/** The invitee presents the token of the email link (the invitation itself may come from a screen). */
+export async function acceptEmailedInvitation(email: string): Promise<void> {
+  await acceptInvitation(email, await invitationTokenFor(email));
+}
+
+async function acceptInvitation(email: string, token: string): Promise<void> {
   const accepted = await callApi({
     as: email,
     path: '/invitations/accept',
