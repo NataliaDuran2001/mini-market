@@ -63,7 +63,7 @@ catalog     -> tenancy
 inventory   -> catalog
 purchasing  -> inventory, payables
 sales       -> catalog, inventory, receivables
-payables    -> tenancy
+payables    -> catalog, tenancy
 equity      -> tenancy
 receivables -> tenancy
 reporting   -> read access to every module's exported schema (never writes)

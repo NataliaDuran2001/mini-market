@@ -25,7 +25,7 @@ export const MODULE_GRAPH = {
   equity: ['tenancy'],
   health: [],
   inventory: ['catalog'],
-  payables: ['tenancy'],
+  payables: ['catalog', 'tenancy'],
   purchasing: ['inventory', 'payables'],
   receivables: ['tenancy'],
   // reporting reads every module's exported schema and never writes (documented exception).
