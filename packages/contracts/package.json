@@ -29,6 +29,10 @@
       "types": "./dist/purchasing/index.d.ts",
       "default": "./dist/purchasing/index.js"
     },
+    "./receivables": {
+      "types": "./dist/receivables/index.d.ts",
+      "default": "./dist/receivables/index.js"
+    },
     "./tenancy": {
       "types": "./dist/tenancy/index.d.ts",
       "default": "./dist/tenancy/index.js"
