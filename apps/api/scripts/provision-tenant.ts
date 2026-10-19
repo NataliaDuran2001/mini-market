@@ -9,7 +9,9 @@ import { parseArgs } from 'node:util';
 import { createTenantInputSchema } from '@mini-market/contracts/tenancy';
 import { SystemClock } from '@mini-market/shared-kernel';
 import type { Clock } from '@mini-market/shared-kernel';
+import { sql } from 'drizzle-orm';
 import { z } from 'zod';
+import { describeError } from '../src/infrastructure/logger/describe-error';
 import { createDatabase } from '../src/infrastructure/db/database';
 import { createWithTransaction } from '../src/infrastructure/db/with-transaction';
 import type { WithTransaction } from '../src/infrastructure/db/with-transaction';
@@ -28,7 +30,7 @@ import type { CatalogSeeder, TenantRepository } from '../src/modules/tenancy';
 export const USAGE = `Usage: pnpm --filter @mini-market/api provision -- \\
   --name "<business name>" --slug <slug> --preset <${VERTICALS.join('|')}> --owner-email <email>
 
-Environment: MIGRATION_DATABASE_URL (owner role; DATABASE_URL is the fallback), SUPABASE_URL,
+Environment: MIGRATION_DATABASE_URL (owner role that bypasses RLS), SUPABASE_URL,
 SUPABASE_SERVICE_ROLE_KEY, WEB_ORIGIN.`;
 
 export interface ProvisionDeps {
@@ -100,6 +102,14 @@ export async function runProvision(deps: ProvisionDeps, argv: readonly string[])
   const existing = await deps.tenants.findBySlug(tenant.slug);
   if (existing) {
     tenantId = existing.id;
+    // A rerun must describe the tenant it finds: another preset would audit and seed the wrong one.
+    const storedPreset = (existing.settings as { vertical?: unknown } | null)?.vertical;
+    if (storedPreset !== tenant.vertical) {
+      deps.logError(
+        `Tenant "${tenant.slug}" already exists with preset "${String(storedPreset)}", not "${tenant.vertical}".`,
+      );
+      return 1;
+    }
   } else {
     const created = await createTenant(
       { tenants: deps.tenants, events: { publish: () => Promise.resolve() }, clock: deps.clock },
@@ -145,7 +155,7 @@ export async function runProvision(deps: ProvisionDeps, argv: readonly string[])
   deps.log(`Tenant "${tenant.slug}" ${tenantCreated ? 'created' : 'completed'} (${tenantId})`);
   deps.log(`  preset:  ${tenant.vertical}`);
   deps.log(
-    `  owner:   ${ownerEmail} (${invited ? 'invitation email sent' : 'existing account, no email'})`,
+    `  owner:   ${ownerEmail} (${invited ? 'invitation email sent' : 'account exists, no new email'})`,
   );
   deps.log(`  catalog seeders run: ${deps.seeders.length}`);
   return 0;
@@ -158,13 +168,23 @@ const requireEnv = (name: string): string => {
 };
 
 async function main(argv: string[]): Promise<number> {
-  const databaseUrl = process.env['MIGRATION_DATABASE_URL'] || process.env['DATABASE_URL'];
+  // No fallback to DATABASE_URL: that is the app_user role, which RLS blocks from this script.
+  const databaseUrl = process.env['MIGRATION_DATABASE_URL'];
   if (!databaseUrl) {
-    console.error('MIGRATION_DATABASE_URL (or DATABASE_URL) is not set.');
+    console.error('MIGRATION_DATABASE_URL (the owner role) is not set.');
     return 1;
   }
   const connection = createDatabase(databaseUrl);
   try {
+    const rows = await connection.db.execute(
+      sql`select (rolbypassrls or rolsuper) as ok from pg_roles where rolname = current_user`,
+    );
+    if (!(rows as unknown as { ok: boolean }[])[0]?.ok) {
+      console.error(
+        'MIGRATION_DATABASE_URL must connect as a role that bypasses row level security.',
+      );
+      return 1;
+    }
     const withTransaction = createWithTransaction(connection.db, new DomainEventBus());
     const clock = new SystemClock();
     return await runProvision(
@@ -196,8 +216,8 @@ if (require.main === module) {
       process.exitCode = code;
     },
     (error: unknown) => {
-      // Message only: driver errors can carry connection details.
-      console.error(`Provisioning failed: ${error instanceof Error ? error.message : 'unknown'}`);
+      // describeError drops the bound query parameters (the owner email is one of them).
+      console.error(`Provisioning failed: ${JSON.stringify(describeError(error))}`);
       process.exitCode = 1;
     },
   );

@@ -140,6 +140,17 @@ describe('provision-tenant script on PGlite', () => {
     expect(stderr).toEqual([]);
   });
 
+  it('refuses a rerun that names another preset than the tenant has, and changes nothing', async () => {
+    expect(await runProvision(deps(), ARGS)).toBe(0);
+    const other = ARGS.map((arg) => (arg === 'minimarket' ? 'farmacia' : arg));
+
+    expect(await runProvision(deps(), other)).toBe(1);
+
+    expect(stderr.join('\n')).toContain('already exists with preset "minimarket", not "farmacia"');
+    expect(await count('audit_log')).toBe(1);
+    expect(boundTenants).toHaveLength(1);
+  });
+
   it('exits 1 with the usage when the preset is not one of the presets', async () => {
     // AC-3
     const bad = ARGS.map((arg) => (arg === 'minimarket' ? 'ferreteria' : arg));
@@ -175,7 +186,7 @@ describe('provision-tenant script on PGlite', () => {
     expect(await runProvision(deps(), ARGS)).toBe(0);
     expect(invites).toEqual([]);
     expect(await count('memberships')).toBe(1);
-    expect(stdout.join('\n')).toContain('existing account, no email');
+    expect(stdout.join('\n')).toContain('account exists, no new email');
   });
 
   it('completes a tenant that was created but has no owner, and leaves a tenant with an owner alone', async () => {

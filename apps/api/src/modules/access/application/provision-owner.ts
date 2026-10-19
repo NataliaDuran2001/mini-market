@@ -48,6 +48,8 @@ export async function provisionOwner(
 ): Promise<boolean> {
   const { tenantId, userId, email, preset, operator } = input;
   return deps.withTransaction({ tenantId, events: [] }, async (tx) => {
+    // FOR UPDATE on zero rows locks nothing: serialize concurrent runs on the tenant first.
+    await deps.memberships.lockMembers(tx, tenantId);
     if ((await deps.memberships.countActiveOwnersForUpdate(tx, tenantId)) > 0) return false;
     await deps.users.upsert(tx, { userId, email });
     await deps.memberships.activate(tx, tenantId, userId, 'owner', null);
