@@ -18,6 +18,8 @@ import type { WithTransaction } from '../src/infrastructure/db/with-transaction'
 import { DomainEventBus } from '../src/infrastructure/events/domain-event-bus';
 import { createOwnerProvisioning, SupabaseAdminClient } from '../src/modules/access';
 import type { OwnerProvisioning, SupabaseUserDirectory } from '../src/modules/access';
+// Importing the catalog module registers its preset seeder with the tenancy registry (issue #18).
+import '../src/modules/catalog';
 import {
   catalogSeeders,
   createTenant,

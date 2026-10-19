@@ -3,6 +3,7 @@
 //
 // export * from '../../modules/sales/infrastructure/schema';
 export * from '../../modules/access/infrastructure/schema';
+export * from '../../modules/catalog/infrastructure/schema';
 export * from '../../modules/equity/infrastructure/schema';
 export * from '../../modules/purchasing/infrastructure/schema';
 export * from '../../modules/tenancy/infrastructure/schema';
