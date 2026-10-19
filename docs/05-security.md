@@ -37,7 +37,7 @@ Baseline for v1. The `architecture-reviewer` agent uses this file as a checklist
 | Action | Entity | Payload |
 |---|---|---|
 | `sale.voided` | sale | before status, reason, lines |
-| `stock.adjusted` | product | quantity delta, reason |
+| `inventory.adjusted` | product | before and after quantity, delta, reason (name fixed by issue #20; it replaces `stock.adjusted`) |
 | `product.price_changed` | presentation | old and new price |
 | `product.cost_overridden` | product | old and new average cost (CSV import or manual) |
 | `capital.recorded` | capital_movement | type, amount |

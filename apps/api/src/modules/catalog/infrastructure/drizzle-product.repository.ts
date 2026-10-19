@@ -12,7 +12,13 @@ import type { SQL } from 'drizzle-orm';
 import type { Transaction } from '../../../infrastructure/db/database';
 import type { ProductPage, ProductRepository } from '../application/ports/product.repository';
 import { DuplicateCodeError } from '../domain/errors';
-import type { NewProduct, Product, ProductPatch, ProductSearch } from '../domain/product';
+import type {
+  NewProduct,
+  Product,
+  ProductPatch,
+  ProductSearch,
+  ProductSummary,
+} from '../domain/product';
 import { categories, productPresentations, products, units } from './schema';
 import { isUniqueViolation } from './unique-violation';
 
@@ -160,6 +166,47 @@ export class DrizzleProductRepository implements ProductRepository {
       items: rows.map((row) => toProduct(row, presentations)),
       total: total?.value ?? 0,
     };
+  }
+
+  async summaries(
+    tx: Transaction,
+    tenantId: string,
+    options: { readonly ids?: readonly string[]; readonly activeOnly?: boolean } = {},
+  ): Promise<readonly ProductSummary[]> {
+    if (options.ids?.length === 0) return [];
+    const rows = await tx
+      .select({
+        id: products.id,
+        name: products.name,
+        code: products.code,
+        minStock: products.minStock,
+        isActive: products.isActive,
+      })
+      .from(products)
+      .where(
+        and(
+          eq(products.tenantId, tenantId),
+          options.ids ? inArray(products.id, [...options.ids]) : undefined,
+          options.activeOnly ? eq(products.isActive, true) : undefined,
+        ),
+      )
+      .orderBy(sql`lower(${products.name})`);
+    return rows.map((row) => ({ ...row, minStock: Quantity.parse(row.minStock) }));
+  }
+
+  async setAverageCost(
+    tx: Transaction,
+    tenantId: string,
+    id: string,
+    averageCost: Money,
+    now: Date,
+  ): Promise<boolean> {
+    const rows = await tx
+      .update(products)
+      .set({ avgCostCentavos: averageCost.toCentavos(), updatedAt: now })
+      .where(and(eq(products.tenantId, tenantId), eq(products.id, id)))
+      .returning({ id: products.id });
+    return rows.length > 0;
   }
 
   async create(
