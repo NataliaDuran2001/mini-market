@@ -5,6 +5,8 @@ import { CHANGE_MEMBER_ROLE } from '../application/change-member-role';
 import type { ChangeMemberRole } from '../application/change-member-role';
 import { DISABLE_MEMBER } from '../application/disable-member';
 import type { DisableMember } from '../application/disable-member';
+import { ENABLE_MEMBER } from '../application/enable-member';
+import type { EnableMember } from '../application/enable-member';
 import { LIST_MEMBERS } from '../application/list-members';
 import type { ListMembers } from '../application/list-members';
 import { parseUuid } from '../application/parse-uuid';
@@ -18,6 +20,7 @@ export class MembersController {
     @Inject(LIST_MEMBERS) private readonly listMembers: ListMembers,
     @Inject(CHANGE_MEMBER_ROLE) private readonly changeMemberRole: ChangeMemberRole,
     @Inject(DISABLE_MEMBER) private readonly disableMember: DisableMember,
+    @Inject(ENABLE_MEMBER) private readonly enableMember: EnableMember,
   ) {}
 
   @Get()
@@ -36,10 +39,13 @@ export class MembersController {
     @Body() body: UpdateMemberRequestDto,
   ): Promise<Member> {
     const userId = unwrapOrThrow(parseUuid(userIdParam, 'userId'));
+    if (body.role !== undefined) {
+      return unwrapOrThrow(await this.changeMemberRole(ctx, { userId, role: body.role }));
+    }
     return unwrapOrThrow(
-      body.role === undefined
-        ? await this.disableMember(ctx, { userId })
-        : await this.changeMemberRole(ctx, { userId, role: body.role }),
+      body.status === 'active'
+        ? await this.enableMember(ctx, { userId })
+        : await this.disableMember(ctx, { userId }),
     );
   }
 }

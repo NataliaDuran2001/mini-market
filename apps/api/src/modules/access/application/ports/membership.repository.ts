@@ -23,6 +23,9 @@ export interface MembershipRepository {
 
   disable(tx: Transaction, tenantId: string, userId: string): Promise<void>;
 
+  /** Sets a disabled membership back to active, keeping its role. */
+  enable(tx: Transaction, tenantId: string, userId: string): Promise<void>;
+
   /** Creates the membership, or reactivates a disabled one with `role`. */
   activate(
     tx: Transaction,

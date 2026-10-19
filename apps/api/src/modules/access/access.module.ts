@@ -12,8 +12,10 @@ import { ACCESS_PERMISSIONS, permissionsProvider } from './access.permissions';
 import { ACCEPT_INVITATION, acceptInvitation } from './application/accept-invitation';
 import { CHANGE_MEMBER_ROLE, changeMemberRole } from './application/change-member-role';
 import { DISABLE_MEMBER, disableMember } from './application/disable-member';
+import { ENABLE_MEMBER, enableMember } from './application/enable-member';
 import { INVITE_MEMBER, inviteMember } from './application/invite-member';
 import type { InviteMemberDeps } from './application/invite-member';
+import { LIST_INVITATIONS, listInvitations } from './application/list-invitations';
 import { LIST_MEMBERS, listMembers } from './application/list-members';
 import { LIST_MY_TENANTS, listMyTenants } from './application/list-my-tenants';
 import { PERMISSION_REGISTRY, PermissionRegistry } from './application/permission-registry';
@@ -139,6 +141,25 @@ import { MembersController } from './presentation/members.controller';
         withTransaction: WithTransaction,
       ) => disableMember.bind(null, { memberships, audit, clock, withTransaction }),
       inject: [MEMBERSHIP_REPOSITORY, AUDIT_PORT, CLOCK, WITH_TRANSACTION],
+    },
+    {
+      provide: ENABLE_MEMBER,
+      useFactory: (
+        memberships: MembershipRepository,
+        audit: AuditPort,
+        clock: Clock,
+        withTransaction: WithTransaction,
+      ) => enableMember.bind(null, { memberships, audit, clock, withTransaction }),
+      inject: [MEMBERSHIP_REPOSITORY, AUDIT_PORT, CLOCK, WITH_TRANSACTION],
+    },
+    {
+      provide: LIST_INVITATIONS,
+      useFactory: (
+        invitations: InvitationRepository,
+        clock: Clock,
+        withTransaction: WithTransaction,
+      ) => listInvitations.bind(null, { invitations, clock, withTransaction }),
+      inject: [INVITATION_REPOSITORY, CLOCK, WITH_TRANSACTION],
     },
     {
       provide: ACCEPT_INVITATION,
