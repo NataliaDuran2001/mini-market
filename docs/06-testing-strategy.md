@@ -45,8 +45,8 @@ Principle: anything with logic can run in a test without Next, without network a
 ## 7. Playwright
 
 - Lives in `e2e/`. Runs against API and web started by Turborepo (`pnpm e2e` builds, starts and runs).
-- Uses a dedicated Postgres (PGlite server mode or a local Postgres in CI) seeded through the provisioning script, not Supabase.
-- Supabase Auth is replaced in e2e by a test JWT issuer configured via env (`AUTH_TEST_MODE=true`), so e2e does not depend on an external service.
+- The backend of the suite is `apps/api/test/e2e/server.ts`: the real API on an in-memory PGlite (migrations applied, running as `app_user` with RLS), two tenants provisioned with the real provisioning script, and employees invited and accepted through the API. It never touches Supabase.
+- Supabase Auth is replaced by a small fake (`apps/api/test/e2e/fake-supabase.ts`): it serves the JWKS the API verifies tokens against, the endpoints supabase-js calls (password login, refresh, user, logout, recovery), the admin invite and user list used by the API and the script, and `/__e2e/*` helpers that mint tokens for specs. It lives under `test/`, so no test-only switch exists in production code. Ports come from `API_PORT`, `WEB_PORT` and `E2E_SUPABASE_PORT` (default API port + 2000); `E2E_BROWSER_CHANNEL=msedge` runs against the installed Edge instead of the downloaded Chromium.
 - One spec file per milestone, tagged `@M0` to `@M8`. Each spec exercises the milestone deliverable end to end: for M4, sell, check stock decreased, open receipt, void, check stock restored.
 
 ## 8. Coverage gates (CI)

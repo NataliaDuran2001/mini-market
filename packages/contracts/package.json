@@ -21,6 +21,10 @@
       "types": "./dist/equity/index.d.ts",
       "default": "./dist/equity/index.js"
     },
+    "./inventory": {
+      "types": "./dist/inventory/index.d.ts",
+      "default": "./dist/inventory/index.js"
+    },
     "./payables": {
       "types": "./dist/payables/index.d.ts",
       "default": "./dist/payables/index.js"
@@ -28,6 +32,10 @@
     "./purchasing": {
       "types": "./dist/purchasing/index.d.ts",
       "default": "./dist/purchasing/index.js"
+    },
+    "./receivables": {
+      "types": "./dist/receivables/index.d.ts",
+      "default": "./dist/receivables/index.js"
     },
     "./tenancy": {
       "types": "./dist/tenancy/index.d.ts",

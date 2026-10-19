@@ -4,8 +4,10 @@ import { AccessModule } from './modules/access/access.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { EquityModule } from './modules/equity/equity.module';
 import { HealthModule } from './modules/health/health.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
 import { PayablesModule } from './modules/payables/payables.module';
 import { PurchasingModule } from './modules/purchasing/purchasing.module';
+import { ReceivablesModule } from './modules/receivables/receivables.module';
 import { TenancyModule } from './modules/tenancy/tenancy.module';
 
 // prettier-ignore
@@ -14,7 +16,9 @@ export const APP_MODULES = [
   CatalogModule,
   EquityModule,
   HealthModule,
+  InventoryModule,
   PayablesModule,
   PurchasingModule,
+  ReceivablesModule,
   TenancyModule,
 ];

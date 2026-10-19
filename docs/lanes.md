@@ -20,15 +20,23 @@ Plan days below are the issue estimates (one person with Claude Code). The minim
 
 Phase 0 runs P1, P2 and P3. Lanes C, S, B and R start when #12, #13 and #15 are merged.
 
+## Repository rules
+
+The repository is public and `main` is protected. A pull request needs the `ci` check green. Nobody can push to `main`, administrators included, and force pushes and history rewrites are blocked. Documentation changes go through a pull request like code. Because the repository is public, never put secrets, personal paths or personal data in code, docs, issues, PR text or commit messages. Secret scanning and push protection are enabled.
+
+## Current focus
+
+The owner asked to close M0 and M1 first. M0 is closed. Lanes C, S, B and R are paused after their current issue and resume after M1. Lane T builds #93 and lane L builds #97, the two issues left in M1.
+
 ## Environment (every Bash command, shell state does not persist)
 
 ```
-export PATH="/c/Users/natalia.duran/.nvm/versions/node/v22.23.3/bin:$PATH"
+export PATH="$HOME/.nvm/versions/node/v22.23.3/bin:$PATH"
 ```
 
 Node 22 and pnpm 10.18 via corepack. Do not run `nvm alias` or change the user's default Node.
 
-Secrets live outside the repo in `C:\Users\natalia.duran\.mini-market\supabase-dev.env`. Copy only the variables an issue needs into the gitignored `apps/*/.env` of your worktree. Never print, log or commit values. The Supabase dev project is shared by all lanes: no destructive operations, no resets, tests use PGlite.
+Secrets live outside the repo in `~/.mini-market/supabase-dev.env`. Copy only the variables an issue needs into the gitignored `apps/*/.env` of your worktree. Never print, log or commit values. The Supabase dev project is shared by all lanes: no destructive operations, no resets, tests use PGlite.
 
 Each lane uses its own ports when it runs servers: P1 and C use API 3101 and web 5201, P2 and S use 3102 and 5202, P3 and B use 3103 and 5203, R uses 3104 and 5204.
 

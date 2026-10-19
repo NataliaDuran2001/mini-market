@@ -9,4 +9,8 @@ export const CATALOG_PERMISSIONS = {
   'catalog.read': { owner: true, employee: true },
   'catalog.read_expense_categories': { owner: true, employee: false },
   'catalog.write': { owner: true, employee: false },
+  'products.read': { owner: true, employee: true },
+  'products.write': { owner: true, employee: false },
+  /** Average cost and margin of a product. Never granted to employees. */
+  'costs.read': { owner: true, employee: false },
 } as const satisfies PermissionDefinitions;

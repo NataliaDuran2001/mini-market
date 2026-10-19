@@ -20,8 +20,36 @@ export type {
   PaymentMethodKind,
   Unit,
 } from './domain/catalog-item';
-export { DuplicateCatalogItemError } from './domain/errors';
+export { COSTS_READ_PERMISSION } from './application/product-view';
+export { CREATE_PRODUCT } from './application/create-product';
+export type { CreateProduct } from './application/create-product';
+export { GET_PRODUCT } from './application/get-product';
+export type { GetProduct } from './application/get-product';
+export { SEARCH_PRODUCTS } from './application/search-products';
+export type { SearchProducts } from './application/search-products';
+export { SET_PRODUCT_ACTIVE } from './application/set-product-active';
+export type { SetProductActive } from './application/set-product-active';
+export { UPDATE_PRODUCT } from './application/update-product';
+export type { UpdateProduct } from './application/update-product';
+export type { ProductRepository } from './application/ports/product.repository';
+export { DuplicateCatalogItemError, DuplicateCodeError } from './domain/errors';
+export type {
+  NewProduct,
+  Presentation,
+  Product,
+  ProductPatch,
+  ProductSummary,
+} from './domain/product';
+export { DrizzleProductRepository } from './infrastructure/drizzle-product.repository';
+export { PRODUCT_REPOSITORY } from './catalog.module';
 export { presetCatalogsFor } from './domain/presets';
 export type { PresetCatalogs } from './domain/presets';
 export { DrizzleCatalogRepository } from './infrastructure/drizzle-catalog.repository';
-export { categories, expenseCategories, paymentMethods, units } from './infrastructure/schema';
+export {
+  categories,
+  expenseCategories,
+  paymentMethods,
+  productPresentations,
+  products,
+  units,
+} from './infrastructure/schema';

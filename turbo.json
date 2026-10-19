@@ -1,7 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": ["NODE_ENV", "CI"],
-  "globalPassThroughEnv": ["API_PORT", "WEB_PORT"],
+  "globalPassThroughEnv": ["API_PORT", "WEB_PORT", "E2E_SUPABASE_PORT", "E2E_BROWSER_CHANNEL"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -30,7 +30,7 @@
       "persistent": true
     },
     "e2e": {
-      "dependsOn": ["build"],
+      "dependsOn": ["^build"],
       "cache": false
     }
   }

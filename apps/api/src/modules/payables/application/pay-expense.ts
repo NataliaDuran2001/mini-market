@@ -71,6 +71,7 @@ export async function payExpense(
       before: { paidCentavos: Number(current.paid.toCentavos()), status: current.status },
       after: {
         paymentCentavos: input.amountCentavos,
+        paymentMethodId: input.paymentMethodId,
         paidCentavos: Number(updated.paid.toCentavos()),
         status: updated.status,
         paidAt,

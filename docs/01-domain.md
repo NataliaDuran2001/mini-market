@@ -162,15 +162,15 @@ By default a sale that would drive `stock_level` below zero is rejected with `In
 | purchasing | PurchaseLine | purchase_id, product_id, presentation_id, quantity, base_quantity, unit_cost, total |
 | sales | Sale | tenant_id, number (per-tenant sequence), date, payment_method_id, customer_id (nullable), total, status (`confirmed`, `voided`), voided_at, voided_by, void_reason, created_by |
 | sales | SaleLine | sale_id, product_id, presentation_id, quantity, base_quantity, unit_price, unit_cost (snapshot), total |
-| payables | RecurringExpense | tenant_id, category_id, name, amount, day_of_month, is_active |
-| payables | Expense | tenant_id, category_id, recurring_expense_id (nullable), name, amount, period, due_date, paid_amount, paid_at |
+| payables | RecurringExpense | tenant_id, expense_category_id, name, amount_centavos, day_of_month_due, active, starts_period, ends_period (nullable) |
+| payables | Expense | tenant_id, expense_category_id, recurring_expense_id (nullable), name, amount_centavos, period_year, period_month, due_date (nullable), status (`pending`, `partial`, `paid`), paid_centavos, notes, created_by |
 | payables | Payable (read model) | kind (`expense`, `purchase`), source_id, due_date, amount, paid_amount, balance |
-| payables | Payment | tenant_id, payable_kind, payable_id, amount, date, payment_method_id, created_by |
+| payables | Payment (`expense_payments`, append-only; purchases join in issue #41) | tenant_id, expense_id, amount_centavos, paid_at, payment_method_id, created_by |
 | equity | CapitalMovement (append-only) | tenant_id, kind (`contribution`, `withdrawal`), amount_centavos (positive), occurred_at, note, created_by, created_at |
 | reporting | DailySalesReport, MonthlyReport, TopProducts | read models, computed, not stored |
-| receivables | Customer | tenant_id, name, phone, document, credit_limit (nullable), is_active |
-| receivables | CreditLedgerEntry (append-only) | tenant_id, customer_id, type (`sale`, `collection`, `void`), amount (signed), reference_id, created_at |
-| receivables | Collection | tenant_id, customer_id, amount, date, payment_method_id, created_by |
+| receivables | Customer | tenant_id, name, phone, document_id, credit_limit_centavos (nullable), notes, active |
+| receivables | CreditLedgerEntry (table `credit_ledger`, append-only) | tenant_id, customer_id, kind (`charge`, `payment`, `reversal`), amount_centavos (signed: charge positive, payment and reversal negative), reference_type, reference_id (the sale of a charge and its reversal), payment_method (payments only: `cash`, `transfer`, `qr`, `card`), occurred_at, created_by |
+| receivables | Collection (a `payment` line of the ledger, not a table) | customer_id, amount, date, method, created_by |
 | audit (cross-cutting) | AuditLogEntry | tenant_id, user_id, action, entity_type, entity_id, before, after, created_at |
 
 ## 4. Permission matrix

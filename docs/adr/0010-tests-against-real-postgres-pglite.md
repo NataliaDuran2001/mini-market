@@ -11,7 +11,7 @@ Tenant isolation relies on RLS and SQL. Mocked repositories cannot prove RLS pol
 - Integration tests for use cases and repositories run against `@electric-sql/pglite`, an in-process PostgreSQL. Real migrations are applied; role `app_user` and RLS are active.
 - One PGlite instance per test file, truncation between tests.
 - Domain logic is tested with pure unit tests, no database.
-- e2e (Playwright) runs against a local Postgres or PGlite server mode seeded by the provisioning script, with a test JWT issuer replacing Supabase Auth.
+- e2e (Playwright) runs the real API on an in-memory PGlite (same migrations, `app_user`, RLS) seeded by the provisioning script, with a small fake Supabase Auth server (JWKS, password login, invite) replacing the hosted service. Both live under `apps/api/test/e2e` (issue #16; supersedes the earlier idea of PGlite server mode and an env-switched test issuer, which would have put a test-only switch in production code).
 - Supabase projects are never used by automated tests.
 
 ## Consequences

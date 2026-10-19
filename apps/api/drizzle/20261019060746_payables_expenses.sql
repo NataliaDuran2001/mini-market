@@ -68,6 +68,7 @@ CREATE INDEX "expenses_tenant_id_idx" ON "expenses" USING btree ("tenant_id");--
 CREATE INDEX "expenses_tenant_period_idx" ON "expenses" USING btree ("tenant_id","period_year","period_month");--> statement-breakpoint
 CREATE UNIQUE INDEX "expenses_recurring_period_idx" ON "expenses" USING btree ("tenant_id","recurring_expense_id","period_year","period_month") WHERE "expenses"."recurring_expense_id" is not null;--> statement-breakpoint
 CREATE INDEX "recurring_expenses_tenant_id_idx" ON "recurring_expenses" USING btree ("tenant_id");
+
 --> statement-breakpoint
 SELECT "app"."enable_tenant_rls"('public.recurring_expenses');
 --> statement-breakpoint

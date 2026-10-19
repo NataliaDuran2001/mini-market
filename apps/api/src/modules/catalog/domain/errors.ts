@@ -5,3 +5,9 @@ export class DuplicateCatalogItemError extends DomainError {
   readonly code = 'DUPLICATE_CATALOG_ITEM';
   readonly httpStatus = 409;
 }
+
+/** The product code is already used by another product of the tenant. */
+export class DuplicateCodeError extends DomainError {
+  readonly code = 'DUPLICATE_CODE';
+  readonly httpStatus = 409;
+}
