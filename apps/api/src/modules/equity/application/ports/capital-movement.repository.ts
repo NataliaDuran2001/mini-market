@@ -24,6 +24,11 @@ export interface CapitalMovementPage {
  * movement (hard rule 3).
  */
 export interface CapitalMovementRepository {
+  /**
+   * Serializes recorders of one tenant until the transaction ends, so the over-withdrawal flag is
+   * computed on the totals the previous recorder committed.
+   */
+  lockLedger(tx: Transaction, tenantId: string): Promise<void>;
   insert(tx: Transaction, tenantId: string, movement: NewCapitalMovement): Promise<CapitalMovement>;
   /** Newest first. */
   list(

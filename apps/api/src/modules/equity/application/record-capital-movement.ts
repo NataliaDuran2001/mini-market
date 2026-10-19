@@ -56,6 +56,7 @@ export async function recordCapitalMovement(
 
   return ok(
     await deps.withTransaction(ctx, async (tx) => {
+      await deps.movements.lockLedger(tx, ctx.tenantId);
       const before = await deps.movements.totals(tx, ctx.tenantId);
       const movement = await deps.movements.insert(tx, ctx.tenantId, {
         kind: input.kind,

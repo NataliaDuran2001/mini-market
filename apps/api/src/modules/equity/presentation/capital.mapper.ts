@@ -9,7 +9,10 @@ import type { CapitalMovementsView } from '../application/list-capital-movements
 import type { RecordedCapitalMovement } from '../application/record-capital-movement';
 import type { CapitalMovement, CapitalSummary } from '../application/views';
 
-/** Wire money is a safe integer of centavos (`moneySchema`); the response schema checks it. */
+/**
+ * Wire money is a safe integer of centavos (`moneySchema`); the response schema checks it. A
+ * ledger total above Number.MAX_SAFE_INTEGER (about Bs 90 trillion) is out of range by decision.
+ */
 const centavos = (money: Money): number => Number(money.toCentavos());
 
 export const toMovementDto = (movement: CapitalMovement): CapitalMovementDto => ({

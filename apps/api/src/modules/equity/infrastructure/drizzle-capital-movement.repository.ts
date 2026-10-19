@@ -30,6 +30,12 @@ const toMovement = (row: Row): CapitalMovement => ({
 
 /** Inserts and reads only: the ledger has no update and no delete. */
 export class DrizzleCapitalMovementRepository implements CapitalMovementRepository {
+  async lockLedger(tx: Transaction, tenantId: string): Promise<void> {
+    await tx.execute(
+      sql`select pg_advisory_xact_lock(hashtext(${`capital_movements:${tenantId}`}))`,
+    );
+  }
+
   async insert(
     tx: Transaction,
     tenantId: string,

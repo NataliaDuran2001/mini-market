@@ -67,8 +67,14 @@ describe('capital endpoints (S8)', () => {
     expect(recordCapitalMovementResponseSchema.safeParse(response.body).success).toBe(true);
     const audit = await ctx
       .testDb()
-      .client.query('select action from audit_log where action = $1', ['capital.recorded']);
+      .client.query('select entity_id, after from audit_log where action = $1 order by at', [
+        'capital.recorded',
+      ]);
     expect(audit.rows).toHaveLength(2);
+    expect(audit.rows[1]).toMatchObject({
+      entity_id: response.body.id,
+      after: { kind: 'withdrawal', amountCentavos: 150_000, exceedsNetCapital: true },
+    });
     const summary = await call('get', '/api/v1/capital/summary', OWNER_ID);
     expect(summary.body.netCentavos).toBe(-50_000);
   });
@@ -88,14 +94,14 @@ describe('capital endpoints (S8)', () => {
     // AC-3
     await seedPeople();
     const attempts = [
-      await post({ kind: 'contribution', amountCentavos: 100 }, EMPLOYEE_ID),
-      await call('get', '/api/v1/capital/movements', EMPLOYEE_ID),
-      await call('get', '/api/v1/capital/summary', EMPLOYEE_ID),
-    ];
+      [await post({ kind: 'contribution', amountCentavos: 100 }, EMPLOYEE_ID), 'equity.record'],
+      [await call('get', '/api/v1/capital/movements', EMPLOYEE_ID), 'equity.read'],
+      [await call('get', '/api/v1/capital/summary', EMPLOYEE_ID), 'equity.read'],
+    ] as const;
 
-    for (const response of attempts) {
+    for (const [response, permission] of attempts) {
       expect(response.status).toBe(403);
-      expect(response.body).toMatchObject({ code: 'FORBIDDEN' });
+      expect(response.body).toMatchObject({ code: 'FORBIDDEN', permission });
       expect(apiErrorSchema.safeParse(response.body).success).toBe(true);
     }
     const stored = await ctx.testDb().client.query('select 1 from capital_movements');
