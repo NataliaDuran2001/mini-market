@@ -15,6 +15,8 @@ export interface RecurringExpense {
   readonly startsPeriod: Period;
   /** Last period that generates an expense, or null for no end. */
   readonly endsPeriod: Period | null;
+  /** The owner who set it up; the expenses it generates carry the same author. */
+  readonly createdBy: string;
 }
 
 const monthsOf = (period: Period): number => period.year * 12 + period.month;
