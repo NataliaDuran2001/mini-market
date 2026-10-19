@@ -110,3 +110,5 @@ export type UpdateProductInput = z.input<typeof updateProductInputSchema>;
 export type SetProductActiveInput = z.infer<typeof setProductActiveInputSchema>;
 export type SearchProductsQuery = z.infer<typeof searchProductsQuerySchema>;
 export type SearchProductsResponse = z.infer<typeof searchProductsResponseSchema>;
+export type CreateProductData = z.output<typeof createProductInputSchema>;
+export type UpdateProductData = z.output<typeof updateProductInputSchema>;

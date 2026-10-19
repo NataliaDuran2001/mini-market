@@ -100,7 +100,9 @@ export const products = tenantTable(
     categoryId: uuid(),
     baseUnitId: uuid().notNull(),
     salePriceCentavos: bigint({ mode: 'bigint' }).notNull(),
-    avgCostCentavos: bigint({ mode: 'bigint' }).notNull().default(sql`0`),
+    avgCostCentavos: bigint({ mode: 'bigint' })
+      .notNull()
+      .default(sql`0`),
     minStock: numeric({ precision: 14, scale: 3 }).notNull().default('0'),
     isActive: boolean().notNull().default(true),
     /** Reserved for v2 (custom fields module). */
