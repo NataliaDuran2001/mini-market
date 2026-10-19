@@ -31,9 +31,10 @@ export type RecordMovementFormValues = z.infer<typeof recordMovementFormSchema>;
 /** Only for values that passed `recordMovementFormSchema`. */
 export function toRecordRequest(values: RecordMovementFormValues): RecordCapitalMovementRequest {
   const amount = parseAmountToCentavos(values.amount);
+  if (!amount.ok) throw new Error(`toRecordRequest needs a validated form: ${amount.error}`);
   return recordCapitalMovementRequestSchema.parse({
     kind: values.kind,
-    amountCentavos: amount.ok ? amount.centavos : 0,
+    amountCentavos: amount.centavos,
     occurredOn: values.occurredOn,
     ...(values.note.trim() === '' ? {} : { note: values.note }),
   });

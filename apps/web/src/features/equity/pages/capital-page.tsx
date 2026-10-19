@@ -34,10 +34,14 @@ export function CapitalPage() {
         </p>
       ) : null}
       {summary.data ? <SummaryCards summary={summary.data} /> : null}
+      {summary.isPending ? <p role="status">{t('summary.loading')}</p> : null}
       {summary.isError ? (
-        <p role="alert" className="text-destructive">
-          {apiErrorMessage(i18n, summary.error)}
-        </p>
+        <div role="alert" className="grid justify-items-start gap-2">
+          <p className="text-destructive">{apiErrorMessage(i18n, summary.error)}</p>
+          <Button variant="outline" onClick={() => void summary.refetch()}>
+            {t('summary.retry')}
+          </Button>
+        </div>
       ) : null}
       <h2 className="text-lg font-semibold">{t('list.title')}</h2>
       <MovementsSection timeZone={timeZone} />

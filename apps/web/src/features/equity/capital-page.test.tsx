@@ -10,7 +10,7 @@ import { createTenantStore } from '@/lib/auth/tenant-store';
 import { TEST_USER } from '@/test/fake-auth-gateway';
 import { apiUrl } from '@/test/msw/api-url';
 import { EMPLOYEE_TENANT, OWNER_TENANT } from '@/test/msw/handlers/access';
-import { aMovement, capitalHandlers } from '@/test/msw/handlers/equity';
+import { aMovement, capitalHandlers, capitalReadHandlers } from '@/test/msw/handlers/equity';
 import { server } from '@/test/msw/server';
 import { renderApp } from '@/test/render-app';
 import { renderWithProviders } from '@/test/render-with-providers';
@@ -25,17 +25,19 @@ function renderPage() {
 const summaryCard = (id: 'contributed' | 'withdrawn' | 'net') =>
   screen.getByTestId(`summary-${id}`);
 
-async function record(kind: 'contribution' | 'withdrawal', amount: string) {
+async function record(kind: 'contribution' | 'withdrawal', amount: string, note = '') {
   const user = userEvent.setup();
   await user.click(await screen.findByRole('button', { name: equity.record.open }));
   const sheet = await screen.findByRole('dialog');
   await user.click(within(sheet).getByLabelText(equity.kind[kind]));
   await user.type(within(sheet).getByLabelText(equity.record.amount), amount);
+  if (note) await user.type(within(sheet).getByLabelText(equity.record.note), note);
   await user.click(within(sheet).getByRole('button', { name: equity.record.submit }));
 }
 
 describe('CapitalPage', () => {
   it('shows the totals and the movements of the business', async () => {
+    // AC-1
     server.use(
       ...capitalHandlers([
         aMovement({ id: '66666666-6666-4666-8666-666666666601', amountCentavos: 1_000_000 }),
@@ -61,14 +63,17 @@ describe('CapitalPage', () => {
     server.use(...capitalHandlers());
     renderPage();
     expect(await screen.findByText(equity.list.empty)).toBeInTheDocument();
-    expect(within(summaryCard('net')).getByText(bs(0))).toBeInTheDocument();
+    expect(
+      await within(await screen.findByTestId('summary-net')).findByText(bs(0)),
+    ).toBeInTheDocument();
 
-    await record('contribution', '1500,50');
+    await record('contribution', '1500,50', 'capital inicial');
 
     expect(await within(summaryCard('contributed')).findByText(bs(150_050))).toBeInTheDocument();
     expect(within(summaryCard('net')).getByText(bs(150_050))).toBeInTheDocument();
     expect(await screen.findByText(`+${bs(150_050)}`)).toBeInTheDocument();
     expect(screen.getByText(equity.record.success)).toBeInTheDocument();
+    expect(screen.getByText('capital inicial')).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
@@ -85,7 +90,6 @@ describe('CapitalPage', () => {
   });
 
   it('sends whole centavos to the API, never a decimal', async () => {
-    // AC-1
     let sent: unknown;
     server.use(
       http.post(apiUrl('/capital/movements'), async ({ request }) => {
@@ -103,7 +107,6 @@ describe('CapitalPage', () => {
   });
 
   it('asks for a valid amount before calling the API', async () => {
-    // AC-1
     let posted = false;
     server.use(
       http.post(apiUrl('/capital/movements'), () => {
@@ -127,7 +130,11 @@ describe('CapitalPage', () => {
     renderPage();
 
     expect((await screen.findAllByRole('alert')).length).toBeGreaterThan(0);
-    expect(screen.getByRole('button', { name: equity.list.retry })).toBeInTheDocument();
+    const retries = screen.getAllByRole('button', { name: equity.list.retry });
+    expect(retries).toHaveLength(2); // one for the totals, one for the ledger
+    server.use(...capitalReadHandlers([aMovement({ note: 'ya cargó' })]));
+    for (const retry of retries) await userEvent.setup().click(retry);
+    expect(await screen.findByText('ya cargó')).toBeInTheDocument();
   });
 });
 

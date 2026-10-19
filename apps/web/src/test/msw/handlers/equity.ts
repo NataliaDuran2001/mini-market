@@ -40,6 +40,11 @@ export function summaryOf(movements: readonly CapitalMovement[]): CapitalSummary
  * A ledger kept in memory, for tests: the three capital endpoints answer from it and the POST
  * appends to it, so a test can watch the summary change after a save.
  */
+/** The two GET endpoints over a fixed ledger. */
+export function capitalReadHandlers(initial: readonly CapitalMovement[] = []) {
+  return capitalHandlers(initial).slice(0, 2);
+}
+
 export function capitalHandlers(initial: readonly CapitalMovement[] = []) {
   const ledger = [...initial];
   let nextId = 100;
@@ -71,4 +76,4 @@ export function capitalHandlers(initial: readonly CapitalMovement[] = []) {
 
 // Default: a business without movements (read only, so no test leaks state into the next). Tests
 // that record movements use server.use(...capitalHandlers(...)).
-export const handlers = capitalHandlers().slice(0, 2);
+export const handlers = capitalReadHandlers();

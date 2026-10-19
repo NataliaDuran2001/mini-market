@@ -6,13 +6,13 @@
     "contributed": "Aportado",
     "withdrawn": "Retirado",
     "net": "Capital neto",
-    "error": "No se pudo cargar el resumen."
+    "loading": "Cargando resumen...",
+    "retry": "Reintentar"
   },
   "list": {
     "title": "Movimientos",
     "empty": "Todavía no registraste movimientos de capital.",
     "loading": "Cargando movimientos...",
-    "error": "No se pudo cargar la lista de movimientos.",
     "retry": "Reintentar",
     "date": "Fecha",
     "kind": "Tipo",
