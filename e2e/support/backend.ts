@@ -5,6 +5,9 @@ const supabasePort = Number(process.env['E2E_SUPABASE_PORT'] ?? apiPort + 2000);
 const supabaseUrl = `http://localhost:${supabasePort}`;
 const apiUrl = `http://localhost:${apiPort}/api/v1`;
 
+/** Base URL of the API, `/api/v1` included. */
+export const apiBaseUrl = (): string => apiUrl;
+
 export interface SeededTenant {
   readonly name: string;
   readonly slug: string;

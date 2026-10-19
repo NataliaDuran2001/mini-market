@@ -29,7 +29,7 @@ import type { FakeSupabase } from './fake-supabase';
 
 const SERVICE_ROLE_KEY = 'e2e-service-role-key';
 /** Every seeded and invited user signs in with this; the invite email round trip is not tested. */
-export const E2E_PASSWORD = 'e2e-Passw0rd!';
+const E2E_PASSWORD = 'e2e-Passw0rd!';
 
 const apiPort = Number(process.env['API_PORT'] ?? 3001);
 const supabasePort = Number(process.env['E2E_SUPABASE_PORT'] ?? apiPort + 2000);
@@ -179,11 +179,15 @@ async function main(): Promise<void> {
   console.log(`e2e backend ready: api ${apiUrl}, fake supabase ${fake.url}`);
 
   const stop = () => {
-    void app
+    app
       .close()
       .then(() => fake.close())
       .then(() => client.close())
-      .finally(() => process.exit(0));
+      .then(() => process.exit(0))
+      .catch((error: unknown) => {
+        console.error(error);
+        process.exit(1);
+      });
   };
   process.on('SIGINT', stop);
   process.on('SIGTERM', stop);

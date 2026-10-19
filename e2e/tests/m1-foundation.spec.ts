@@ -3,6 +3,7 @@ import { AcceptInvitationPage } from '../pages/accept-invitation-page';
 import { LoginPage } from '../pages/login-page';
 import { ShellPage } from '../pages/shell-page';
 import {
+  apiBaseUrl,
   callApi,
   createEmployee,
   inviteEmployee,
@@ -49,8 +50,9 @@ test.describe('M1 login and roles @M1', () => {
     await expect(shell.tenantName).toHaveText(seed.tenants.a.name);
     await expect(page).toHaveURL('/');
     const sections = await shell.sections();
-    for (const section of [...OWNER_SECTIONS, 'Fiado / Clientes'])
-      expect(sections).toContain(section);
+    for (const section of OWNER_SECTIONS) expect(sections).toContain(section);
+    // Module entries follow the tenant settings, which load a moment after the role.
+    await expect.poll(() => shell.sections()).toContain('Fiado / Clientes');
     await expect(page.getByText(seed.tenants.b.name)).toHaveCount(0);
   });
 
@@ -75,7 +77,7 @@ test.describe('M1 login and roles @M1', () => {
     const shell = new ShellPage(page);
 
     await expect(shell.tenantName).toHaveText(seed.tenants.b.name);
-    expect(await shell.sections()).toContain('Fiado / Clientes');
+    await expect.poll(() => shell.sections()).toContain('Fiado / Clientes');
     await expect(page.getByText(seed.tenants.a.name)).toHaveCount(0);
 
     // The pharmacy preset switches lots and fractional sales on; the minimarket preset does not.
@@ -166,6 +168,23 @@ test.describe('M1 tenant isolation @M1', () => {
     });
     expect(members.status).toBe(403);
     expect(members.body['code']).toBe('FORBIDDEN');
+  });
+});
+
+// AC-1: part of `pnpm e2e --grep @M1` (chromium-mobile and chromium-desktop)
+test.describe('M1 transport headers @M1', () => {
+  test('the API sends security headers and allows only the web origin', async () => {
+    const webOrigin = `http://localhost:${process.env['WEB_PORT'] ?? 5173}`;
+    const health = `${apiBaseUrl()}/health`;
+
+    const allowed = await fetch(health, { headers: { Origin: webOrigin } });
+    expect(allowed.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(allowed.headers.get('strict-transport-security')).toBeTruthy();
+    expect(allowed.headers.get('x-powered-by')).toBeNull();
+    expect(allowed.headers.get('access-control-allow-origin')).toBe(webOrigin);
+
+    const foreign = await fetch(health, { headers: { Origin: 'http://evil.example' } });
+    expect(foreign.headers.get('access-control-allow-origin')).toBeNull();
   });
 });
 

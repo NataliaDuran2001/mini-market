@@ -10,7 +10,9 @@
     "lint:fix": "eslint . --fix"
   },
   "devDependencies": {
+    "@mini-market/api": "workspace:*",
     "@mini-market/config": "workspace:*",
+    "@mini-market/web": "workspace:*",
     "@playwright/test": "1.63.0",
     "@types/node": "catalog:",
     "eslint": "catalog:",

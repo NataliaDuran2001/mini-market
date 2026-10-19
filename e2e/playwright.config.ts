@@ -35,8 +35,11 @@ export default defineConfig({
       // API on PGlite with a fake Supabase and two provisioned tenants (apps/api/test/e2e).
       command: 'pnpm --filter @mini-market/api exec node -r @swc-node/register test/e2e/server.ts',
       url: `http://localhost:${supabasePort}/__e2e/ready`,
-      reuseExistingServer: !process.env['CI'],
+      // Never reuse a running server: it could be a dev web build pointing at a real Supabase project
+      // or a stale backend from an earlier run.
+      reuseExistingServer: false,
       timeout: 120_000,
+      gracefulShutdown: { signal: 'SIGTERM', timeout: 5_000 },
       env: {
         API_PORT: String(apiPort),
         WEB_PORT: String(webPort),
@@ -46,8 +49,11 @@ export default defineConfig({
     {
       command: 'pnpm --filter @mini-market/web dev',
       url: webUrl,
-      reuseExistingServer: !process.env['CI'],
+      // Never reuse a running server: it could be a dev web build pointing at a real Supabase project
+      // or a stale backend from an earlier run.
+      reuseExistingServer: false,
       timeout: 120_000,
+      gracefulShutdown: { signal: 'SIGTERM', timeout: 5_000 },
       env: {
         WEB_PORT: String(webPort),
         VITE_API_URL: `http://localhost:${apiPort}`,

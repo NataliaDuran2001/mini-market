@@ -30,7 +30,7 @@
       "persistent": true
     },
     "e2e": {
-      "dependsOn": ["build"],
+      "dependsOn": ["^build"],
       "cache": false
     }
   }

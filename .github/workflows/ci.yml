@@ -61,8 +61,8 @@ jobs:
         if: ${{ !cancelled() }}
         run: pnpm audit --prod --audit-level high
 
-  # Playwright skeleton. Not a required check. It runs when e2e/ or an app changed and only once
-  # the e2e suite exists (e2e/playwright.config.ts). The Playwright config starts the API and the
+  # Playwright suite (e2e/). Not a required check. It runs when e2e/ or an app changed and the suite
+  # exists (e2e/playwright.config.ts). The Playwright config starts the API and the
   # web itself (webServer), as docs/06-testing-strategy.md section 7 describes.
   e2e:
     name: e2e

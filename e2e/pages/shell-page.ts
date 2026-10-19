@@ -22,6 +22,10 @@ export class ShellPage {
 
   /** Names of every section the person can reach from the menu. */
   async sections(): Promise<string[]> {
+    // The menu is filtered once the role and the modules are known; wait for its first entry.
+    await expect(this.navigation.getByRole('link').first()).toBeVisible();
+    // Sections that need a permission appear once the role is known: wait for the first of them.
+    await expect(this.navigation.getByRole('link', { name: 'Vender' })).toBeVisible();
     const names = await this.navigation.getByRole('link').allInnerTexts();
     if (this.isPhone) {
       await this.navigation.getByRole('button', { name: 'Más' }).click();
