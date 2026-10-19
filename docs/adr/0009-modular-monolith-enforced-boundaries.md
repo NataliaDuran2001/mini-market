@@ -27,3 +27,7 @@ The requirement is clean, scalable code organized by domain, testable in isolati
 - Global layers (`controllers/`, `services/`, `models/`): coupling grows with every feature. Rejected.
 - Microservices: premature. Rejected.
 - Full hexagonal with five or more layers per module: more ceremony than value at this size.
+
+## Amendments
+
+- 2026-10-18: added the edge `payables -> catalog` (expenses reference expense categories and payment methods; catalog depends only on tenancy, so the graph stays acyclic). `purchasing -> catalog` follows with the purchases issue.

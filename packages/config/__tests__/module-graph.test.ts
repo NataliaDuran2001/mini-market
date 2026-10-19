@@ -18,7 +18,7 @@ const DOCUMENTED_GRAPH: Record<string, readonly string[]> = {
   inventory: ['catalog'],
   purchasing: ['inventory', 'payables'],
   sales: ['catalog', 'inventory', 'receivables'],
-  payables: ['tenancy'],
+  payables: ['catalog', 'tenancy'],
   equity: ['tenancy'],
   receivables: ['tenancy'],
 };

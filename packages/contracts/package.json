@@ -25,6 +25,10 @@
       "types": "./dist/inventory/index.d.ts",
       "default": "./dist/inventory/index.js"
     },
+    "./payables": {
+      "types": "./dist/payables/index.d.ts",
+      "default": "./dist/payables/index.js"
+    },
     "./purchasing": {
       "types": "./dist/purchasing/index.d.ts",
       "default": "./dist/purchasing/index.js"
