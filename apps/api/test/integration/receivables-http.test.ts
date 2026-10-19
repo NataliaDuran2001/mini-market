@@ -20,8 +20,8 @@ describe('customers and receivables endpoints (S6)', () => {
     userId: string,
     options: { body?: object; tenant?: string } = {},
   ) => {
-    const scoped = request(server())
-      [method](path)
+    const agent = request(server());
+    const scoped = agent[method](path)
       .set('Authorization', await ctx.bearer({ sub: userId }))
       .set('X-Tenant-Id', options.tenant ?? ctx.tenantId());
     return options.body ? scoped.send(options.body) : scoped;
