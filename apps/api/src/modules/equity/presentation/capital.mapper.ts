@@ -7,7 +7,7 @@ import type {
 import type { Money } from '@mini-market/shared-kernel';
 import type { CapitalMovementsView } from '../application/list-capital-movements';
 import type { RecordedCapitalMovement } from '../application/record-capital-movement';
-import type { CapitalMovement, CapitalSummary } from '../domain/capital-movement';
+import type { CapitalMovement, CapitalSummary } from '../application/views';
 
 /** Wire money is a safe integer of centavos (`moneySchema`); the response schema checks it. */
 const centavos = (money: Money): number => Number(money.toCentavos());

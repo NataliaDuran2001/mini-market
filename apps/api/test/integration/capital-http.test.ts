@@ -18,8 +18,8 @@ describe('capital endpoints (S8)', () => {
     userId: string,
     options: { body?: object; tenant?: string } = {},
   ) => {
-    const scoped = request(server())
-      [method](path)
+    const agent = request(server());
+    const scoped = agent[method](path)
       .set('Authorization', await ctx.bearer({ sub: userId }))
       .set('X-Tenant-Id', options.tenant ?? ctx.tenantId());
     return options.body ? scoped.send(options.body) : scoped;
@@ -174,8 +174,8 @@ describe('capital endpoints (S8)', () => {
     const id = created.body.id as string;
 
     for (const method of ['put', 'patch', 'delete'] as const) {
-      const response = await request(server())
-        [method](`/api/v1/capital/movements/${id}`)
+      const agent = request(server());
+      const response = await agent[method](`/api/v1/capital/movements/${id}`)
         .set('Authorization', await ctx.bearer({ sub: OWNER_ID }))
         .set('X-Tenant-Id', ctx.tenantId());
       expect(response.status).toBe(404);
