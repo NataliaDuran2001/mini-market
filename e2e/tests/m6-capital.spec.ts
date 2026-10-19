@@ -9,7 +9,8 @@ import { formatBs, typedBs } from '../support/money';
 // out, the totals add up, and an employee never reaches any of it. The specs use tenant B so that
 // the minimarket (A) stays clean for the sales and report flows of later milestones, and compare
 // against the totals read before they start, because the same backend serves both projects
-// (chromium-mobile, then chromium-desktop).
+// (chromium-mobile, then chromium-desktop). The serial run of playwright.config.ts (one worker) is a
+// precondition: the totals are compared exactly, so two specs must not write to B at the same time.
 const test = base.extend<object, { seed: Seed }>({
   seed: [
     // Playwright requires the destructured first argument, even when no fixture is used.
@@ -102,23 +103,32 @@ test.describe('M6 capital @M6', () => {
     const capital = await openCapital(page, tenant, seed.password);
     const excess = Math.max(before.net, 0) + 1; // one centavo more than the business holds
 
-    await capital.record('Retiro', typedBs(excess), `${MARKER} retiro excesivo`);
+    try {
+      await capital.record('Retiro', typedBs(excess), `${MARKER} retiro excesivo`);
 
-    await expect(capital.notice).toContainText('supera el capital neto');
-    await expect(capital.card('withdrawn')).toContainText(formatBs(before.withdrawn + excess));
-    await expect(capital.card('net')).toContainText(formatBs(before.net - excess));
-    expect((await totalsOf(tenant)).net).toBe(before.net - excess);
-
-    // Put the capital back, so later specs start from a non-negative business.
-    const restored = await callApi({
-      as: tenant.ownerEmail,
-      path: '/capital/movements',
-      method: 'POST',
-      tenantId: tenant.tenantId,
-      body: { kind: 'contribution', amountCentavos: excess, note: `${MARKER} reposición` },
-    });
-    expect(restored.status).toBe(200);
-    expect(restored.body['warning']).toBe(false);
+      await expect(capital.notice).toContainText('supera el capital neto');
+      await expect(capital.card('withdrawn')).toContainText(formatBs(before.withdrawn + excess));
+      await expect(capital.card('net')).toContainText(formatBs(before.net - excess));
+      expect((await totalsOf(tenant)).net).toBe(before.net - excess);
+    } finally {
+      // Put the capital back, even when an assertion failed, so later specs start from a
+      // non-negative business.
+      const after = await totalsOf(tenant);
+      if (after.net < before.net) {
+        const restored = await callApi({
+          as: tenant.ownerEmail,
+          path: '/capital/movements',
+          method: 'POST',
+          tenantId: tenant.tenantId,
+          body: {
+            kind: 'contribution',
+            amountCentavos: before.net - after.net,
+            note: `${MARKER} reposición`,
+          },
+        });
+        expect(restored.status).toBe(200);
+      }
+    }
   });
 
   test('an employee has no Capital in the menu and is sent to "Sin permiso"; the API says 403', async ({
@@ -160,9 +170,29 @@ test.describe('M6 capital @M6', () => {
 
   test('the capital of one business is invisible to the owner of the other', async ({ seed }) => {
     const [a, b] = [seed.tenants.a, seed.tenants.b];
+    // Positive control: B holds a movement carrying the marker, so its absence from A means something.
+    const seeded = await callApi({
+      as: b.ownerEmail,
+      path: '/capital/movements',
+      method: 'POST',
+      tenantId: b.tenantId,
+      body: { kind: 'contribution', amountCentavos: 100, note: `${MARKER} aislamiento` },
+    });
+    expect(seeded.status).toBe(200);
+    const ofB = await callApi({
+      as: b.ownerEmail,
+      path: '/capital/movements?pageSize=100',
+      tenantId: b.tenantId,
+    });
+    expect(JSON.stringify(ofB.body['items'])).toContain(`${MARKER} aislamiento`);
     for (const attempt of [
       { path: '/capital/summary', method: 'GET' },
       { path: '/capital/movements', method: 'GET' },
+      {
+        path: '/capital/movements',
+        method: 'POST',
+        body: { kind: 'contribution', amountCentavos: 100 },
+      },
     ]) {
       const crossed = await callApi({ as: a.ownerEmail, tenantId: b.tenantId, ...attempt });
       expect(crossed.status, attempt.path).toBe(403);
