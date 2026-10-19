@@ -14,6 +14,7 @@ export function occurredAtOf(
   if (occurredOn === undefined || occurredOn === today) return ok(now);
   const range = Period.dayRange(occurredOn, timeZone);
   if (!range.ok) return range;
-  if (occurredOn > today) return err(new ValidationError('The collection date cannot be in the future'));
+  if (occurredOn > today)
+    return err(new ValidationError('The collection date cannot be in the future'));
   return ok(range.value.start);
 }

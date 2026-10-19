@@ -1,10 +1,7 @@
 import { and, asc, eq, ilike, or, sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import type { Transaction } from '../../../infrastructure/db/database';
-import type {
-  CustomerFilter,
-  CustomerRepository,
-} from '../application/ports/customer.repository';
+import type { CustomerFilter, CustomerRepository } from '../application/ports/customer.repository';
 import type { Customer, CustomerDetails, CustomerPatch } from '../domain/customer';
 import { customers } from './schema';
 

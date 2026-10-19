@@ -5,10 +5,7 @@ import { CLOCK, WITH_TRANSACTION } from '../../infrastructure/tokens';
 import { AUDIT_PORT, permissionsProvider } from '../access';
 import type { AuditPort } from '../access';
 import { CREATE_CUSTOMER, createCustomer } from './application/create-customer';
-import {
-  GET_CUSTOMER_STATEMENT,
-  getCustomerStatement,
-} from './application/get-customer-statement';
+import { GET_CUSTOMER_STATEMENT, getCustomerStatement } from './application/get-customer-statement';
 import { LIST_BALANCES, listBalances } from './application/list-balances';
 import type { CreditLedgerRepository } from './application/ports/credit-ledger.repository';
 import type { CustomerRepository } from './application/ports/customer.repository';

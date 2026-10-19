@@ -61,7 +61,9 @@ export async function listBalances(
       const customers = await deps.customers.list(tx, ctx.tenantId, { q: filter.q });
       const balances = await deps.ledger.balances(tx, ctx.tenantId);
       const balanceFor = (customer: Customer): Money => balances.get(customer.id) ?? Money.zero();
-      const listed = customers.filter((customer) => !filter.withBalance || isOwed(balanceFor(customer)));
+      const listed = customers.filter(
+        (customer) => !filter.withBalance || isOwed(balanceFor(customer)),
+      );
       const owing = listed.filter((customer) => isOwed(balanceFor(customer)));
       const entries = await deps.ledger.entriesOfCustomers(
         tx,

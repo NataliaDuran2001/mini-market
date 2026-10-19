@@ -60,11 +60,14 @@ describe('credit ledger rules (S6)', () => {
     [90, 10, 100, false],
     [90, 20, null, false],
     [0, 1, 0, true],
-  ])('balance %i plus charge %i against limit %s exceeds: %s', (balance, charge, limit, expected) => {
-    const limitCentavos = limit === null ? null : BigInt(limit * 100);
+  ])(
+    'balance %i plus charge %i against limit %s exceeds: %s',
+    (balance, charge, limit, expected) => {
+      const limitCentavos = limit === null ? null : BigInt(limit * 100);
 
-    expect(exceedsCreditLimit(bs(balance), bs(charge), limitCentavos)).toBe(expected);
-  });
+      expect(exceedsCreditLimit(bs(balance), bs(charge), limitCentavos)).toBe(expected);
+    },
+  );
 
   describe('oldestUnpaidChargeAt', () => {
     it('is the first charge when nothing was paid', () => {

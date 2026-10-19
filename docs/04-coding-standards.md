@@ -33,7 +33,7 @@ These rules apply to every pull request. CI enforces the ones marked "lint" or "
 | Repository per aggregate | `SaleRepository`, `ProductRepository`. Ports are interfaces in `application/ports/`. Implementations live in `infrastructure/`. |
 | No ORM in use cases | Use cases talk to ports only. Exception: `reporting` queries. |
 | Time via `Clock` | `clock.now()` from deps. `new Date()` only inside infrastructure. |
-| Ledgers are append-only | Never `UPDATE` or `DELETE` on `stock_movements`, `credit_ledger_entries`, `audit_log`. |
+| Ledgers are append-only | Never `UPDATE` or `DELETE` on `stock_movements`, `credit_ledger`, `audit_log`. |
 
 ## 4. Presentation layer (API) and pages (web)
 

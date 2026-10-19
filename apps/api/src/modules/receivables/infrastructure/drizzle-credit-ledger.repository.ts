@@ -5,15 +5,20 @@ import type {
   CreditLedgerRepository,
   NewLedgerEntry,
 } from '../application/ports/credit-ledger.repository';
-import type { CollectionMethod, LedgerEntry, LedgerKind } from '../domain/credit-ledger';
-import type { LedgerReference } from '../domain/credit-ledger';
+import type {
+  CollectionMethod,
+  LedgerEntry,
+  LedgerKind,
+  LedgerReference,
+} from '../domain/credit-ledger';
 import { creditLedger } from './schema';
 
 type Row = typeof creditLedger.$inferSelect;
 
 // The CHECK constraints of the table only allow these values.
 const asKind = (value: string): LedgerKind => value as LedgerKind;
-const asMethod = (value: string | null): CollectionMethod | null => value as CollectionMethod | null;
+const asMethod = (value: string | null): CollectionMethod | null =>
+  value as CollectionMethod | null;
 
 const toEntry = (row: Row): LedgerEntry => ({
   id: row.id,
@@ -116,7 +121,10 @@ export class DrizzleCreditLedgerRepository implements CreditLedgerRepository {
       .select()
       .from(creditLedger)
       .where(
-        and(eq(creditLedger.tenantId, tenantId), inArray(creditLedger.customerId, [...customerIds])),
+        and(
+          eq(creditLedger.tenantId, tenantId),
+          inArray(creditLedger.customerId, [...customerIds]),
+        ),
       )
       .orderBy(...inWriteOrder);
     return rows.map(toEntry);

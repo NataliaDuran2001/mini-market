@@ -9,8 +9,7 @@ import type { Money } from '@mini-market/shared-kernel';
 import type { RegisteredCollection } from '../application/register-collection';
 import type { CustomerStatement } from '../application/get-customer-statement';
 import type { ReceivablesView } from '../application/list-balances';
-import type { Customer } from '../application/views';
-import type { StatementLine } from '../domain/credit-ledger';
+import type { Customer, StatementLine } from '../application/views';
 
 /**
  * Wire money is a safe integer of centavos (`moneySchema`); the response schema checks it. A

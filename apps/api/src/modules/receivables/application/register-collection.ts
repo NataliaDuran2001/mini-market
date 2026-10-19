@@ -51,36 +51,46 @@ export async function registerCollection(
   if (!occurredAt.ok) return occurredAt;
   const amount = Money.fromCentavos(input.amountCentavos);
 
-  return deps.withTransaction(ctx, async (tx): Promise<Result<RegisteredCollection, DomainError>> => {
-    if (!(await deps.customers.lockById(tx, ctx.tenantId, customerId))) {
-      return err(new CustomerNotFoundError('Customer not found'));
-    }
-    const balance = await deps.ledger.balanceOf(tx, ctx.tenantId, customerId);
-    if (amount.compare(balance) > 0) {
-      return err(
-        new CollectionExceedsBalanceError('The collection is larger than what the customer owes', {
-          balanceCentavos: Number(balance.toCentavos()),
-        }),
-      );
-    }
-    const entry = await deps.ledger.append(tx, ctx.tenantId, {
-      customerId,
-      kind: 'payment',
-      amount: Money.zero().subtract(amount),
-      reference: null,
-      paymentMethod: input.method,
-      occurredAt: occurredAt.value,
-      createdBy: ctx.userId,
-    });
-    await deps.audit.record(tx, {
-      tenantId: ctx.tenantId,
-      actorUserId: ctx.userId,
-      action: 'collection.recorded',
-      entity: 'customer',
-      entityId: customerId,
-      after: { ledgerEntryId: entry.id, amountCentavos: input.amountCentavos, method: input.method },
-      at: now,
-    });
-    return ok({ entry, balance: balance.subtract(amount) });
-  });
+  return deps.withTransaction(
+    ctx,
+    async (tx): Promise<Result<RegisteredCollection, DomainError>> => {
+      if (!(await deps.customers.lockById(tx, ctx.tenantId, customerId))) {
+        return err(new CustomerNotFoundError('Customer not found'));
+      }
+      const balance = await deps.ledger.balanceOf(tx, ctx.tenantId, customerId);
+      if (amount.compare(balance) > 0) {
+        return err(
+          new CollectionExceedsBalanceError(
+            'The collection is larger than what the customer owes',
+            {
+              balanceCentavos: Number(balance.toCentavos()),
+            },
+          ),
+        );
+      }
+      const entry = await deps.ledger.append(tx, ctx.tenantId, {
+        customerId,
+        kind: 'payment',
+        amount: Money.zero().subtract(amount),
+        reference: null,
+        paymentMethod: input.method,
+        occurredAt: occurredAt.value,
+        createdBy: ctx.userId,
+      });
+      await deps.audit.record(tx, {
+        tenantId: ctx.tenantId,
+        actorUserId: ctx.userId,
+        action: 'collection.recorded',
+        entity: 'customer',
+        entityId: customerId,
+        after: {
+          ledgerEntryId: entry.id,
+          amountCentavos: input.amountCentavos,
+          method: input.method,
+        },
+        at: now,
+      });
+      return ok({ entry, balance: balance.subtract(amount) });
+    },
+  );
 }

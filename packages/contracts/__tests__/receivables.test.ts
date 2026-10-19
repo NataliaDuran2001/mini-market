@@ -81,7 +81,8 @@ describe('receivables contracts', () => {
       createdBy: ID,
     };
     expect(
-      customerStatementSchema.safeParse({ customer, balanceCentavos: 6_000, lines: [line] }).success,
+      customerStatementSchema.safeParse({ customer, balanceCentavos: 6_000, lines: [line] })
+        .success,
     ).toBe(true);
   });
 });
