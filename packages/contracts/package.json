@@ -9,6 +9,10 @@
       "types": "./dist/access/index.d.ts",
       "default": "./dist/access/index.js"
     },
+    "./catalog": {
+      "types": "./dist/catalog/index.d.ts",
+      "default": "./dist/catalog/index.js"
+    },
     "./common": {
       "types": "./dist/common/index.d.ts",
       "default": "./dist/common/index.js"
