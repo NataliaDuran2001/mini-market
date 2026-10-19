@@ -17,8 +17,8 @@ export interface PresetTenant {
 
 /**
  * Gives a new tenant the catalogs of its vertical preset (issue #18). Runs inside the
- * provisioning transaction, which is bound to the tenant; running it again adds nothing, so a
- * repeated provisioning never duplicates rows.
+ * provisioning transaction, which is bound to the tenant; rows that still have a preset name or
+ * code are not duplicated, so a repeated provisioning is safe.
  */
 export async function seedPresetCatalogs(
   deps: SeedPresetCatalogsDeps,

@@ -22,7 +22,7 @@ import { listCatalog } from '../../src/modules/catalog/application/list-catalog'
 import { updateCatalogItem } from '../../src/modules/catalog/application/update-catalog-item';
 import { EMPLOYEE_ID, OWNER_ID, useAccessApp } from '../access-fixture';
 import { asEmployee, asOwner } from '../helpers/contexts';
-import { expectTenantIsolation } from '../isolation';
+import { expectDbError, expectTenantIsolation } from '../isolation';
 
 const clock = new FixedClock('2026-10-15T14:00:00Z');
 
@@ -417,20 +417,42 @@ describe('catalogs (issue #18)', () => {
       });
     }
 
-    it('rejects a write for another tenant at the database', async () => {
-      await expect(
-        access
-          .testDb()
-          .withTransaction({ tenantId: access.tenantId(), events: [] }, (tx) =>
-            catalogs.create(
-              tx,
-              access.otherTenantId(),
-              'categories',
-              { name: 'X', sortOrder: 0 },
-              clock.now(),
+    it('rejects, at the database, a write of any kind for another tenant', async () => {
+      // AC-5
+      const rows = {
+        categories: { name: 'X', sortOrder: 0 },
+        units: { code: 'x', name: 'X', allowsDecimals: false, sortOrder: 0 },
+        'payment-methods': { code: 'x', name: 'X', kind: 'cash', sortOrder: 0 },
+        'expense-categories': { name: 'X', isFixed: false, sortOrder: 0 },
+      } as const;
+      for (const kind of CATALOG_KINDS) {
+        await expectDbError(
+          access
+            .testDb()
+            .withTransaction({ tenantId: access.tenantId(), events: [] }, (tx) =>
+              catalogs.create(tx, access.otherTenantId(), kind, rows[kind], clock.now()),
             ),
-          ),
-      ).rejects.toThrow();
+          /row-level security/,
+        );
+      }
+    });
+
+    it('answers an employee PATCH with 403 through the route', async () => {
+      await seed(access.tenantId());
+      await access.addMember({
+        tenantId: access.tenantId(),
+        userId: EMPLOYEE_ID,
+        role: 'employee',
+      });
+      const all = await listCatalog(deps(), owner(), 'categories');
+      const id = all.ok ? (all.value[0]?.id ?? '') : '';
+      const response = await request(server())
+        .patch(`/api/v1/catalogs/categories/${id}`)
+        .set('Authorization', await access.bearer({ sub: EMPLOYEE_ID }))
+        .set('X-Tenant-Id', access.tenantId())
+        .send({ isActive: false });
+      expect(response.status).toBe(403);
+      expect(await namesOf('categories')).toContain('Abarrotes');
     });
   });
 });
