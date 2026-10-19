@@ -64,6 +64,13 @@
       "when": 1792385009045,
       "tag": "20261019044329_catalog_catalogs",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792386195114,
+      "tag": "20261019050315_catalog_products",
+      "breakpoints": true
     }
   ]
 }
