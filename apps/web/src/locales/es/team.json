@@ -1,0 +1,67 @@
+{
+  "nav": {
+    "title": "Equipo"
+  },
+  "title": "Equipo",
+  "description": "Las personas que trabajan en tu negocio. Invita a tus empleados y desactiva a quien ya no deba entrar.",
+  "role": {
+    "owner": "Dueño",
+    "employee": "Empleado"
+  },
+  "status": {
+    "active": "Activo",
+    "disabled": "Inactivo",
+    "pending": "Pendiente",
+    "expired": "Vencida"
+  },
+  "members": {
+    "title": "Miembros",
+    "loading": "Cargando miembros...",
+    "loadError": "No se pudo cargar la lista de miembros.",
+    "retry": "Reintentar",
+    "empty": "Todavía no hay miembros.",
+    "you": "Tú",
+    "disable": "Desactivar",
+    "disableNamed": "Desactivar a {{email}}",
+    "enable": "Activar",
+    "enableNamed": "Activar a {{email}}",
+    "disabled": "{{email}} ya no puede entrar al negocio.",
+    "enabled": "{{email}} puede volver a entrar al negocio."
+  },
+  "disableDialog": {
+    "title": "¿Desactivar a este miembro?",
+    "description": "{{email}} dejará de tener acceso al negocio desde su próxima acción. No se borra nada y puedes activarlo de nuevo cuando quieras.",
+    "confirm": "Desactivar",
+    "cancel": "Cancelar",
+    "working": "Desactivando..."
+  },
+  "invitations": {
+    "title": "Invitaciones",
+    "description": "Invitaciones enviadas que todavía no fueron aceptadas.",
+    "loading": "Cargando invitaciones...",
+    "loadError": "No se pudo cargar la lista de invitaciones.",
+    "retry": "Reintentar",
+    "sentOn": "Enviada el {{date}}",
+    "expiresOn": "Vence el {{date}}",
+    "expiredHint": "Invita de nuevo al mismo correo para enviar un enlace nuevo."
+  },
+  "invite": {
+    "open": "Invitar empleado",
+    "title": "Invitar a un empleado",
+    "description": "Enviaremos un enlace a su correo para que cree su contraseña y entre al negocio. El enlace sirve por 7 días.",
+    "email": "Correo del empleado",
+    "emailHint": "Entrará como empleado: vende, consulta productos y registra compras.",
+    "submit": "Enviar invitación",
+    "sending": "Enviando...",
+    "success": "Invitación enviada a {{email}}."
+  },
+  "validation": {
+    "emailRequired": "Escribe el correo del empleado.",
+    "emailInvalid": "Escribe un correo válido, por ejemplo ana@correo.com."
+  },
+  "errors": {
+    "LAST_OWNER": "El negocio debe tener al menos un dueño activo.",
+    "MEMBER_NOT_FOUND": "Esa persona ya no es parte del negocio.",
+    "INVITE_DELIVERY_FAILED": "No se pudo enviar el correo de la invitación. Intenta de nuevo."
+  }
+}
