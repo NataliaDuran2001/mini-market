@@ -574,8 +574,11 @@ describe('expenses and recurring templates (S5, S9)', () => {
       });
       const countFor = (tenant: string | null) =>
         testDb.withTransaction(tenant ? { tenantId: tenant, events: [] } : null, async (tx) => {
-          const result = await tx.execute(sql`select count(*)::int as n from expense_payments`);
-          return (result.rows[0] as { n: number }).n;
+          // as: the driver result type depends on the dialect; PGlite answers { rows }.
+          const result = (await tx.execute(
+            sql`select count(*)::int as n from expense_payments`,
+          )) as unknown as { rows: { n: number }[] };
+          return result.rows[0]?.n ?? -1;
         });
 
       expect(await countFor(tenantId)).toBe(1);

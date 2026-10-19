@@ -42,6 +42,8 @@ Baseline for v1. The `architecture-reviewer` agent uses this file as a checklist
 | `product.cost_overridden` | product | old and new average cost (CSV import or manual) |
 | `capital.recorded` | capital_movement | type, amount |
 | `expense.deleted_or_cancelled` | expense | before |
+| `expense.paid` | expense | status and paid amount before, payment amount, status, paid amount and date after (issue #40) |
+| `expense.amount_changed` | expense | amount before, amount and status after (issue #40) |
 | `member.joined`, `member.disabled`, `member.role_changed` | membership | before and after: role, status (names fixed by issue #11; they replace `membership.created`, `membership.removed` and `membership.role_changed`) |
 | `tenant.settings_changed` | tenant | diff of settings |
 | `tenant.provisioned` | tenant | preset, operator |
