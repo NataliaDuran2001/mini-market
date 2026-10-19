@@ -170,10 +170,10 @@ What the scripts above already prove is marked. What needs a person is the rest.
 |---|---|---|---|
 | 1 | Provision tenant A (minimarket) and B (farmacia) | Done by `pnpm setup:tenants`, checked by `pnpm smoke:local` | For a real business with a real owner email, see 10.1 |
 | 2 | Accept the owner invitation email, set a password, log in on a phone | **You** | 10.1 and 10.2 |
-| 3 | Invite an employee, accept, log in, confirm the menu lacks Reportes, Capital and Configuración | **You** (no invite screen yet, issue #93) | 10.3 |
-| 4 | Log in as owner B and confirm the pharmacy modules in settings | Sign-in: **you**. Modules: no settings screen yet (#93); the API shows them | 10.4 |
+| 3 | Invite an employee, accept, log in, confirm the menu lacks Reportes, Capital and Configuración | **You** (screen: Equipo, `/team`) | 10.3 |
+| 4 | Log in as owner B and confirm the pharmacy modules in settings | **You** (screen: Configuración, `/settings`) | 10.4 |
 | 5 | With the token of A call the API with the tenant id of B and get 403 | Done by `pnpm smoke:local`; you can repeat it with section 7 | section 7 |
-| 6 | Disable the employee and confirm they are logged out of tenant routes | **You** (no screen yet, #93) | 10.5 |
+| 6 | Disable the employee and confirm they are logged out of tenant routes | **You** (screen: Equipo, `/team`) | 10.5 |
 | 7 | `pnpm e2e --grep @M1` green on mobile and desktop | Automated; run it (section 6) | |
 
 ### 10.1 A real owner with a real invitation email
@@ -193,7 +193,9 @@ A phone cannot open `localhost` of your computer, and the API refuses a plain `h
 1. Quick approximation, no phone: Edge or Chrome, F12, device toolbar, pick a phone size. The e2e suite already runs the `chromium-mobile` profile.
 2. Real phone: expose both ports through an https tunnel (for example Cloudflare Tunnel: `cloudflared tunnel --url http://localhost:5173` and a second one for `http://localhost:3001`), then set `WEB_ORIGIN` in `apps/api/.env` and `VITE_API_URL` in `apps/web/.env` to the two https addresses, add the web address to the Supabase redirect list (section 9), let Vite accept the tunnel host name (`server.allowedHosts` in `apps/web/vite.config.ts`, which does not exist yet), restart `pnpm dev`. Expect to adjust. A permanent staging address (the hosting decision) removes all of this: raise it with the owner when hosting is chosen.
 
-### 10.3 Invite an employee (API only until #93)
+### 10.3 Invite an employee
+
+On the web, signed in as an owner: open http://localhost:5173/team (menu "Más" > Equipo), press "Invitar empleado", enter an address you can read and send. The same call from the terminal:
 
 ```
 TOKEN_A=$(pnpm --silent dev:token a)
@@ -207,7 +209,7 @@ Expect `202`. The employee receives a real email (same sender limits as 10.1) wh
 
 ### 10.4 Pharmacy modules of owner B
 
-Sign in on the web as `owner.b@example.com`. The settings screen does not exist yet; the API answers:
+Sign in on the web as `owner.b@example.com` and open http://localhost:5173/settings (Configuración): section "Módulos" must show lots, fractional and credit sales as active; owner A shows only credit sales. The API answers the same:
 
 ```
 TOKEN_B=$(pnpm --silent dev:token b)
@@ -218,6 +220,8 @@ curl -s http://localhost:3001/api/v1/tenant -H "Authorization: Bearer $TOKEN_B" 
 The `modules` of B must show `lots`, `fractional` and `credit_sales` as `true`; A shows only `credit_sales`.
 
 ### 10.5 Disable the employee
+
+On http://localhost:5173/team press "Desactivar" next to the employee and confirm. From the terminal:
 
 ```
 curl -s http://localhost:3001/api/v1/members -H "Authorization: Bearer $TOKEN_A" -H "X-Tenant-Id: $TENANT_A"          # find the employee userId
