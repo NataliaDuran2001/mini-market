@@ -188,6 +188,49 @@ describe('/team disabling and enabling', () => {
 });
 
 describe('/team failures', () => {
+  it('shows a Spanish message when enabling a member fails', async () => {
+    // AC-5
+    const user = userEvent.setup();
+    const luis = aMember({ email: 'luis@example.com', status: 'disabled' });
+    await openTeam(teamApi({ members: [owner, luis] }));
+    server.use(
+      http.patch(apiUrl('/members/:userId'), () =>
+        HttpResponse.json(
+          { code: 'MEMBER_NOT_FOUND', message: 'Member not found' },
+          { status: 404 },
+        ),
+      ),
+    );
+
+    await user.click(await screen.findByRole('button', { name: 'Activar a luis@example.com' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(team.errors.MEMBER_NOT_FOUND);
+    expect(screen.queryByText('Member not found')).not.toBeInTheDocument();
+    expect(memberRow('luis@example.com').getByText(team.status.disabled)).toBeInTheDocument();
+  });
+
+  it('shows a Spanish message when the invitations cannot be loaded', async () => {
+    // AC-5
+    await openTeam(teamApi({ members: [owner] }));
+    server.use(
+      http.get(apiUrl('/invitations'), () =>
+        HttpResponse.json({ code: 'INTERNAL_ERROR', message: 'boom' }, { status: 500 }),
+      ),
+    );
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: team.invite.open }));
+    await user.type(
+      within(await screen.findByRole('dialog')).getByLabelText(team.invite.email),
+      'ana@example.com',
+    );
+    await user.click(
+      within(await screen.findByRole('dialog')).getByRole('button', { name: team.invite.submit }),
+    );
+
+    expect(await screen.findByText(common.errors.codes.INTERNAL_ERROR)).toBeInTheDocument();
+    expect(screen.queryByText('boom')).not.toBeInTheDocument();
+  });
+
   it('shows a Spanish message for a domain error and never the server text', async () => {
     // AC-5
     const user = userEvent.setup();

@@ -29,7 +29,9 @@ export function useInviteMember() {
   return useMutation({
     mutationFn: (body: InviteMemberRequest) =>
       api.post('/auth/invitations', { body, schema: inviteMemberResponseSchema }),
-    onSuccess: () =>
+    // Settled, not only success: the API stores the invitation before the email goes out, so a
+    // failed send (INVITE_DELIVERY_FAILED) still leaves a pending row the list must show.
+    onSettled: () =>
       queryClient.invalidateQueries({ queryKey: tenantKey(tenantId, 'invitations') }),
   });
 }

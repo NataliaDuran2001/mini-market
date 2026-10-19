@@ -256,6 +256,7 @@ test.describe('M1 invitations and disabling @M1', () => {
 // Issue #93: the owner onboards and offboards an employee from the app, and reads the modules.
 // AC-1: part of `pnpm e2e --grep @M1` (chromium-mobile and chromium-desktop)
 test.describe('M1 team and settings screens @M1', () => {
+  // AC-2, AC-3 (the invitation is listed, the employee is disabled and enabled again)
   test('the owner invites, disables and enables an employee from Equipo', async ({
     page,
     seed,
@@ -292,6 +293,7 @@ test.describe('M1 team and settings screens @M1', () => {
     expect((await tenantCall()).status).toBe(200);
   });
 
+  // AC-1
   test('an employee has no Equipo entry and cannot open /team', async ({ page, seed }) => {
     await new LoginPage(page).signIn(seed.tenants.a.employeeEmail, seed.password);
     const shell = new ShellPage(page);
@@ -303,6 +305,7 @@ test.describe('M1 team and settings screens @M1', () => {
     await expect(page.getByRole('heading', { name: 'Sin permiso' })).toBeVisible();
   });
 
+  // AC-4
   test('the owner of the pharmacy sees its modules read only in Configuración', async ({
     page,
     seed,
@@ -340,7 +343,15 @@ test.describe('M1 team and settings screens @M1', () => {
     expect(box?.x ?? -1).toBeGreaterThanOrEqual(0);
     expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(400);
     expect(await overflow()).toBeLessThanOrEqual(0);
-    await page.keyboard.press('Escape');
+
+    // The form works at this width: type, send, and the notice with the long address still fits.
+    const email = uniqueEmail('a-rather-long-address-for-a-phone-check');
+    await sheet.getByLabel('Correo del empleado').fill(email);
+    await submit.click();
+    await expect(sheet).toBeHidden();
+    await expect(page.getByRole('status').filter({ hasText: email })).toBeVisible();
+    await expect(page.getByRole('listitem').filter({ hasText: email })).toBeVisible();
+    expect(await overflow()).toBeLessThanOrEqual(0);
 
     await page.goto('/settings');
     await expect(page.getByRole('heading', { name: 'Configuración', level: 1 })).toBeVisible();

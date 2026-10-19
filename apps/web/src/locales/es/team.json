@@ -14,7 +14,6 @@
   "members": {
     "title": "Miembros",
     "loading": "Cargando miembros...",
-    "loadError": "No se pudo cargar la lista de miembros.",
     "retry": "Reintentar",
     "empty": "Todavía no hay miembros.",
     "you": "(Tú)",
@@ -36,7 +35,6 @@
     "title": "Invitaciones",
     "description": "Invitaciones enviadas que todavía no fueron aceptadas.",
     "loading": "Cargando invitaciones...",
-    "loadError": "No se pudo cargar la lista de invitaciones.",
     "retry": "Reintentar",
     "dates": "Enviada el {{sent}} · Vence el {{expires}}",
     "expiredHint": "Invita de nuevo al mismo correo para enviar un enlace nuevo."
