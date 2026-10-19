@@ -1,0 +1,52 @@
+{
+  "title": "Capital",
+  "subtitle": "Lo que pusiste en el negocio y lo que retiraste. No afecta las utilidades.",
+  "summary": {
+    "title": "Resumen del capital",
+    "contributed": "Aportado",
+    "withdrawn": "Retirado",
+    "net": "Capital neto",
+    "loading": "Cargando resumen...",
+    "retry": "Reintentar"
+  },
+  "list": {
+    "title": "Movimientos",
+    "empty": "Todavía no registraste movimientos de capital.",
+    "loading": "Cargando movimientos...",
+    "retry": "Reintentar",
+    "date": "Fecha",
+    "kind": "Tipo",
+    "amount": "Monto",
+    "note": "Nota",
+    "noNote": "Sin nota",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "pageOf": "Página {{page}} de {{pages}}"
+  },
+  "kind": {
+    "contribution": "Aporte",
+    "withdrawal": "Retiro"
+  },
+  "record": {
+    "open": "Registrar movimiento",
+    "title": "Registrar movimiento de capital",
+    "description": "Un movimiento registrado no se edita ni se borra. Si te equivocas, registra otro que lo corrija.",
+    "kind": "Tipo de movimiento",
+    "amount": "Monto (Bs)",
+    "amountHint": "Por ejemplo 1500 o 1500,50",
+    "date": "Fecha",
+    "note": "Nota (opcional)",
+    "submit": "Guardar movimiento",
+    "saving": "Guardando...",
+    "success": "Movimiento registrado.",
+    "warning": "Este retiro supera el capital neto: el capital quedó en negativo. El movimiento se registró igual."
+  },
+  "validation": {
+    "amountRequired": "Ingresa el monto.",
+    "amountInvalid": "Ingresa un monto válido, con hasta 2 decimales.",
+    "amountPositive": "El monto debe ser mayor a cero.",
+    "amountTooLarge": "El monto es demasiado grande.",
+    "dateRequired": "Elige la fecha.",
+    "noteTooLong": "La nota es demasiado larga (máximo 500 caracteres)."
+  }
+}
