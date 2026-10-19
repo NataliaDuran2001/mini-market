@@ -12,7 +12,7 @@ Checklist (report every violation with file:line, the rule, severity `blocking` 
 2. Layers: one use case per file, verb-noun; controllers and pages only parse, call, map (at most 15 lines of logic); no SQL outside `infrastructure/` (except `reporting`).
 3. Tenant isolation: every new table has `tenant_id` and an RLS policy in a migration; repositories and use cases take `TenantContext`; `withTransaction` sets `app.tenant_id`; an isolation test exists.
 4. Money and quantities: `Money` and `Quantity` value objects; no float arithmetic on money; DB columns `bigint` for money, `numeric(14,3)` for quantities.
-5. Ledgers: no UPDATE or DELETE on `stock_movements`, `credit_ledger_entries`, `capital_movements`, `audit_log`; corrections are reverse entries.
+5. Ledgers: no UPDATE or DELETE on `stock_movements`, `credit_ledger`, `capital_movements`, `audit_log`; corrections are reverse entries.
 6. Errors: `Result<T, DomainError>` for expected failures; typed errors; mapped to HTTP status in one place; Spanish messages only in the web layer.
 7. Permissions: enforced in use cases via the permission matrix; employee responses exclude cost, profit, capital, expenses; tests cover both roles.
 8. Validation: Zod schemas from `packages/contracts` at every endpoint and form; CSV limits where applicable.

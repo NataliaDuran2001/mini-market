@@ -78,6 +78,13 @@
       "when": 1792387656162,
       "tag": "20261019052736_inventory_ledger",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792389441126,
+      "tag": "20261019055721_receivables_customers_ledger",
+      "breakpoints": true
     }
   ]
 }

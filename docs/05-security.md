@@ -12,7 +12,7 @@ Baseline for v1. The `architecture-reviewer` agent uses this file as a checklist
 | Input validation | Zod schema from `@mini-market/contracts` on every endpoint. CSV import: max 5 MB, max 5,000 rows, MIME and extension check, parsed with papaparse, never evaluated. Drizzle parameterizes; raw SQL only in `reporting` through the `sql` tag with bound parameters. | Validation tests with invalid, oversized and malicious payloads (SQL fragments, script tags, formula injection `=CMD()` in CSV cells). |
 | Secrets and config | `env` validated at startup with `@t3-oss/env-core`; process exits on missing or malformed values. Service role key exists only in the API environment. `.env*` ignored by git. No secrets in logs (pino redaction of `authorization`, `password`, `token`). | CI boots the API with a minimal env and fails on a missing variable. Log redaction unit test. |
 | Transport and headers | HTTPS only in all environments. Helmet on the API: HSTS, `X-Content-Type-Options`, `Referrer-Policy`, frameguard. CORS allows only the web origin per environment with credentials disabled (bearer token, not cookies). CSP on the web host. | e2e asserts headers on API and web responses. |
-| Financial integrity | Append-only ledgers (`stock_movements`, `credit_ledger_entries`). Void by reverse entries. Database-level: no UPDATE or DELETE grants on ledger tables for `app_user`. Audit log for sensitive actions. | Tests: void does not delete; attempting UPDATE on a ledger as `app_user` fails; audit entry exists after each sensitive action. |
+| Financial integrity | Append-only ledgers (`stock_movements`, `credit_ledger`). Void by reverse entries. Database-level: no UPDATE or DELETE grants on ledger tables for `app_user`. Audit log for sensitive actions. | Tests: void does not delete; attempting UPDATE on a ledger as `app_user` fails; audit entry exists after each sensitive action. |
 | Data protection and backup | Supabase daily backups and PITR on the prod plan. Migrations reversible. No physical delete of financial rows. Minimal personal data (customer name, phone). | Migration review per PR. |
 | Dependencies | Lockfile committed. Renovate weekly. `pnpm audit --prod --audit-level high` in CI. | CI. |
 | Operator access | Supabase dashboard access limited to the operator account with 2FA. Provisioning script logs to the audit table. | Manual review. |
@@ -41,6 +41,8 @@ Baseline for v1. The `architecture-reviewer` agent uses this file as a checklist
 | `product.price_changed` | presentation | old and new price |
 | `product.cost_overridden` | product | old and new average cost (CSV import or manual) |
 | `capital.recorded` | capital_movement | type, amount |
+| `collection.recorded` | customer | ledger entry id, amount, method |
+| `customer.credit_limit_changed` | customer | old and new credit limit |
 | `expense.deleted_or_cancelled` | expense | before |
 | `member.joined`, `member.disabled`, `member.role_changed` | membership | before and after: role, status (names fixed by issue #11; they replace `membership.created`, `membership.removed` and `membership.role_changed`) |
 | `tenant.settings_changed` | tenant | diff of settings |

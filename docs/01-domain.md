@@ -168,9 +168,9 @@ By default a sale that would drive `stock_level` below zero is rejected with `In
 | payables | Payment | tenant_id, payable_kind, payable_id, amount, date, payment_method_id, created_by |
 | equity | CapitalMovement (append-only) | tenant_id, kind (`contribution`, `withdrawal`), amount_centavos (positive), occurred_at, note, created_by, created_at |
 | reporting | DailySalesReport, MonthlyReport, TopProducts | read models, computed, not stored |
-| receivables | Customer | tenant_id, name, phone, document, credit_limit (nullable), is_active |
-| receivables | CreditLedgerEntry (append-only) | tenant_id, customer_id, type (`sale`, `collection`, `void`), amount (signed), reference_id, created_at |
-| receivables | Collection | tenant_id, customer_id, amount, date, payment_method_id, created_by |
+| receivables | Customer | tenant_id, name, phone, document_id, credit_limit_centavos (nullable), notes, active |
+| receivables | CreditLedgerEntry (table `credit_ledger`, append-only) | tenant_id, customer_id, kind (`charge`, `payment`, `reversal`), amount_centavos (signed: charge positive, payment and reversal negative), reference_type, reference_id (the sale of a charge and its reversal), payment_method (payments only: `cash`, `transfer`, `qr`, `card`), occurred_at, created_by |
+| receivables | Collection (a `payment` line of the ledger, not a table) | customer_id, amount, date, method, created_by |
 | audit (cross-cutting) | AuditLogEntry | tenant_id, user_id, action, entity_type, entity_id, before, after, created_at |
 
 ## 4. Permission matrix

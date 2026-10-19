@@ -37,7 +37,7 @@ pnpm --filter api db:generate | db:migrate | db:studio
 
 1. **Tenant isolation**: every business table has `tenant_id` and an RLS policy. Every use case and repository receives an explicit `TenantContext`. Never read the tenant from a global.
 2. **Money and quantities**: use `Money` and `Quantity` from `shared-kernel`. No raw `number` arithmetic on money. Money is stored as `bigint` centavos (ADR 0004).
-3. **Ledgers are immutable**: never `UPDATE` or `DELETE` rows of `stock_movements`, `credit_ledger_entries`, `capital_movements`, `audit_log`. Corrections are reverse entries (S12).
+3. **Ledgers are immutable**: never `UPDATE` or `DELETE` rows of `stock_movements`, `credit_ledger`, `capital_movements`, `audit_log`. Corrections are reverse entries (S12).
 4. **Module boundaries**: import other modules only through their `index.ts`, respecting the dependency graph in `docs/02-architecture.md`. `eslint-plugin-boundaries` enforces this; do not disable the rule.
 5. **Layers**: `domain/` has no IO. `application/` holds one use case per file (`verb-noun.ts`, exports `verbNoun`). Controllers and pages contain no business logic (parse, call, map; ≤ 15 lines of logic).
 6. **Errors**: expected failures return `Result<T, DomainError>`. Exceptions are for bugs and infrastructure only (ADR 0013).
