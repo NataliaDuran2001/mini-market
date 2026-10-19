@@ -12,6 +12,7 @@
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "nest:module": "node -r @swc-node/register scripts/create-module.ts",
+    "inventory:verify": "node --env-file-if-exists=.env -r @swc-node/register scripts/inventory-verify.ts",
     "provision": "node --env-file-if-exists=.env -r @swc-node/register scripts/provision-tenant.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

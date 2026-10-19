@@ -32,7 +32,13 @@ export { UPDATE_PRODUCT } from './application/update-product';
 export type { UpdateProduct } from './application/update-product';
 export type { ProductRepository } from './application/ports/product.repository';
 export { DuplicateCatalogItemError, DuplicateCodeError } from './domain/errors';
-export type { NewProduct, Presentation, Product, ProductPatch } from './domain/product';
+export type {
+  NewProduct,
+  Presentation,
+  Product,
+  ProductPatch,
+  ProductSummary,
+} from './domain/product';
 export { DrizzleProductRepository } from './infrastructure/drizzle-product.repository';
 export { PRODUCT_REPOSITORY } from './catalog.module';
 export { presetCatalogsFor } from './domain/presets';

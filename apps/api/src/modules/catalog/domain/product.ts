@@ -47,6 +47,15 @@ export interface ProductPatch {
   readonly isActive?: boolean | undefined;
 }
 
+/** What other modules may know about a product without its price or cost. */
+export interface ProductSummary {
+  readonly id: string;
+  readonly name: string;
+  readonly code: string | null;
+  readonly minStock: Quantity;
+  readonly isActive: boolean;
+}
+
 /** What a product search asks for. `page` starts at 1. */
 export interface ProductSearch {
   readonly q: string | undefined;

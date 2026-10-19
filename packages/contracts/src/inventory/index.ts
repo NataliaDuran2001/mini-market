@@ -27,6 +27,13 @@ export const stockLevelSchema = z.object({
   updatedAt: z.iso.datetime(),
 });
 
+/** Answer of an adjustment and of the opening stock: the level before and after. */
+export const stockChangeSchema = z.object({
+  productId: uuidSchema,
+  before: z.string(),
+  after: z.string(),
+});
+
 const movementBase = {
   id: uuidSchema,
   productId: uuidSchema,
@@ -95,6 +102,7 @@ export const lowStockResponseSchema = paginatedSchema(lowStockItemSchema);
 
 export type MovementKind = z.infer<typeof movementKindSchema>;
 export type StockLevel = z.infer<typeof stockLevelSchema>;
+export type StockChange = z.infer<typeof stockChangeSchema>;
 export type StockMovementOwner = z.infer<typeof stockMovementOwnerSchema>;
 export type StockMovementEmployee = z.infer<typeof stockMovementEmployeeSchema>;
 export type StockMovement = z.infer<typeof stockMovementSchema>;
