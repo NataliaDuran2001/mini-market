@@ -1,0 +1,46 @@
+{
+  "suppliers": {
+    "title": "Proveedores",
+    "description": "A quién le compras mercadería. Aquí los eliges al registrar una compra.",
+    "search": "Buscar proveedor",
+    "searchPlaceholder": "Nombre, teléfono, correo o NIT",
+    "new": "Nuevo proveedor",
+    "edit": "Editar",
+    "editNamed": "Editar {{name}}",
+    "activate": "Activar",
+    "activateNamed": "Activar {{name}}",
+    "deactivate": "Desactivar",
+    "deactivateNamed": "Desactivar {{name}}",
+    "inactive": "Inactivo",
+    "loading": "Cargando proveedores...",
+    "loadError": "No se pudieron cargar los proveedores.",
+    "retry": "Reintentar",
+    "empty": "Todavía no tienes proveedores.",
+    "emptyOwner": "Crea el primero con «Nuevo proveedor».",
+    "emptySearch": "Ningún proveedor coincide con la búsqueda.",
+    "readOnly": "Solo el dueño puede crear o editar proveedores.",
+    "form": {
+      "createTitle": "Nuevo proveedor",
+      "editTitle": "Editar proveedor",
+      "description": "Datos de contacto del proveedor.",
+      "name": "Nombre",
+      "phone": "Teléfono",
+      "email": "Correo electrónico",
+      "taxId": "NIT",
+      "notes": "Notas",
+      "save": "Guardar",
+      "saving": "Guardando...",
+      "cancel": "Cancelar"
+    },
+    "toast": {
+      "created": "Proveedor creado.",
+      "updated": "Proveedor actualizado.",
+      "activated": "Proveedor activado.",
+      "deactivated": "Proveedor desactivado."
+    }
+  },
+  "errors": {
+    "SUPPLIER_NAME_TAKEN": "Ya existe un proveedor con ese nombre.",
+    "SUPPLIER_NOT_FOUND": "El proveedor ya no existe. Actualiza la lista."
+  }
+}
