@@ -20,6 +20,14 @@ Plan days below are the issue estimates (one person with Claude Code). The minim
 
 Phase 0 runs P1, P2 and P3. Lanes C, S, B and R start when #12, #13 and #15 are merged.
 
+## Repository rules
+
+The repository is public and `main` is protected. A pull request needs the `ci` check green. Nobody can push to `main`, administrators included, and force pushes and history rewrites are blocked. Documentation changes go through a pull request like code. Because the repository is public, never put secrets, personal paths or personal data in code, docs, issues, PR text or commit messages. Secret scanning and push protection are enabled.
+
+## Current focus
+
+The owner asked to close M0 and M1 first. M0 is closed. Lanes C, S, B and R are paused after their current issue and resume after M1. Lane T builds #93 and lane L builds #97, the two issues left in M1.
+
 ## Environment (every Bash command, shell state does not persist)
 
 ```

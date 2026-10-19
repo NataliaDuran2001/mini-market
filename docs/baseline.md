@@ -143,6 +143,8 @@ This is a lower bound. It adds no buffer for merge waits, CI failures, rework or
 |---|---|---|---|
 | 2026-10-18 | Baseline frozen: 51 issues, 9 milestones, 7 lanes | Initial plan | Natalia |
 | 2026-10-19 | Issue #7 (initial deploy) deferred to the milestone Go-live. M0 closes without it. Plan days of #7 stay in the baseline totals, reported separately | Owner wants the local environment first and hosting decided after a stable v1 | Natalia |
+| 2026-10-19 | Repository made public and `main` protected (pull request, check `ci`, administrators included, no force push, linear history). #6 closed, M0 closed | Owner decision: branch protection is not available on private repositories of the free plan | Natalia |
+| 2026-10-19 | Lanes C, S, B and R paused after their current issue. Execution focuses on closing M0 and M1 first | Owner decision. M2 and later resume afterwards | Natalia |
 
 ### Unplanned work discovered during execution
 
@@ -151,3 +153,5 @@ Tracked next to the baseline, not inside it. The baseline numbers above do not c
 | Date | Item | Plan days | Found by | Reason |
 |---|---|---|---|---|
 | 2026-10-18 | Shared foundations: integer `moneySchema`, `Period` day range helper, docs corrections | 0.25 | Lane P3 report | Lanes C, S, B and R need them before their first money field and day boundary |
+| 2026-10-19 | Screens for team and tenant settings, issue #93, in M1 | 1 | Lane P2 report | The M1 manual checklist asks to invite and disable employees and to see tenant modules, and no screen existed. Approved by Natalia on 2026-10-19. Estimate by the orchestrator |
+| 2026-10-19 | Local development environment and real Supabase smoke run, issue #97, in M1 | 0.75 | Owner request | Hosting is deferred, so the owner tests locally against the real Supabase dev project. Estimate by the orchestrator |
