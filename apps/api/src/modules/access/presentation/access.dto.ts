@@ -19,6 +19,6 @@ export class InviteMemberResponseDto extends createZodDto(inviteMemberResponseSc
 export class AcceptInvitationRequestDto extends createZodDto(acceptInvitationRequestSchema) {}
 export class AcceptInvitationResponseDto extends createZodDto(acceptInvitationResponseSchema) {}
 export class ListInvitationsResponseDto extends createZodDto(listInvitationsResponseSchema) {}
-export class MemberDtoextends createZodDto(memberSchema) {}
+export class MemberDto extends createZodDto(memberSchema) {}
 export class ListMembersResponseDto extends createZodDto(listMembersResponseSchema) {}
 export class UpdateMemberRequestDto extends createZodDto(updateMemberRequestSchema) {}
