@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import type { MouseEventHandler } from 'react';
 import { useTranslation } from 'react-i18next';
 import { translateKey } from '@/lib/i18n/translate-key';
 import type { NavigationItem } from '@/lib/navigation/navigation-item';
@@ -19,11 +20,14 @@ export function NavLink({
   className,
   activeClassName,
   onNavigate,
+  onClick,
 }: {
   item: NavigationItem;
   className?: string;
   activeClassName?: string;
   onNavigate?: () => void;
+  /** Also what `<SheetClose asChild>` injects, so choosing a section closes the sheet it is in. */
+  onClick?: MouseEventHandler<HTMLAnchorElement>;
 }) {
   const label = useNavigationLabel(item);
   const Icon = item.icon;
@@ -31,7 +35,10 @@ export function NavLink({
     <Link
       // as: the registry holds string paths; the route for each is registered by its own feature.
       to={item.path as '/'}
-      onClick={onNavigate}
+      onClick={(event) => {
+        onClick?.(event);
+        onNavigate?.();
+      }}
       className={cn(className)}
       activeProps={{ 'aria-current': 'page', className: cn(className, activeClassName) }}
     >

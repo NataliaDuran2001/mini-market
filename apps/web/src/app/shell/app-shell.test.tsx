@@ -202,6 +202,21 @@ describe('mobile layout', () => {
   });
 });
 
+describe('the Más sheet', () => {
+  it('closes when a section is chosen, so the new screen is not left behind the sheet', async () => {
+    const user = userEvent.setup();
+    await renderShell();
+    await user.click(tabBar().getByRole('button', { name: shell.nav.more }));
+    const dialog = await screen.findByRole('dialog');
+
+    await user.click(within(dialog).getByRole('link', { name: shell.nav.capital }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+});
+
 describe('dashboard', () => {
   it('lists a shortcut to every section the person may use', async () => {
     await renderShell();
