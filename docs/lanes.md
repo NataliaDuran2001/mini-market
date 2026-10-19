@@ -23,7 +23,7 @@ Phase 0 runs P1, P2 and P3. Lanes C, S, B and R start when #12, #13 and #15 are 
 ## Environment (every Bash command, shell state does not persist)
 
 ```
-export PATH="/c/Users/natalia.duran/.nvm/versions/node/v22.23.3/bin:$PATH"
+export PATH="$HOME/.nvm/versions/node/v22.23.3/bin:$PATH"
 ```
 
 Node 22 and pnpm 10.18 via corepack. Do not run `nvm alias` or change the user's default Node.
