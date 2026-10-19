@@ -50,6 +50,13 @@
       "when": 1792381686573,
       "tag": "20261019034806_purchasing_suppliers",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792382906277,
+      "tag": "20261019040826_equity_capital_movements",
+      "breakpoints": true
     }
   ]
 }
