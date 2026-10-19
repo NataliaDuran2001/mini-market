@@ -20,6 +20,7 @@ export type {
   PaymentMethodKind,
   Unit,
 } from './domain/catalog-item';
+export { COSTS_READ_PERMISSION } from './application/product-view';
 export { CREATE_PRODUCT } from './application/create-product';
 export type { CreateProduct } from './application/create-product';
 export { GET_PRODUCT } from './application/get-product';

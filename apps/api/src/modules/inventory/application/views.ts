@@ -7,8 +7,7 @@ import type {
 import type { TenantContext } from '../../access';
 import type { StockLevel, StockMovement } from '../domain/movement';
 
-/** Permission that unlocks cost; declared by the catalog module, owner only. */
-const COSTS_READ = 'costs.read';
+import { COSTS_READ_PERMISSION } from '../../catalog';
 
 export const toStockLevelView = (level: StockLevel): StockLevelView => ({
   productId: level.productId,
@@ -32,7 +31,7 @@ export function toMovementView(
     createdBy: movement.createdBy,
     createdAt: movement.createdAt.toISOString(),
   };
-  if (!ctx.can(COSTS_READ)) return common;
+  if (!ctx.can(COSTS_READ_PERMISSION)) return common;
   const centavos = movement.unitCost ? Number(movement.unitCost.toCentavos()) : null;
   if (centavos !== null && !Number.isSafeInteger(centavos)) {
     throw new RangeError('Unit cost does not fit the wire format');

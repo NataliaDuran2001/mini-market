@@ -86,7 +86,7 @@ export const listStockLevelsQuerySchema = paginationQuerySchema.extend({
   productIds: z
     .string()
     .transform((value) => value.split(',').filter((id) => id !== ''))
-    .pipe(z.array(uuidSchema).max(MAX_IDS))
+    .pipe(z.array(uuidSchema).min(1).max(MAX_IDS))
     .optional(),
 });
 
