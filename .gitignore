@@ -39,3 +39,6 @@ AGENTS.md
 
 # agent worktrees (local only)
 .claude/worktrees/
+
+# Supabase CLI link state (project and organization ids stay local)
+supabase/.temp/

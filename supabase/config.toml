@@ -1,0 +1,21 @@
+# Auth settings of the Supabase dev project `mini-market-dev` for the local run (issue #97).
+# Preview with `npx supabase config diff`, apply with `npx supabase config push` after linking the
+# project (docs/07-local-development.md section 9). Only the properties declared here are pushed.
+# The project ref is NOT stored in the repository: link with `npx supabase link --project-ref <ref>`.
+project_id = "mini-market-dev"
+
+[auth]
+# The web app of the local run (`pnpm dev`, port 5173).
+site_url = "http://localhost:5173"
+# Where the emailed links may land: password reset and invitation acceptance.
+additional_redirect_urls = [
+  "http://localhost:5173/reset-password",
+  "http://localhost:5173/accept-invitation",
+]
+# No public signup: accounts are created by the operator or by an owner's invitation
+# (docs/05-security.md section 6).
+enable_signup = false
+
+[auth.email]
+# A password change needs a recent sign-in ("secure password change").
+secure_password_change = true

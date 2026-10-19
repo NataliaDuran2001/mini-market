@@ -11,6 +11,7 @@ NestJS 11 API. Architecture: `docs/02-architecture.md`. Rules: `docs/04-coding-s
 | `pnpm --filter @mini-market/api build` / `start` | `tsc` to `dist/`, then `node dist/main.js`. Needs Node 22.12 or newer (`require(esm)`). |
 | `pnpm --filter @mini-market/api nest:module <name>` | Creates a module folder (see below). |
 | `pnpm --filter @mini-market/api db:generate` | Generates a SQL migration from the schema registry into `drizzle/`. |
+| `pnpm setup:env`, `setup:db`, `setup:tenants`, `smoke:local`, `wipe:dev-data`, `dev:token` | Local environment against the Supabase dev project (scripts in `scripts/`). Guide: `docs/07-local-development.md`. |
 
 Configuration is validated at startup (`src/infrastructure/config/env.ts`); copy `.env.example` to `.env`. The port comes from `API_PORT`, then `PORT`, then 3001.
 
