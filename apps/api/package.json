@@ -15,6 +15,12 @@
     "inventory:verify": "node --env-file-if-exists=.env -r @swc-node/register scripts/inventory-verify.ts",
     "provision": "node --env-file-if-exists=.env -r @swc-node/register scripts/provision-tenant.ts",
     "expenses:generate": "node --env-file-if-exists=.env -r @swc-node/register scripts/generate-expenses.ts",
+    "setup:env": "node -r @swc-node/register scripts/setup-env.ts",
+    "setup:db": "node --env-file-if-exists=.env -r @swc-node/register scripts/setup-database.ts",
+    "setup:tenants": "node --env-file-if-exists=.env -r @swc-node/register scripts/setup-tenants.ts",
+    "wipe:dev-data": "node --env-file-if-exists=.env -r @swc-node/register scripts/wipe-dev-data.ts",
+    "smoke:local": "node --env-file-if-exists=.env -r @swc-node/register scripts/smoke-local.ts",
+    "dev:token": "node --env-file-if-exists=.env -r @swc-node/register scripts/dev-token.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
