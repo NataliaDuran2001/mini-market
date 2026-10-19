@@ -22,8 +22,8 @@ describe('PATCH /api/v1/members/:userId with status active', () => {
     userId: string,
     options: { body?: object; tenant?: string } = {},
   ) => {
-    const req = request(server())
-      [method](path)
+    const agent = request(server());
+    const req = agent[method](path)
       .set('Authorization', await ctx.bearer({ sub: userId }))
       .set('X-Tenant-Id', options.tenant ?? ctx.tenantId());
     return options.body ? req.send(options.body) : req;

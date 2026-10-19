@@ -35,22 +35,20 @@ describe('GET /api/v1/invitations', () => {
   // Direct insert: tests control creation and expiry times, and the token hash is a fake value
   // that must never come back.
   const seedInvitation = async (invitation: SeedInvitation) => {
-    await ctx
-      .testDb()
-      .client.query(
-        `insert into invitations (tenant_id, email, role, token_hash, invited_by, expires_at, created_at, consumed_at)
+    await ctx.testDb().client.query(
+      `insert into invitations (tenant_id, email, role, token_hash, invited_by, expires_at, created_at, consumed_at)
          values ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [
-          invitation.tenantId,
-          invitation.email,
-          invitation.role ?? 'employee',
-          `hash-of-${invitation.tenantId}-${invitation.email}`,
-          OWNER_ID,
-          invitation.expiresAt,
-          invitation.createdAt,
-          invitation.consumedAt ?? null,
-        ],
-      );
+      [
+        invitation.tenantId,
+        invitation.email,
+        invitation.role ?? 'employee',
+        `hash-of-${invitation.tenantId}-${invitation.email}`,
+        OWNER_ID,
+        invitation.expiresAt,
+        invitation.createdAt,
+        invitation.consumedAt ?? null,
+      ],
+    );
   };
   const ago = (days: number) => new Date(Date.now() - days * DAY);
   const ahead = (days: number) => new Date(Date.now() + days * DAY);

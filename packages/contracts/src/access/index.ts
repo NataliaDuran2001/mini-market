@@ -77,7 +77,7 @@ export const invitationSchema = z.object({
 });
 export const listInvitationsResponseSchema = z.object({ items: z.array(invitationSchema) });
 
-export type MeResponse =z.infer<typeof meResponseSchema>;
+export type MeResponse = z.infer<typeof meResponseSchema>;
 export type MyTenant = z.infer<typeof myTenantSchema>;
 export type InviteMemberRequest = z.infer<typeof inviteMemberRequestSchema>;
 export type InviteMemberResponse = z.infer<typeof inviteMemberResponseSchema>;
