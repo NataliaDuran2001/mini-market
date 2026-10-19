@@ -71,6 +71,13 @@
       "when": 1792386195114,
       "tag": "20261019050315_catalog_products",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792387656162,
+      "tag": "20261019052736_inventory_ledger",
+      "breakpoints": true
     }
   ]
 }
