@@ -4,11 +4,18 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "e2e": "playwright test",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
   "devDependencies": {
+    "@mini-market/api": "workspace:*",
     "@mini-market/config": "workspace:*",
-    "eslint": "catalog:"
+    "@mini-market/web": "workspace:*",
+    "@playwright/test": "1.63.0",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:"
   }
 }
