@@ -57,12 +57,14 @@ async function main(): Promise<number> {
   return 0;
 }
 
-main().then(
-  (code) => {
-    process.exitCode = code;
-  },
-  (error: unknown) => {
-    console.error(`setup:tenants failed: ${JSON.stringify(describeError(error))}`);
-    process.exitCode = 1;
-  },
-);
+if (require.main === module) {
+  main().then(
+    (code) => {
+      process.exitCode = code;
+    },
+    (error: unknown) => {
+      console.error(`setup:tenants failed: ${JSON.stringify(describeError(error))}`);
+      process.exitCode = 1;
+    },
+  );
+}

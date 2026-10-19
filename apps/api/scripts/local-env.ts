@@ -74,6 +74,10 @@ export function buildEnvFiles(input: BuildEnvInput): BuiltEnv {
   if (missing.length > 0) {
     throw new SecretsError(`The secrets file does not define: ${missing.join(', ')}`);
   }
+  if (secrets['SUPABASE_ANON_KEY'] === secrets['SUPABASE_SERVICE_ROLE_KEY']) {
+    // The web file must never receive the service role key, even by a mix-up in the secrets file.
+    throw new SecretsError('SUPABASE_ANON_KEY must not be the same value as the service role key');
+  }
   const ref = secrets['SUPABASE_PROJECT_REF'] as string;
   const url = secrets['SUPABASE_URL'] as string;
   if (!URL.canParse(url) || new URL(url).origin !== `https://${ref}.supabase.co`) {

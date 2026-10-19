@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
@@ -57,9 +58,40 @@ describe('Data API access (Supabase roles anon and authenticated)', () => {
     },
   );
 
+  it.each(['anon', 'authenticated'])(
+    'leaves %s without EXECUTE on any function of public',
+    async (role) => {
+      // AC-3 (functions would be callable through /rest/v1/rpc)
+      const { rows } = await client.query<{ proname: string }>(
+        `select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+          where n.nspname = 'public' and has_function_privilege($1, p.oid, 'EXECUTE')`,
+        [role],
+      );
+      expect(rows).toEqual([]);
+    },
+  );
+
   it('keeps the API role working', async () => {
     const { rows } = await client.query<{ ok: boolean }>(
       `select has_table_privilege('app_user', 'users', 'SELECT') as ok`,
+    );
+    expect(rows[0]?.ok).toBe(true);
+  });
+
+  it('is undone by its rollback script, which gives the Supabase defaults back', async () => {
+    // Definition of Done: migrations reversible, checked with the Supabase roles present
+    const journal = JSON.parse(
+      readFileSync(path.resolve(__dirname, '../../drizzle/meta/_journal.json'), 'utf8'),
+    ) as { entries: { tag: string }[] };
+    const tag = journal.entries
+      .map((entry) => entry.tag)
+      .find((t) => t.endsWith('_revoke_data_api_access'));
+    expect(tag).toBeDefined();
+    await client.exec(
+      readFileSync(path.resolve(__dirname, `../../drizzle/rollback/${tag}.sql`), 'utf8'),
+    );
+    const { rows } = await client.query<{ ok: boolean }>(
+      `select has_table_privilege('anon', 'users', 'SELECT') as ok`,
     );
     expect(rows[0]?.ok).toBe(true);
   });

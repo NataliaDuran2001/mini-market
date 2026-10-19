@@ -104,6 +104,13 @@ describe('buildEnvFiles', () => {
     expect(message).not.toContain('other-project');
   });
 
+  it('rejects an anon key that is the service role key, so the web file cannot leak it', () => {
+    // AC-2
+    expect(() =>
+      buildEnvFiles({ secrets: { ...secrets, SUPABASE_ANON_KEY: SERVICE_KEY } }),
+    ).toThrow(/must not be the same value/);
+  });
+
   it('rejects a value with a line break instead of writing a broken file', () => {
     expect(() =>
       buildEnvFiles({ secrets: { ...secrets, SUPABASE_SERVICE_ROLE_KEY: 'a\nb' } }),

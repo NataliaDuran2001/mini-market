@@ -68,6 +68,7 @@ export function runSetupEnv(options: SetupEnvOptions): number {
   fs.mkdirSync(path.dirname(options.webEnvPath), { recursive: true });
   // 0o600: the API file holds the service role key and two database passwords.
   fs.writeFileSync(options.apiEnvPath, built.apiEnv, { mode: 0o600 });
+  fs.chmodSync(options.apiEnvPath, 0o600); // also for a file that already existed with looser rights
   fs.writeFileSync(options.webEnvPath, built.webEnv);
   options.log(`Wrote apps/api/.env (${built.apiKeys.join(', ')})`);
   options.log(`Wrote apps/web/.env (${built.webKeys.join(', ')})`);

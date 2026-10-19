@@ -38,8 +38,12 @@ export class AuthAdmin {
     });
   }
 
-  async #fail(action: string, response: Response): Promise<never> {
-    const body = (await response.json().catch(() => ({}))) as { error_code?: unknown };
+  /** `knownCode` is passed when the caller already consumed the response body. */
+  async #fail(action: string, response: Response, knownCode?: unknown): Promise<never> {
+    const body =
+      knownCode === undefined
+        ? ((await response.json().catch(() => ({}))) as { error_code?: unknown })
+        : { error_code: knownCode };
     const code = typeof body.error_code === 'string' ? body.error_code : 'unknown';
     throw new Error(`${action} failed with status ${response.status} (${code})`);
   }
@@ -62,7 +66,7 @@ export class AuthAdmin {
       if (match && typeof match.id === 'string') return match.id;
       if (users.length < PER_PAGE) return undefined;
     }
-    return undefined;
+    throw new Error(`Supabase user lookup gave up after ${MAX_PAGES} pages`);
   }
 
   /**
@@ -81,7 +85,7 @@ export class AuthAdmin {
     }
     const body = (await created.json().catch(() => ({}))) as { error_code?: unknown };
     if (created.status !== 422 || body.error_code !== 'email_exists') {
-      return this.#fail('Supabase user creation', created);
+      return this.#fail('Supabase user creation', created, body.error_code ?? null);
     }
     const id = await this.findUserId(email);
     if (!id) throw new Error('Supabase reports the account exists but it was not found');

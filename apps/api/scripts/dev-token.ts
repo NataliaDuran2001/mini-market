@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseEnv } from 'node:util';
+import { describeError } from '../src/infrastructure/logger/describe-error';
 import { tenantByKey } from './dev-tenants';
 
 async function main(argv: readonly string[]): Promise<number> {
@@ -42,8 +43,8 @@ main(process.argv.slice(2)).then(
   (code) => {
     process.exitCode = code;
   },
-  () => {
-    console.error('dev:token failed (network error).');
+  (error: unknown) => {
+    console.error(`dev:token failed: ${JSON.stringify(describeError(error))}`);
     process.exitCode = 1;
   },
 );

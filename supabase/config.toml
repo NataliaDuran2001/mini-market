@@ -1,6 +1,6 @@
 # Auth settings of the Supabase dev project `mini-market-dev` for the local run (issue #97).
 # Preview with `npx supabase config diff`, apply with `npx supabase config push` after linking the
-# project (docs/07-local-development.md section 9). Only the properties declared here are pushed.
+# project (docs/07-local-development.md section 9). Only the properties declared here are pushed (CLI 2.121: undeclared ones are left unchanged; always read the diff first).
 # The project ref is NOT stored in the repository: link with `npx supabase link --project-ref <ref>`.
 project_id = "mini-market-dev"
 

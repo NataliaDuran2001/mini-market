@@ -124,7 +124,13 @@ The token is a credential: keep it in the terminal, never in a file or a message
 
 ## 8. Wipe the test data
 
-`pnpm wipe:dev-data` shows what it would do. `pnpm wipe:dev-data -- --yes` empties **every table of the `public` schema** of the dev project and deletes the two test owners from Supabase Auth. It never drops tables, roles or the migration history, and does not touch other Auth users. It refuses when `MIGRATION_DATABASE_URL` and `SUPABASE_URL` belong to different projects. Use it only on the dev project.
+`pnpm wipe:dev-data` shows what it would do and changes nothing. To run it you type the ref of the dev project on purpose (Dashboard > Project Settings > General > Reference ID):
+
+```
+pnpm wipe:dev-data -- --confirm-project <project ref>
+```
+
+It empties **every table of the `public` schema** of the project and deletes the two test owners from Supabase Auth. That includes the ledger tables and every business you created by hand: the dev project must hold nothing but test data. It never drops tables, roles or the migration history, and does not touch other Auth users. It refuses when the typed ref is not the project of `MIGRATION_DATABASE_URL` and `SUPABASE_URL`, when those two belong to different projects, and when `NODE_ENV=production`. Never run it against anything but `mini-market-dev`.
 
 Then `pnpm setup:tenants` creates the two businesses again.
 
@@ -240,6 +246,6 @@ On http://localhost:5173/forgot-password enter an address that exists (the owner
 ## 12. Rules for the shared dev project
 
 - Only migrations merged to `main` are applied to `mini-market-dev`.
-- No destructive operation besides `pnpm wipe:dev-data` on data created by these scripts.
+- No destructive operation. The one exception is `pnpm wipe:dev-data`, run by you (the owner) on purpose with the project ref typed, because it empties all application data of the dev project. Agents and lanes never run it.
 - Never print, log or commit a value of the secrets file, a token, or a `.env` file. The repository is public.
 - Test accounts use `example.com` addresses. Real addresses only for the manual steps of section 10.
