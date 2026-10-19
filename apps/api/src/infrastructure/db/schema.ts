@@ -7,5 +7,6 @@ export * from '../../modules/catalog/infrastructure/schema';
 export * from '../../modules/equity/infrastructure/schema';
 export * from '../../modules/inventory/infrastructure/schema';
 export * from '../../modules/purchasing/infrastructure/schema';
+export * from '../../modules/receivables/infrastructure/schema';
 export * from '../../modules/tenancy/infrastructure/schema';
 export {};
