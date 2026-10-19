@@ -53,15 +53,29 @@ export const memberSchema = z.object({
 export const listMembersResponseSchema = z.object({ items: z.array(memberSchema) });
 
 /**
- * `PATCH /api/v1/members/:userId` (owner only): change the role, or disable the member. Exactly
- * one of the two; a disabled member is never deleted.
+ * `PATCH /api/v1/members/:userId` (owner only): change the role, or set the status to `disabled`
+ * or back to `active`. Exactly one of the two; a member is never deleted.
  */
 export const updateMemberRequestSchema = z
-  .object({ role: roleSchema.optional(), status: z.literal('disabled').optional() })
+  .object({ role: roleSchema.optional(), status: z.enum(['disabled', 'active']).optional() })
   .strict()
   .refine((body) => (body.role === undefined) !== (body.status === undefined), {
     message: 'Send exactly one of role or status',
   });
+
+/**
+ * One invitation that was sent and not used. It never carries the token or its hash: the token
+ * only travels in the email link. `GET /api/v1/invitations` (owner only), newest first.
+ */
+export const invitationSchema = z.object({
+  id: uuidSchema,
+  email: z.string(),
+  role: roleSchema,
+  invitedAt: z.iso.datetime(),
+  expiresAt: z.iso.datetime(),
+  status: z.enum(['pending', 'expired']),
+});
+export const listInvitationsResponseSchema = z.object({ items: z.array(invitationSchema) });
 
 export type MeResponse = z.infer<typeof meResponseSchema>;
 export type MyTenant = z.infer<typeof myTenantSchema>;
@@ -69,4 +83,6 @@ export type InviteMemberRequest = z.infer<typeof inviteMemberRequestSchema>;
 export type InviteMemberResponse = z.infer<typeof inviteMemberResponseSchema>;
 export type AcceptInvitationRequest = z.infer<typeof acceptInvitationRequestSchema>;
 export type Member = z.infer<typeof memberSchema>;
+export type Invitation = z.infer<typeof invitationSchema>;
+export type ListInvitationsResponse = z.infer<typeof listInvitationsResponseSchema>;
 export type UpdateMemberRequest = z.infer<typeof updateMemberRequestSchema>;

@@ -1,4 +1,4 @@
-import { eq, isNull } from 'drizzle-orm';
+import { and, desc, eq, isNull } from 'drizzle-orm';
 import type { Transaction } from '../../../infrastructure/db/database';
 import type {
   InvitationRepository,
@@ -6,7 +6,8 @@ import type {
   StoredInvitation,
 } from '../application/ports/invitation.repository';
 import type { Role } from '../domain/identity';
-import type { PendingInvitation } from '../domain/invitation';
+import type { OpenInvitation, PendingInvitation } from '../domain/invitation';
+import type { TenantContext } from '../domain/tenant-context';
 import { invitations } from './schema';
 
 // The invitations_role_check constraint only allows owner and employee.
@@ -64,6 +65,22 @@ export class DrizzleInvitationRepository implements InvitationRepository {
       expiresAt: row.expiresAt,
       consumedAt: row.consumedAt,
     };
+  }
+
+  async listOpen(tx: Transaction, ctx: TenantContext): Promise<readonly OpenInvitation[]> {
+    const rows = await tx
+      .select({
+        id: invitations.id,
+        tenantId: invitations.tenantId,
+        email: invitations.email,
+        role: invitations.role,
+        invitedAt: invitations.createdAt,
+        expiresAt: invitations.expiresAt,
+      })
+      .from(invitations)
+      .where(and(eq(invitations.tenantId, ctx.tenantId), isNull(invitations.consumedAt)))
+      .orderBy(desc(invitations.createdAt), desc(invitations.id));
+    return rows.map((row) => ({ ...row, role: asRole(row.role) }));
   }
 
   async markConsumed(tx: Transaction, invitationId: string, at: Date): Promise<void> {

@@ -1,6 +1,7 @@
 import type { Transaction } from '../../../../infrastructure/db/database';
 import type { Role } from '../../domain/identity';
-import type { PendingInvitation } from '../../domain/invitation';
+import type { OpenInvitation, PendingInvitation } from '../../domain/invitation';
+import type { TenantContext } from '../../domain/tenant-context';
 
 export interface NewInvitation {
   readonly tenantId: string;
@@ -30,6 +31,14 @@ export interface InvitationRepository {
    * not scoped to a tenant: the invitee has no membership yet, the token is the capability.
    */
   findByTokenHashForUpdate(tx: Transaction, tokenHash: string): Promise<StoredInvitation | null>;
+
+  /**
+   * Invitations of `ctx.tenantId` that were not accepted, expired ones included, newest first.
+   * `invitations` is not under row level security, so this query is the only wall between
+   * tenants: it filters by the tenant of the context and nothing else. It never selects the
+   * token hash.
+   */
+  listOpen(tx: Transaction, ctx: TenantContext): Promise<readonly OpenInvitation[]>;
 
   markConsumed(tx: Transaction, invitationId: string, at: Date): Promise<void>;
 }

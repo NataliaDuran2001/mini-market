@@ -234,7 +234,8 @@ describe('members of a tenant', () => {
       for (const body of [
         {},
         { role: 'owner', status: 'disabled' },
-        { status: 'active' },
+        { role: 'owner', status: 'active' },
+        { status: 'deleted' },
         { role: 'admin' },
         { role: 'owner', extra: true },
       ]) {

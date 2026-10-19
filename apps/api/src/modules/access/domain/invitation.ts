@@ -22,3 +22,20 @@ export function normalizeEmail(email: string): string {
 export function invitationExpiry(now: Date): Date {
   return new Date(now.getTime() + INVITATION_TTL_DAYS * MILLISECONDS_PER_DAY);
 }
+
+/** An invitation that was sent and not accepted yet; it may be past its expiry. */
+export interface OpenInvitation {
+  readonly id: string;
+  readonly tenantId: string;
+  readonly email: string;
+  readonly role: Role;
+  readonly invitedAt: Date;
+  readonly expiresAt: Date;
+}
+
+export type InvitationStatus = 'pending' | 'expired';
+
+/** An invitation is usable until the instant it expires. */
+export function invitationStatus(expiresAt: Date, now: Date): InvitationStatus {
+  return expiresAt.getTime() > now.getTime() ? 'pending' : 'expired';
+}

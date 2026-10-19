@@ -87,6 +87,13 @@ export class DrizzleMembershipRepository implements MembershipRepository {
       .where(inTenantFor(tenantId, userId));
   }
 
+  async enable(tx: Transaction, tenantId: string, userId: string): Promise<void> {
+    await tx
+      .update(memberships)
+      .set({ status: 'active', updatedAt: sql`now()` })
+      .where(inTenantFor(tenantId, userId));
+  }
+
   async activate(
     tx: Transaction,
     tenantId: string,
