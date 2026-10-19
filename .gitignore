@@ -42,3 +42,6 @@ AGENTS.md
 
 # Supabase CLI link state (project and organization ids are not credentials, but they need not be in the repository)
 supabase/.temp/
+
+# TanStack router generator temp files
+.tanstack/
